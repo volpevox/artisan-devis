@@ -4,10 +4,12 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
   const [client, setClient] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [description, setDescription] = useState("");
   const [prix, setPrix] = useState("");
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
+  const [devisEnregistre, setDevisEnregistre] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -73,7 +75,7 @@ export default function Home() {
 
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
-      .insert({ client_nom: client, total: Number(prix) })
+      .insert({ client_nom: client, client_email: clientEmail, total: Number(prix) })
       .select()
       .single();
 
@@ -95,52 +97,23 @@ export default function Home() {
       return;
     }
 
-    setMessage("Devis enregistré !");
-    setClient("");
-    setDescription("");
-    setPrix("");
+    setMessage("Devis enregistré ! Tu peux maintenant l'envoyer au client.");
+    setDevisEnregistre(true);
   }
 
-  return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
-      <h1>Nouveau devis</h1>
+  async function envoyerAuClient() {
+    setMessage("Envoi de l'email en cours...");
 
-      <button
-        onClick={enregistrement ? arreterMicro : demarrerMicro}
-        style={{
-          padding: "10px 20px",
-          marginBottom: 15,
-          background: enregistrement ? "red" : "#333",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-        }}
-      >
-        {enregistrement ? "Arrêter" : "Dicter le chantier"}
-      </button>
+    const res = await fetch("/api/envoyer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientEmail, clientNom: client, description, prix }),
+    });
+    const data = await res.json();
 
-      <input
-        placeholder="Nom du client"
-        value={client}
-        onChange={(e) => setClient(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <textarea
-        placeholder="Description du chantier"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="Prix (€)"
-        value={prix}
-        onChange={(e) => setPrix(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <button onClick={envoyer} style={{ padding: "10px 20px" }}>
-        Enregistrer le devis
-      </button>
-      <p>{message}</p>
-    </main>
-  );
-}
+    if (data.erreur) {
+      setMessage("Erreur d'envoi : " + data.erreur);
+      return;
+    }
+
+    setMessage("Devis envoyé au client !");
