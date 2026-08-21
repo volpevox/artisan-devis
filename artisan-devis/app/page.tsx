@@ -117,3 +117,70 @@ export default function Home() {
     }
 
     setMessage("Devis envoyé au client !");
+    setClient("");
+    setClientEmail("");
+    setDescription("");
+    setPrix("");
+    setDevisEnregistre(false);
+  }
+
+  return (
+    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
+      <h1>Nouveau devis</h1>
+
+      <button
+        onClick={enregistrement ? arreterMicro : demarrerMicro}
+        style={{
+          padding: "10px 20px",
+          marginBottom: 15,
+          background: enregistrement ? "red" : "#333",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+        }}
+      >
+        {enregistrement ? "Arrêter" : "Dicter le chantier"}
+      </button>
+
+      <input
+        placeholder="Nom du client"
+        value={client}
+        onChange={(e) => setClient(e.target.value)}
+        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
+      />
+      <input
+        placeholder="Email du client"
+        value={clientEmail}
+        onChange={(e) => setClientEmail(e.target.value)}
+        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
+      />
+      <textarea
+        placeholder="Description du chantier"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
+      />
+      <input
+        placeholder="Prix (€)"
+        value={prix}
+        onChange={(e) => setPrix(e.target.value)}
+        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
+      />
+
+      {!devisEnregistre ? (
+        <button onClick={envoyer} style={{ padding: "10px 20px" }}>
+          Enregistrer le devis
+        </button>
+      ) : (
+        <button
+          onClick={envoyerAuClient}
+          style={{ padding: "10px 20px", background: "green", color: "white", border: "none", borderRadius: 6 }}
+        >
+          Envoyer au client
+        </button>
+      )}
+
+      <p>{message}</p>
+    </main>
+  );
+}
