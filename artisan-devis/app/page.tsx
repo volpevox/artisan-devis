@@ -83,52 +83,92 @@ export default function Home() {
       return;
     }
 
-    setMessage("Devis enregistré !");
-    setClient("");
-    setDescription("");
-    setPrix("");
+"use client";
+import { useState, useRef } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+export default function Home() {
+  const [client, setClient] = useState("");
+  const [description, setDescription] = useState("");
+  const [prix, setPrix] = useState("");
+  const [message, setMessage] = useState("");
+  const [enregistrement, setEnregistrement] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
+  async function demarrerMicro() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+
+    const recorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = recorder;
+    chunksRef.current = [];
+
+    recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
+
+    recorder.onstop = async () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+
+      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      setMessage("Transcription en cours...");
+
+      const formData = new FormData();
+      formData.append("audio", blob, "audio.webm");
+
+      const res = await fetch("/api/transcrire", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.erreur) {
+        setMessage("Erreur : " + data.erreur);
+        return;
+      }
+
+      setMessage("Analyse du devis en cours...");
+
+      const resStructure = await fetch("/api/structurer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texte: data.texte }),
+      });
+      const donnees = await resStructure.json();
+
+      if (donnees.client) setClient(donnees.client);
+      setDescription(donnees.description || data.texte);
+      if (donnees.prix) setPrix(String(donnees.prix));
+
+      setMessage("Devis rempli automatiquement, vérifie avant d'enregistrer.");
+    };
+
+    recorder.start();
+    setEnregistrement(true);
   }
 
-  return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
-      <h1>Nouveau devis</h1>
+  function arreterMicro() {
+    mediaRecorderRef.current?.stop();
+    setEnregistrement(false);
+  }
 
-      <button
-        onClick={enregistrement ? arreterMicro : demarrerMicro}
-        style={{
-          padding: "10px 20px",
-          marginBottom: 15,
-          background: enregistrement ? "red" : "#333",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-        }}
-      >
-        {enregistrement ? "Arrêter" : "Dicter le chantier"}
-      </button>
+  async function envoyer() {
+    setMessage("Enregistrement...");
 
-      <input
-        placeholder="Nom du client"
-        value={client}
-        onChange={(e) => setClient(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <textarea
-        placeholder="Description du chantier"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="Prix (€)"
-        value={prix}
-        onChange={(e) => setPrix(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <button onClick={envoyer} style={{ padding: "10px 20px" }}>
-        Enregistrer le devis
-      </button>
-      <p>{message}</p>
-    </main>
-  );
-}
+    const { data: devis, error: erreurDevis } = await supabase
+      .from("devis")
+      .insert({ client_nom: client, total: Number(prix) })
+      .select()
+      .single();
+
+    if (erreurDevis) {
+      setMessage("Erreur : " + erreurDevis.message);
+      return;
+    }
+
+    const { error: erreurLigne } = await supabase.from("lignes_devis").insert({
+      devis_id: devis.id,
+      description: description,
+      quantite: 1,
+      prix_unitaire:
