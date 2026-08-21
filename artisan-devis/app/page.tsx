@@ -9,10 +9,13 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
   async function demarrerMicro() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+
     const recorder = new MediaRecorder(stream);
     mediaRecorderRef.current = recorder;
     chunksRef.current = [];
@@ -20,6 +23,10 @@ export default function Home() {
     recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
 
     recorder.onstop = async () => {
+      // On coupe vraiment le micro ici, une fois l'enregistrement terminé
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+
       const blob = new Blob(chunksRef.current, { type: "audio/webm" });
       setMessage("Transcription en cours...");
 
