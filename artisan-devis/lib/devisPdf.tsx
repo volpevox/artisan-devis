@@ -27,77 +27,67 @@ Font.register({
   ],
 });
 
-const INK = "#103362";
-const INK_SOFT = "#1c5aa3";
-const OR = "#c9a154";
-const OR_DOUX = "#f3e8d2";
-const TEXTE = "#211d2b";
-const SOMBRE = "#2a2730";
-const LIGNE = "#eae7f0";
+const NUIT = "#0d1b2a";
+const OR = "#d4af37";
+const ARDOISE = "#3a4a5e";
+const TEXTE = "#eef1f6";
+const MUTED = "#93a0b3";
+const MUTED_DOUX = "#b7c0cc";
+const LIGNE = "rgba(255,255,255,0.08)";
+const LIGNE_OR = "rgba(212,175,55,0.4)";
+const TOP_BORDER = "rgba(212,175,55,0.25)";
 
 const styles = StyleSheet.create({
-  page: { fontFamily: "Archivo", fontSize: 10, color: TEXTE },
+  page: { fontFamily: "Archivo", fontSize: 10, color: TEXTE, backgroundColor: NUIT },
 
-  masthead: {
-    backgroundColor: INK,
-    color: "#fff",
-    padding: 28,
-    paddingBottom: 24,
+  top: {
+    padding: "26 28 20",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
+    borderBottomWidth: 1,
+    borderColor: TOP_BORDER,
   },
   brand: { flexDirection: "row", alignItems: "center", gap: 12 },
   logoChip: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 8,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
   },
-  logoImage: { width: 40, height: 40, objectFit: "contain" },
-  logoInitiales: { fontFamily: "Fraunces", fontWeight: 700, fontSize: 16, color: INK },
+  logoImage: { width: 36, height: 36, objectFit: "contain" },
+  logoInitiales: { fontFamily: "Fraunces", fontWeight: 700, fontSize: 15, color: NUIT },
   brandTexte: { flexDirection: "column", gap: 4 },
-  brandNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 16 },
-  brandMeta: { fontSize: 9.5, color: "#ffffff" },
+  brandNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: "#ffffff" },
+  brandMeta: { fontSize: 9, color: MUTED },
 
   devisWordmark: { alignItems: "flex-end" },
-  devisWord: { fontFamily: "Fraunces", fontWeight: 900, fontSize: 38, color: "#fff", marginBottom: 8 },
-  devisPill: {
-    flexDirection: "row",
-    gap: 6,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
-    borderRadius: 12,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-  },
-  devisPillTexte: { fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 8.5, color: OR },
-  devisPillDate: { fontFamily: "JetBrains Mono", fontWeight: 700, fontSize: 8.5, color: "#ffffff" },
+  devisWord: { fontFamily: "Fraunces", fontWeight: 900, fontSize: 34, color: OR, marginBottom: 6 },
+  devisNumero: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED },
 
-  contenu: { padding: 28, paddingTop: 22, flexGrow: 1 },
+  contenu: { padding: "24 28", flexGrow: 1 },
 
   clientLabel: {
     fontFamily: "JetBrains Mono",
     fontSize: 8.5,
     letterSpacing: 1.5,
-    color: SOMBRE,
+    color: OR,
     marginBottom: 5,
     textTransform: "uppercase",
   },
-  clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15 },
-  clientAdresse: { fontSize: 9.5, color: SOMBRE, marginTop: 3 },
+  clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: "#ffffff" },
+  clientAdresse: { fontSize: 9.5, color: MUTED, marginTop: 3 },
 
   tableHeader: {
     flexDirection: "row",
-    borderBottomWidth: 2,
-    borderColor: INK,
+    borderBottomWidth: 1.5,
+    borderColor: LIGNE_OR,
     paddingBottom: 8,
     marginTop: 20,
   },
-  tableHeaderTexte: { fontSize: 8.5, fontWeight: 700, color: INK, textTransform: "uppercase" },
+  tableHeaderTexte: { fontSize: 8.5, fontWeight: 700, color: OR, textTransform: "uppercase" },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -110,14 +100,14 @@ const styles = StyleSheet.create({
   colTotal: { width: "20%", textAlign: "right" },
 
   blocTotaux: { alignSelf: "flex-end", width: 230, marginTop: 14, gap: 5 },
-  ligneTotal: { flexDirection: "row", justifyContent: "space-between", fontSize: 11, fontWeight: 600, color: INK },
+  ligneTotal: { flexDirection: "row", justifyContent: "space-between", fontSize: 10.5, color: MUTED_DOUX },
   vatNote: {
     fontSize: 9,
     fontWeight: 700,
-    backgroundColor: OR_DOUX,
+    backgroundColor: "rgba(212,175,55,0.12)",
     borderWidth: 1,
     borderColor: OR,
-    color: INK,
+    color: TEXTE,
     padding: 7,
     borderRadius: 3,
     marginVertical: 3,
@@ -126,7 +116,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: INK,
+    backgroundColor: OR,
     borderRadius: 6,
     paddingVertical: 11,
     paddingHorizontal: 14,
@@ -135,11 +125,11 @@ const styles = StyleSheet.create({
   totalTTCLabel: {
     fontFamily: "Fraunces",
     fontSize: 9.5,
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(13,27,42,0.65)",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  totalTTCValeur: { fontFamily: "Fraunces", fontWeight: 800, fontSize: 19, color: OR },
+  totalTTCValeur: { fontFamily: "Fraunces", fontWeight: 800, fontSize: 19, color: NUIT },
 
   footnotes: { flexDirection: "row", gap: 24, marginTop: 26 },
   footnote: { width: "50%" },
@@ -147,40 +137,42 @@ const styles = StyleSheet.create({
     fontFamily: "JetBrains Mono",
     fontSize: 8,
     letterSpacing: 1.2,
-    color: SOMBRE,
+    color: MUTED,
     marginBottom: 4,
     textTransform: "uppercase",
   },
-  footnoteTexte: { fontSize: 9, color: TEXTE, lineHeight: 1.5 },
+  footnoteTexte: { fontSize: 9, color: MUTED_DOUX, lineHeight: 1.5 },
 
   signature: { flexDirection: "row", gap: 22, marginTop: 30 },
   signatureSlot: { width: "50%" },
   signatureEspace: { height: 40, alignItems: "center", justifyContent: "flex-end" },
-  signatureImage: { height: 40, objectFit: "contain" },
-  signatureLigne: { borderTopWidth: 1, borderColor: LIGNE },
-  signatureLabel: { fontFamily: "JetBrains Mono", fontSize: 8, color: SOMBRE, paddingTop: 5 },
+  signatureCard: { backgroundColor: "#ffffff", borderRadius: 6, padding: 4 },
+  signatureImage: { height: 36, objectFit: "contain" },
+  signatureLigne: { borderTopWidth: 1, borderColor: ARDOISE },
+  signatureLabel: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED, paddingTop: 5 },
   signeBadge: {
     fontFamily: "JetBrains Mono",
     fontSize: 8,
     fontWeight: 700,
-    color: "#1a7a3c",
+    color: "#3ed598",
     paddingTop: 5,
   },
 
   pied: {
-    backgroundColor: INK,
     paddingVertical: 14,
     paddingHorizontal: 28,
     alignItems: "center",
+    borderTopWidth: 1,
+    borderColor: TOP_BORDER,
   },
   piedLegal: {
     fontFamily: "JetBrains Mono",
     fontSize: 8,
-    color: "rgba(255,255,255,0.85)",
+    color: MUTED,
     textAlign: "center",
     marginBottom: 4,
   },
-  piedBrand: { fontSize: 7.5, color: "#ffffff" },
+  piedBrand: { fontSize: 7.5, color: MUTED },
   piedBrandNom: { color: OR, fontWeight: 700 },
 });
 
@@ -262,7 +254,7 @@ export function DevisPDF({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.masthead}>
+        <View style={styles.top}>
           <View style={styles.brand}>
             <View style={styles.logoChip}>
               {entreprise.logoUrl ? (
@@ -281,10 +273,9 @@ export function DevisPDF({
 
           <View style={styles.devisWordmark}>
             <Text style={styles.devisWord}>{motDocument}</Text>
-            <View style={styles.devisPill}>
-              <Text style={styles.devisPillTexte}>N° {numeroDocument(date, estFacture ? "FAC" : "DEV")}</Text>
-              <Text style={styles.devisPillDate}>· {formaterDate(date)}</Text>
-            </View>
+            <Text style={styles.devisNumero}>
+              N° {numeroDocument(date, estFacture ? "FAC" : "DEV")} · {formaterDate(date)}
+            </Text>
           </View>
         </View>
 
@@ -363,7 +354,11 @@ export function DevisPDF({
               </View>
               <View style={styles.signatureSlot}>
                 <View style={styles.signatureEspace}>
-                  {signatureUrl ? <Image src={signatureUrl} style={styles.signatureImage} /> : null}
+                  {signatureUrl ? (
+                    <View style={styles.signatureCard}>
+                      <Image src={signatureUrl} style={styles.signatureImage} />
+                    </View>
+                  ) : null}
                 </View>
                 <View style={styles.signatureLigne} />
                 <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
