@@ -273,6 +273,10 @@ export default function Home() {
           <p className="voice-sub">Que souhaitez-vous créer aujourd'hui ?</p>
 
           <div className="mic-wrap">
+            <span className="mic-label">
+              {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez votre prestation"}
+            </span>
+
             <button
               className={`mic-button mic-button--hero${enregistrement ? " recording" : ""}`}
               onClick={enregistrement ? arreterMicro : demarrerMicro}
@@ -280,10 +284,6 @@ export default function Home() {
             >
               {iconeMicro}
             </button>
-
-            <span className="mic-label">
-              {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez le chantier"}
-            </span>
           </div>
 
           <div className={`voice-wave${enregistrement ? " active" : ""}`} aria-hidden="true">
