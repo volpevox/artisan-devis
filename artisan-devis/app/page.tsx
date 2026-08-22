@@ -7,7 +7,9 @@ export default function Home() {
   const [clientEmail, setClientEmail] = useState("");
   const [description, setDescription] = useState("");
   const [prestation, setPrestation] = useState("");
-  const [prix, setPrix] = useState("");
+  const [quantite, setQuantite] = useState("1");
+  const [unite, setUnite] = useState("forfait");
+  const [prixUnitaire, setPrixUnitaire] = useState("");
   const [prixPropose, setPrixPropose] = useState(false);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
@@ -15,6 +17,8 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  const total = (Number(quantite) || 0) * (Number(prixUnitaire) || 0);
 
   async function demarrerMicro() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -59,12 +63,14 @@ export default function Home() {
       if (donnees.client) setClient(donnees.client);
       setDescription(donnees.description || data.texte);
       setPrestation(donnees.prestation || "");
-      if (donnees.prix) setPrix(String(donnees.prix));
+      setQuantite(String(donnees.quantite || 1));
+      setUnite(donnees.unite || "forfait");
+      if (donnees.prixUnitaire) setPrixUnitaire(String(donnees.prixUnitaire));
       setPrixPropose(Boolean(donnees.prixPropose));
 
       setMessage(
         donnees.prixPropose
-          ? "Devis rempli automatiquement. Prix proposé d'après tes anciens devis, vérifie avant d'enregistrer."
+          ? "Devis rempli automatiquement. Prix unitaire proposé d'après tes anciens devis, vérifie avant d'enregistrer."
           : "Devis rempli automatiquement, vérifie avant d'enregistrer."
       );
     };
@@ -78,18 +84,19 @@ export default function Home() {
     setEnregistrement(false);
   }
 
-  async function apprendrePrix(prestationSaisie: string, prixNum: number) {
-    if (!prestationSaisie.trim() || !prixNum) return;
+  async function apprendrePrix(prestationSaisie: string, uniteSaisie: string, prixUnitaireNum: number) {
+    if (!prestationSaisie.trim() || !prixUnitaireNum) return;
 
     const { data: existant } = await supabase
       .from("prix_appris")
       .select("*")
       .ilike("prestation", prestationSaisie.trim())
+      .eq("unite", uniteSaisie)
       .maybeSingle();
 
     if (existant) {
       const nouvelleMoyenne =
-        (existant.prix_moyen * existant.nombre_utilisations + prixNum) /
+        (existant.prix_moyen * existant.nombre_utilisations + prixUnitaireNum) /
         (existant.nombre_utilisations + 1);
 
       await supabase
@@ -103,7 +110,8 @@ export default function Home() {
     } else {
       await supabase.from("prix_appris").insert({
         prestation: prestationSaisie.trim(),
-        prix_moyen: prixNum,
+        unite: uniteSaisie,
+        prix_moyen: prixUnitaireNum,
         nombre_utilisations: 1,
         updated_at: new Date().toISOString(),
       });
@@ -115,7 +123,7 @@ export default function Home() {
 
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
-      .insert({ client_nom: client, client_email: clientEmail, total: Number(prix) })
+      .insert({ client_nom: client, client_email: clientEmail, total })
       .select()
       .single();
 
@@ -127,9 +135,9 @@ export default function Home() {
     const { error: erreurLigne } = await supabase.from("lignes_devis").insert({
       devis_id: devis.id,
       description: description,
-      quantite: 1,
-      prix_unitaire: Number(prix),
-      total_ligne: Number(prix),
+      quantite: Number(quantite),
+      prix_unitaire: Number(prixUnitaire),
+      total_ligne: total,
     });
 
     if (erreurLigne) {
@@ -137,7 +145,7 @@ export default function Home() {
       return;
     }
 
-    await apprendrePrix(prestation, Number(prix));
+    await apprendrePrix(prestation, unite, Number(prixUnitaire));
 
     setMessage("Devis enregistré ! Tu peux maintenant l'envoyer au client.");
     setDevisEnregistre(true);
@@ -149,7 +157,7 @@ export default function Home() {
     const res = await fetch("/api/envoyer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientEmail, clientNom: client, description, prix }),
+      body: JSON.stringify({ clientEmail, clientNom: client, description, prix: total }),
     });
     const data = await res.json();
 
@@ -163,7 +171,9 @@ export default function Home() {
     setClientEmail("");
     setDescription("");
     setPrestation("");
-    setPrix("");
+    setQuantite("1");
+    setUnite("forfait");
+    setPrixUnitaire("");
     setPrixPropose(false);
     setDevisEnregistre(false);
   }
@@ -210,11 +220,27 @@ export default function Home() {
         onChange={(e) => setPrestation(e.target.value)}
         style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
       />
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+        <input
+          placeholder="Quantité"
+          value={quantite}
+          onChange={(e) => setQuantite(e.target.value)}
+          style={{ width: "33%", padding: 8 }}
+        />
+        <input
+          placeholder="Unité (m², heure, forfait...)"
+          value={unite}
+          onChange={(e) => setUnite(e.target.value)}
+          style={{ width: "67%", padding: 8 }}
+        />
+      </div>
+
       <input
-        placeholder="Prix (€)"
-        value={prix}
+        placeholder="Prix unitaire (€)"
+        value={prixUnitaire}
         onChange={(e) => {
-          setPrix(e.target.value);
+          setPrixUnitaire(e.target.value);
           setPrixPropose(false);
         }}
         style={{
@@ -227,9 +253,11 @@ export default function Home() {
       />
       {prixPropose && (
         <p style={{ fontSize: 12, color: "#2a7", marginTop: 0, marginBottom: 10 }}>
-          Prix proposé automatiquement d'après tes anciens devis
+          Prix unitaire proposé automatiquement d'après tes anciens devis
         </p>
       )}
+
+      <p style={{ fontWeight: "bold" }}>Total : {total.toFixed(2)} €</p>
 
       {!devisEnregistre ? (
         <button onClick={envoyer} style={{ padding: "10px 20px" }}>
