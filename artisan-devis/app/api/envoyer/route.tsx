@@ -7,11 +7,13 @@ import { DevisPDF } from "@/lib/devisPdf";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { clientEmail, clientNom, description, quantite, unite, prixUnitaire, prix } = await req.json();
+  const { clientEmail, clientNom, description, quantite, unite, prixUnitaire, prix, devisId } = await req.json();
 
   if (!clientEmail) {
     return NextResponse.json({ erreur: "Aucun email de client fourni" }, { status: 400 });
   }
+
+  const lienSignature = devisId ? `${req.nextUrl.origin}/signer/${devisId}` : null;
 
   const { data: profil } = await supabase.from("artisans").select("*").limit(1).maybeSingle();
 
@@ -55,6 +57,11 @@ export async function POST(req: NextRequest) {
         <p><strong>Description :</strong> ${description}</p>
         <p><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
         <p>Vous trouverez le devis détaillé en pièce jointe.</p>
+        ${
+          lienSignature
+            ? `<p><a href="${lienSignature}" style="display:inline-block;padding:10px 20px;background:#103362;color:#fff;text-decoration:none;border-radius:6px;">Signer ce devis en ligne</a></p>`
+            : ""
+        }
         <p>N'hésitez pas à nous contacter pour toute question.</p>
       `,
       attachments: [

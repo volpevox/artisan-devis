@@ -15,6 +15,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
   const [devisEnregistre, setDevisEnregistre] = useState(false);
+  const [devisId, setDevisId] = useState("");
+  const [lienSignature, setLienSignature] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -121,10 +123,11 @@ export default function Home() {
 
   async function envoyer() {
     setMessage("Enregistrement...");
+    setLienSignature("");
 
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
-      .insert({ client_nom: client, client_email: clientEmail, total })
+      .insert({ client_nom: client, client_email: clientEmail, total, statut: "brouillon" })
       .select()
       .single();
 
@@ -148,6 +151,7 @@ export default function Home() {
 
     await apprendrePrix(prestation, unite, Number(prixUnitaire));
 
+    setDevisId(devis.id);
     setMessage("Devis enregistré ! Tu peux maintenant l'envoyer au client.");
     setDevisEnregistre(true);
   }
@@ -166,6 +170,7 @@ export default function Home() {
         unite,
         prixUnitaire,
         prix: total,
+        devisId,
       }),
     });
     const data = await res.json();
@@ -175,6 +180,9 @@ export default function Home() {
       return;
     }
 
+    await supabase.from("devis").update({ statut: "envoye" }).eq("id", devisId);
+
+    setLienSignature(`${window.location.origin}/signer/${devisId}`);
     setMessage("Devis envoyé au client !");
     setClient("");
     setClientEmail("");
@@ -189,9 +197,10 @@ export default function Home() {
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
-      <Link href="/profil" style={{ display: "block", marginBottom: 15 }}>
-        Mon profil →
-      </Link>
+      <div style={{ display: "flex", gap: 16, marginBottom: 15 }}>
+        <Link href="/profil">Mon profil →</Link>
+        <Link href="/devis">Mes devis →</Link>
+      </div>
 
       <h1>Nouveau devis</h1>
 
@@ -286,6 +295,15 @@ export default function Home() {
       )}
 
       <p>{message}</p>
+
+      {lienSignature && (
+        <div style={{ background: "#f4f5f7", padding: 12, borderRadius: 6, marginTop: 10 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 13 }}>Lien de signature (déjà inclus dans l'email) :</p>
+          <a href={lienSignature} target="_blank" rel="noreferrer" style={{ fontSize: 13, wordBreak: "break-all" }}>
+            {lienSignature}
+          </a>
+        </div>
+      )}
     </main>
   );
 }
