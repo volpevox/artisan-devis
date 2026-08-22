@@ -238,7 +238,19 @@ export default function Home() {
             onClick={enregistrement ? arreterMicro : demarrerMicro}
             aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
           >
-            <img src="/fox-icon.png" alt="" />
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 0 0-7 0v5A3.5 3.5 0 0 0 12 15Z"
+                stroke="var(--on-ink)"
+                strokeWidth="1.8"
+              />
+              <path
+                d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v3.5M9 20.5h6"
+                stroke="var(--on-ink)"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
           <span className="mic-label">{enregistrement ? "Arrêter" : "Dicter la prestation"}</span>
         </div>
