@@ -505,9 +505,7 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 22px;
-  opacity: 1;
-  animation: splash-fade-out 0.6s ease forwards;
-  animation-delay: 2.4s;
+  cursor: pointer;
 }
 
 .splash-logo {
@@ -556,9 +554,31 @@ textarea {
   }
 }
 
-@keyframes splash-fade-out {
+.splash-tap {
+  margin-top: 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  animation:
+    splash-tap-in 0.6s ease 2.5s forwards,
+    splash-tap-pulse 1.8s ease-in-out 3.1s infinite;
+}
+
+@keyframes splash-tap-in {
   to {
-    opacity: 0;
-    visibility: hidden;
+    opacity: 1;
+  }
+}
+
+@keyframes splash-tap-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
   }
 }

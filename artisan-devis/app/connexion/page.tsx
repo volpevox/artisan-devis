@@ -13,10 +13,11 @@ export default function Connexion() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [afficherSplash, setAfficherSplash] = useState(false);
+  const [destinationSplash, setDestinationSplash] = useState("/");
 
   function lancerSplashPuisRediriger(destination: string) {
+    setDestinationSplash(destination);
     setAfficherSplash(true);
-    setTimeout(() => router.push(destination), 3000);
   }
 
   async function valider(e: FormEvent) {
@@ -70,7 +71,7 @@ export default function Connexion() {
   }
 
   if (afficherSplash) {
-    return <SplashEcran />;
+    return <SplashEcran onContinuer={() => router.push(destinationSplash)} />;
   }
 
   return (
