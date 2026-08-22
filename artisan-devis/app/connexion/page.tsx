@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { SplashEcran } from "@/components/SplashEcran";
 
 export default function Connexion() {
   const router = useRouter();
@@ -10,6 +11,12 @@ export default function Connexion() {
   const [motDePasse, setMotDePasse] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
+  const [afficherSplash, setAfficherSplash] = useState(false);
+
+  function lancerSplashPuisRediriger(destination: string) {
+    setAfficherSplash(true);
+    setTimeout(() => router.push(destination), 3000);
+  }
 
   async function valider() {
     setMessage("");
@@ -25,7 +32,7 @@ export default function Connexion() {
       }
 
       if (data.session) {
-        router.push("/profil");
+        lancerSplashPuisRediriger("/profil");
       } else {
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);
@@ -41,7 +48,11 @@ export default function Connexion() {
       return;
     }
 
-    router.push("/");
+    lancerSplashPuisRediriger("/");
+  }
+
+  if (afficherSplash) {
+    return <SplashEcran />;
   }
 
   return (

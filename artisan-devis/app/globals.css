@@ -491,3 +491,69 @@ textarea {
 .voice-skip:hover {
   color: var(--ink);
 }
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  opacity: 1;
+  animation: splash-fade-out 0.6s ease forwards;
+  animation-delay: 2.4s;
+}
+
+.splash-logo {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  opacity: 0;
+  animation: splash-logo-in 0.9s ease forwards;
+}
+
+@keyframes splash-logo-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.splash-tagline {
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--ink);
+  text-align: center;
+  margin: 0;
+  padding: 0 20px;
+}
+
+.splash-ligne {
+  display: block;
+  clip-path: inset(0 100% 0 0);
+  animation: splash-write 0.9s ease forwards;
+}
+
+.splash-ligne-1 {
+  animation-delay: 0.7s;
+}
+
+.splash-ligne-2 {
+  animation-delay: 1.45s;
+}
+
+@keyframes splash-write {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes splash-fade-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

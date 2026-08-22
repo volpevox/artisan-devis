@@ -1,4 +1,4 @@
-import { Poppins, Montserrat } from "next/font/google";
+import { Poppins, Montserrat, Caveat } from "next/font/google";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -13,6 +13,12 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-caveat",
+});
+
 export const metadata = {
   title: "VolpeVox",
   description: "Créez vos devis en dictant, en quelques secondes",
@@ -24,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${poppins.variable} ${montserrat.variable}`}>
+    <html lang="fr" className={`${poppins.variable} ${montserrat.variable} ${caveat.variable}`}>
       <body>{children}</body>
     </html>
   );
