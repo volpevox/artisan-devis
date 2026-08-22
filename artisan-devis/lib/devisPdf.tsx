@@ -188,11 +188,11 @@ function formaterDate(date: Date) {
   return date.toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function numeroDevis(date: Date) {
+function numeroDocument(date: Date, prefixe: string) {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `DEV-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(
-    date.getMinutes()
-  )}`;
+  return `${prefixe}-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(
+    date.getHours()
+  )}${pad(date.getMinutes())}`;
 }
 
 function initiales(nom: string) {
@@ -227,6 +227,7 @@ interface DevisPdfProps {
   date: Date;
   signatureUrl?: string | null;
   signeLe?: Date | null;
+  type?: "devis" | "facture";
 }
 
 export function DevisPDF({
@@ -242,9 +243,12 @@ export function DevisPDF({
   date,
   signatureUrl,
   signeLe,
+  type = "devis",
 }: DevisPdfProps) {
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
+  const estFacture = type === "facture";
+  const motDocument = estFacture ? "Facture" : "Devis";
 
   const infosPied = [
     entreprise.nom,
@@ -276,9 +280,9 @@ export function DevisPDF({
           </View>
 
           <View style={styles.devisWordmark}>
-            <Text style={styles.devisWord}>Devis</Text>
+            <Text style={styles.devisWord}>{motDocument}</Text>
             <View style={styles.devisPill}>
-              <Text style={styles.devisPillTexte}>N° {numeroDevis(date)}</Text>
+              <Text style={styles.devisPillTexte}>N° {numeroDocument(date, estFacture ? "FAC" : "DEV")}</Text>
               <Text style={styles.devisPillDate}>· {formaterDate(date)}</Text>
             </View>
           </View>
@@ -286,7 +290,7 @@ export function DevisPDF({
 
         <View style={styles.contenu}>
           <View>
-            <Text style={styles.clientLabel}>Devis adressé à</Text>
+            <Text style={styles.clientLabel}>{motDocument} adressé{estFacture ? "e" : ""} à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
             {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
           </View>
@@ -344,24 +348,28 @@ export function DevisPDF({
             )}
           </View>
 
-          <View style={styles.signature}>
-            <View style={styles.signatureSlot}>
-              <View style={styles.signatureEspace} />
-              <View style={styles.signatureLigne} />
-              {signeLe ? (
-                <Text style={styles.signeBadge}>Signé le {formaterDate(signeLe)}</Text>
-              ) : (
-                <Text style={styles.signatureLabel}>Date</Text>
-              )}
-            </View>
-            <View style={styles.signatureSlot}>
-              <View style={styles.signatureEspace}>
-                {signatureUrl ? <Image src={signatureUrl} style={styles.signatureImage} /> : null}
+          {estFacture ? (
+            <Text style={[styles.footnoteTexte, { marginTop: 26 }]}>Merci pour votre confiance.</Text>
+          ) : (
+            <View style={styles.signature}>
+              <View style={styles.signatureSlot}>
+                <View style={styles.signatureEspace} />
+                <View style={styles.signatureLigne} />
+                {signeLe ? (
+                  <Text style={styles.signeBadge}>Signé le {formaterDate(signeLe)}</Text>
+                ) : (
+                  <Text style={styles.signatureLabel}>Date</Text>
+                )}
               </View>
-              <View style={styles.signatureLigne} />
-              <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
+              <View style={styles.signatureSlot}>
+                <View style={styles.signatureEspace}>
+                  {signatureUrl ? <Image src={signatureUrl} style={styles.signatureImage} /> : null}
+                </View>
+                <View style={styles.signatureLigne} />
+                <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
+              </View>
             </View>
-          </View>
+          )}
         </View>
 
         <View style={styles.pied} fixed>

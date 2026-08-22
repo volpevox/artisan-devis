@@ -26,6 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const tauxTva = profil?.taux_tva ?? 20;
   const totalHT = ligne?.total_ligne ?? devis.total ?? 0;
+  const estFacture = Boolean(devis.est_facture);
 
   const pdfBuffer = await renderToBuffer(
     <DevisPDF
@@ -48,16 +49,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       prixUnitaire={ligne?.prix_unitaire || totalHT}
       totalHT={totalHT}
       tauxTva={tauxTva}
-      date={new Date(devis.created_at)}
+      date={new Date(estFacture ? devis.facture_creee_le : devis.created_at)}
       signatureUrl={devis.signature_url}
       signeLe={devis.signe_le ? new Date(devis.signe_le) : null}
+      type={estFacture ? "facture" : "devis"}
     />
   );
 
   return new NextResponse(pdfBuffer, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="devis-${devis.client_nom || params.id}.pdf"`,
+      "Content-Disposition": `inline; filename="${estFacture ? "facture" : "devis"}-${devis.client_nom || params.id}.pdf"`,
     },
   });
 }
