@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
+import { emailHtml } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -71,12 +72,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       from: "onboarding@resend.dev",
       to: devis.client_email,
       subject: `Votre facture - ${devis.client_nom || ""}`,
-      html: `
-        <h2>Facture pour ${devis.client_nom || ""}</h2>
-        <p><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
-        <p>Vous trouverez la facture détaillée en pièce jointe.</p>
-        <p>Merci pour votre confiance.</p>
-      `,
+      html: emailHtml({
+        titre: `Facture pour ${devis.client_nom || ""}`,
+        corpsHtml: `
+          <p style="margin:0 0 16px;"><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
+          <p style="margin:0 0 4px;">Vous trouverez la facture détaillée en pièce jointe.</p>
+          <p style="margin:0;">Merci pour votre confiance.</p>
+        `,
+        boutonUrl: `${req.nextUrl.origin}/api/devis-pdf/${params.id}`,
+        boutonTexte: "Télécharger la facture",
+      }),
       attachments: [
         {
           filename: "facture.pdf",

@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createServerSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
+import { emailHtml } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -55,18 +56,17 @@ export async function POST(req: NextRequest) {
       from: "onboarding@resend.dev",
       to: clientEmail,
       subject: `Votre devis - ${clientNom}`,
-      html: `
-        <h2>Devis pour ${clientNom}</h2>
-        <p><strong>Description :</strong> ${description}</p>
-        <p><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
-        <p>Vous trouverez le devis détaillé en pièce jointe.</p>
-        ${
-          lienSignature
-            ? `<p><a href="${lienSignature}" style="display:inline-block;padding:10px 20px;background:#103362;color:#fff;text-decoration:none;border-radius:6px;">Signer ce devis en ligne</a></p>`
-            : ""
-        }
-        <p>N'hésitez pas à nous contacter pour toute question.</p>
-      `,
+      html: emailHtml({
+        titre: `Devis pour ${clientNom}`,
+        corpsHtml: `
+          <p style="margin:0 0 8px;"><strong>Description :</strong> ${description}</p>
+          <p style="margin:0 0 16px;"><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
+          <p style="margin:0 0 4px;">Vous trouverez le devis détaillé en pièce jointe.</p>
+          <p style="margin:0;">N'hésitez pas à nous contacter pour toute question.</p>
+        `,
+        boutonUrl: lienSignature,
+        boutonTexte: "Signer ce devis en ligne",
+      }),
       attachments: [
         {
           filename: "devis.pdf",
