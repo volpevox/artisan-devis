@@ -277,14 +277,14 @@ export default function Home() {
         <div className="field-row">
           <input
             className="field"
-            style={{ width: "33%" }}
+            style={{ flex: "1 1 0%" }}
             placeholder="Quantité"
             value={quantite}
             onChange={(e) => setQuantite(e.target.value)}
           />
           <input
             className="field"
-            style={{ width: "67%" }}
+            style={{ flex: "2 1 0%" }}
             placeholder="Unité (m², heure, forfait...)"
             value={unite}
             onChange={(e) => setUnite(e.target.value)}

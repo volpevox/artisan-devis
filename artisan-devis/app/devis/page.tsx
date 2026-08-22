@@ -49,14 +49,16 @@ export default function MesDevis() {
         const b = badge(d.statut);
         return (
           <div key={d.id} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <p style={{ margin: 0, fontWeight: 700 }}>{d.client_nom || "(sans nom)"}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: 700, overflowWrap: "break-word" }}>{d.client_nom || "(sans nom)"}</p>
                 <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--muted)" }}>
                   {new Date(d.created_at).toLocaleDateString("fr-FR")} · {d.total} €
                 </p>
               </div>
-              <span className={`badge ${b.classe}`}>{b.texte}</span>
+              <span className={`badge ${b.classe}`} style={{ flexShrink: 0 }}>
+                {b.texte}
+              </span>
             </div>
 
             {d.statut === "signe" && d.signe_le && (

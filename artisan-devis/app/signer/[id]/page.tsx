@@ -207,7 +207,7 @@ export default function Signer() {
               onPointerUp={terminerTrait}
               onPointerLeave={terminerTrait}
             />
-            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+            <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
               <button className="btn btn-outline" onClick={effacer}>
                 Effacer
               </button>
