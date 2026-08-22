@@ -154,9 +154,17 @@ const styles = StyleSheet.create({
 
   signature: { flexDirection: "row", gap: 22, marginTop: 30 },
   signatureSlot: { width: "50%" },
-  signatureEspace: { height: 40 },
+  signatureEspace: { height: 40, alignItems: "center", justifyContent: "flex-end" },
+  signatureImage: { height: 40, objectFit: "contain" },
   signatureLigne: { borderTopWidth: 1, borderColor: LIGNE },
   signatureLabel: { fontFamily: "JetBrains Mono", fontSize: 8, color: SOMBRE, paddingTop: 5 },
+  signeBadge: {
+    fontFamily: "JetBrains Mono",
+    fontSize: 8,
+    fontWeight: 700,
+    color: "#1a7a3c",
+    paddingTop: 5,
+  },
 
   pied: {
     backgroundColor: INK,
@@ -215,6 +223,8 @@ interface DevisPdfProps {
   totalHT: number;
   tauxTva: number;
   date: Date;
+  signatureUrl?: string | null;
+  signeLe?: Date | null;
 }
 
 export function DevisPDF({
@@ -227,6 +237,8 @@ export function DevisPDF({
   totalHT,
   tauxTva,
   date,
+  signatureUrl,
+  signeLe,
 }: DevisPdfProps) {
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
@@ -332,10 +344,16 @@ export function DevisPDF({
             <View style={styles.signatureSlot}>
               <View style={styles.signatureEspace} />
               <View style={styles.signatureLigne} />
-              <Text style={styles.signatureLabel}>Date</Text>
+              {signeLe ? (
+                <Text style={styles.signeBadge}>Signé le {formaterDate(signeLe)}</Text>
+              ) : (
+                <Text style={styles.signatureLabel}>Date</Text>
+              )}
             </View>
             <View style={styles.signatureSlot}>
-              <View style={styles.signatureEspace} />
+              <View style={styles.signatureEspace}>
+                {signatureUrl ? <Image src={signatureUrl} style={styles.signatureImage} /> : null}
+              </View>
               <View style={styles.signatureLigne} />
               <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
             </View>

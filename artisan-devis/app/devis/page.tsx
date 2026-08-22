@@ -85,6 +85,9 @@ export default function MesDevis() {
               <a href={`/signer/${d.id}`} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
                 Voir le devis
               </a>
+              <a href={`/api/devis-pdf/${d.id}`} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+                {d.statut === "signe" ? "Télécharger le PDF signé" : "Télécharger le PDF"}
+              </a>
               <button
                 onClick={() => copierLien(d.id)}
                 style={{ fontSize: 13, background: "none", border: "none", color: "#333", cursor: "pointer", padding: 0 }}

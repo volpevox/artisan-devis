@@ -152,9 +152,19 @@ export default function Signer() {
 
       {devis.statut === "signe" ? (
         <div style={{ background: "#e6f4ea", padding: 16, borderRadius: 6, marginTop: 20 }}>
-          <p style={{ margin: 0 }}>
+          <p style={{ margin: "0 0 10px" }}>
             ✓ Devis signé le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
           </p>
+          {devis.signature_url && (
+            <img
+              src={devis.signature_url}
+              alt="Signature"
+              style={{ maxWidth: 220, background: "#fff", border: "1px solid #ccc", borderRadius: 4, marginBottom: 10 }}
+            />
+          )}
+          <a href={`/api/devis-pdf/${devisId}`} target="_blank" rel="noreferrer" style={{ display: "block", fontSize: 14 }}>
+            Télécharger le PDF signé
+          </a>
         </div>
       ) : (
         <>

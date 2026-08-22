@@ -140,6 +140,7 @@ export default function Home() {
       devis_id: devis.id,
       description: description,
       quantite: Number(quantite),
+      unite,
       prix_unitaire: Number(prixUnitaire),
       total_ligne: total,
     });
