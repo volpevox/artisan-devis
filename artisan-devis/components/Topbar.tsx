@@ -17,7 +17,7 @@ export function Topbar() {
   return (
     <div className="topbar">
       <Link href="/" className="topbar-brand" onClick={() => setOuvert(false)}>
-        Artisan Devis
+        VolpeVox
       </Link>
       <button
         className="hamburger"

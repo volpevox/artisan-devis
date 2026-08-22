@@ -238,7 +238,7 @@ export default function Home() {
             onClick={enregistrement ? arreterMicro : demarrerMicro}
             aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
           >
-            🎙️
+            <img src="/fox-icon.png" alt="" />
           </button>
           <span className="mic-label">{enregistrement ? "Arrêter" : "Dicter la prestation"}</span>
         </div>

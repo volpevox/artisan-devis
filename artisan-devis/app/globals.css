@@ -310,16 +310,20 @@ textarea {
   width: 92px;
   height: 92px;
   border-radius: 50%;
-  border: none;
+  border: 1px solid var(--border);
   cursor: pointer;
-  background: linear-gradient(155deg, var(--ink) 0%, var(--ink-soft) 100%);
-  color: #fff;
-  font-size: 34px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 26px -8px rgba(16, 51, 98, 0.5);
+  box-shadow: 0 10px 22px -8px rgba(16, 51, 98, 0.25);
   transition: transform 0.15s ease;
+}
+
+.mic-button img {
+  width: 68%;
+  height: 68%;
+  object-fit: contain;
 }
 
 .mic-button:hover {
@@ -331,7 +335,7 @@ textarea {
 }
 
 .mic-button.recording {
-  background: linear-gradient(155deg, var(--danger) 0%, #d9544a 100%);
+  border-color: var(--danger);
 }
 
 .mic-button.recording::before {
