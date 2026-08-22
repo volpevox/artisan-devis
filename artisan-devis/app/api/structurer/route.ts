@@ -23,19 +23,19 @@ export async function POST(req: NextRequest) {
     messages: [
       {
         role: "system",
-        content: `Tu extrais les informations d'un devis dicté par un artisan, de n'importe quel métier du bâtiment. Réponds UNIQUEMENT en JSON, avec exactement ces champs :
+        content: `Tu extrais les informations d'un devis dicté par un professionnel indépendant ou une petite entreprise, tous secteurs confondus (bâtiment, espaces verts, agence web, prestations de services, artisanat...). Réponds UNIQUEMENT en JSON, avec exactement ces champs :
 - client (texte, vide si non mentionné)
-- description (texte, le descriptif complet des travaux tel que dicté)
-- prestation (texte court désignant le type de travaux, sans détail de surface/pièce, ex: "Peinture", "Pose de parquet", "Dépannage plomberie", "Installation point électrique")
-- quantite (nombre, la quantité de travail mentionnée : nombre de m², de mètres linéaires, d'heures, de points/unités... Si l'artisan ne mentionne aucune quantité mesurable, mets 1)
-- unite (texte, l'unité correspondant à la quantité, à choisir parmi : "m²", "ml", "heure", "jour", "unité", "forfait". Utilise "forfait" si le travail n'est pas mesurable par quantité, avec quantite à 1)
+- description (texte, le descriptif complet de la prestation tel que dicté)
+- prestation (texte court désignant le type de prestation, sans détail de quantité, ex: "Peinture", "Tonte de pelouse", "Création de site web", "Dépannage informatique", "Consulting")
+- quantite (nombre, la quantité de travail mentionnée : nombre de m², de mètres linéaires, d'heures, de jours, de pages, de points/unités... Si aucune quantité mesurable n'est mentionnée, mets 1)
+- unite (texte, l'unité correspondant à la quantité, à choisir parmi : "m²", "ml", "heure", "jour", "unité", "forfait". Utilise "forfait" si la prestation n'est pas mesurable par quantité (ex: un forfait global), avec quantite à 1)
 - prixUnitaire (nombre, le prix par unité, ou null si aucun prix n'est dicté et qu'aucune prestation connue ne correspond)
 - prixPropose (booléen, true uniquement si prixUnitaire vient du carnet de prix ci-dessous plutôt que d'un montant dicté explicitement)
 
-Voici les prix déjà appris pour cet artisan (prestation, par unité, prix moyen par unité) :
+Voici les prix déjà appris pour ce professionnel (prestation, par unité, prix moyen par unité) :
 ${listePrixConnus}
 
-Si l'artisan ne dicte aucun prix, ne propose un prixUnitaire du carnet que si une prestation de la liste correspond au même type de travaux ET à la même unité (on ne peut pas réutiliser un prix au m² pour un travail facturé à l'heure, ni l'inverse). Si aucune prestation ne correspond avec la même unité, laisse "prixUnitaire" à null et "prixPropose" à false. Ne mets aucun texte autour du JSON.`,
+Si aucun prix n'est dicté, ne propose un prixUnitaire du carnet que si une prestation de la liste correspond au même type de prestation ET à la même unité (on ne peut pas réutiliser un prix au m² pour une prestation facturée à l'heure, ni l'inverse). Si aucune prestation ne correspond avec la même unité, laisse "prixUnitaire" à null et "prixPropose" à false. Ne mets aucun texte autour du JSON.`,
       },
       { role: "user", content: texte },
     ],

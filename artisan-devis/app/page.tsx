@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
@@ -157,7 +158,15 @@ export default function Home() {
     const res = await fetch("/api/envoyer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientEmail, clientNom: client, description, prix: total }),
+      body: JSON.stringify({
+        clientEmail,
+        clientNom: client,
+        description,
+        quantite,
+        unite,
+        prixUnitaire,
+        prix: total,
+      }),
     });
     const data = await res.json();
 
@@ -180,6 +189,10 @@ export default function Home() {
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
+      <Link href="/profil" style={{ display: "block", marginBottom: 15 }}>
+        Mon profil →
+      </Link>
+
       <h1>Nouveau devis</h1>
 
       <button
@@ -193,7 +206,7 @@ export default function Home() {
           borderRadius: 6,
         }}
       >
-        {enregistrement ? "Arrêter" : "Dicter le chantier"}
+        {enregistrement ? "Arrêter" : "Dicter la prestation"}
       </button>
 
       <input
@@ -209,7 +222,7 @@ export default function Home() {
         style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
       />
       <textarea
-        placeholder="Description du chantier"
+        placeholder="Description de la prestation"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
@@ -257,7 +270,7 @@ export default function Home() {
         </p>
       )}
 
-      <p style={{ fontWeight: "bold" }}>Total : {total.toFixed(2)} €</p>
+      <p style={{ fontWeight: "bold" }}>Total HT : {total.toFixed(2)} € (TVA ajoutée sur le devis final)</p>
 
       {!devisEnregistre ? (
         <button onClick={envoyer} style={{ padding: "10px 20px" }}>
