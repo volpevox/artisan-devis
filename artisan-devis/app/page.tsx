@@ -2,8 +2,10 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
+import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function Home() {
+  const { session, artisanId, loading } = useArtisanSession();
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
@@ -59,7 +61,10 @@ export default function Home() {
 
       const resStructure = await fetch("/api/structurer", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ texte: data.texte }),
       });
       const donnees = await resStructure.json();
@@ -95,6 +100,7 @@ export default function Home() {
     const { data: existant } = await supabase
       .from("prix_appris")
       .select("*")
+      .eq("artisan_id", artisanId)
       .ilike("prestation", prestationSaisie.trim())
       .eq("unite", uniteSaisie)
       .maybeSingle();
@@ -114,6 +120,7 @@ export default function Home() {
         .eq("id", existant.id);
     } else {
       await supabase.from("prix_appris").insert({
+        artisan_id: artisanId,
         prestation: prestationSaisie.trim(),
         unite: uniteSaisie,
         prix_moyen: prixUnitaireNum,
@@ -130,6 +137,7 @@ export default function Home() {
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
       .insert({
+        artisan_id: artisanId,
         client_nom: client,
         client_email: clientEmail,
         client_adresse: clientAdresse,
@@ -170,7 +178,10 @@ export default function Home() {
 
     const res = await fetch("/api/envoyer", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
       body: JSON.stringify({
         clientEmail,
         clientNom: client,
@@ -204,6 +215,14 @@ export default function Home() {
     setPrixUnitaire("");
     setPrixPropose(false);
     setDevisEnregistre(false);
+  }
+
+  if (loading) {
+    return (
+      <main className="page-shell">
+        <p className="message">Chargement...</p>
+      </main>
+    );
   }
 
   return (

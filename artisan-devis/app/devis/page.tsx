@@ -2,20 +2,24 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
+import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function MesDevis() {
+  const { artisanId, loading: chargementSession } = useArtisanSession();
   const [devis, setDevis] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
   const [copie, setCopie] = useState("");
 
   useEffect(() => {
+    if (!artisanId) return;
+
     async function charger() {
       const { data } = await supabase.from("devis").select("*").order("created_at", { ascending: false });
       setDevis(data || []);
       setChargement(false);
     }
     charger();
-  }, []);
+  }, [artisanId]);
 
   function copierLien(id: string) {
     const lien = `${window.location.origin}/signer/${id}`;
@@ -36,8 +40,10 @@ export default function MesDevis() {
 
       <h1 className="page-title">Mes devis</h1>
 
-      {chargement && <p className="message">Chargement...</p>}
-      {!chargement && devis.length === 0 && <p className="message">Aucun devis enregistré pour l'instant.</p>}
+      {(chargementSession || chargement) && <p className="message">Chargement...</p>}
+      {!chargementSession && !chargement && devis.length === 0 && (
+        <p className="message">Aucun devis enregistré pour l'instant.</p>
+      )}
 
       {devis.map((d) => {
         const b = badge(d.statut);

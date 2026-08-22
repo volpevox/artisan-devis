@@ -1,0 +1,27 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminSupabase } from "@/lib/supabaseServerClient";
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createAdminSupabase();
+
+  const { data: devis } = await supabase.from("devis").select("*").eq("id", params.id).maybeSingle();
+
+  if (!devis) {
+    return NextResponse.json({ erreur: "Devis introuvable" }, { status: 404 });
+  }
+
+  const { data: ligne } = await supabase
+    .from("lignes_devis")
+    .select("*")
+    .eq("devis_id", params.id)
+    .limit(1)
+    .maybeSingle();
+
+  const { data: profil } = await supabase
+    .from("artisans")
+    .select("nom_entreprise")
+    .eq("id", devis.artisan_id)
+    .maybeSingle();
+
+  return NextResponse.json({ devis, ligne, profil });
+}

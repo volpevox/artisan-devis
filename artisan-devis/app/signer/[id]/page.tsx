@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 
 export default function Signer() {
   const params = useParams();
@@ -21,22 +20,15 @@ export default function Signer() {
 
   useEffect(() => {
     async function charger() {
-      const { data: devisData } = await supabase.from("devis").select("*").eq("id", devisId).maybeSingle();
+      const res = await fetch(`/api/devis-public/${devisId}`);
 
-      if (!devisData) {
+      if (!res.ok) {
         setIntrouvable(true);
         setChargement(false);
         return;
       }
 
-      const { data: ligneData } = await supabase
-        .from("lignes_devis")
-        .select("*")
-        .eq("devis_id", devisId)
-        .limit(1)
-        .maybeSingle();
-
-      const { data: profilData } = await supabase.from("artisans").select("*").limit(1).maybeSingle();
+      const { devis: devisData, ligne: ligneData, profil: profilData } = await res.json();
 
       setDevis(devisData);
       setLigne(ligneData);

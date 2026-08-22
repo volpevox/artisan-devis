@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
+import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function Profil() {
-  const [artisanId, setArtisanId] = useState<string | null>(null);
+  const { artisanId, loading: chargementSession } = useArtisanSession();
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
   const [adresse, setAdresse] = useState("");
@@ -20,10 +21,11 @@ export default function Profil() {
   const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
+    if (!artisanId) return;
+
     async function charger() {
-      const { data } = await supabase.from("artisans").select("*").limit(1).maybeSingle();
+      const { data } = await supabase.from("artisans").select("*").eq("id", artisanId).maybeSingle();
       if (data) {
-        setArtisanId(data.id);
         setNomEntreprise(data.nom_entreprise || "");
         setTelephone(data.telephone || "");
         setAdresse(data.adresse || "");
@@ -38,7 +40,7 @@ export default function Profil() {
       setChargement(false);
     }
     charger();
-  }, []);
+  }, [artisanId]);
 
   async function enregistrer() {
     setMessage("Enregistrement...");
@@ -74,25 +76,16 @@ export default function Profil() {
       mentions_legales: mentionsLegales,
     };
 
-    if (artisanId) {
-      const { error } = await supabase.from("artisans").update(infos).eq("id", artisanId);
-      if (error) {
-        setMessage("Erreur : " + error.message);
-        return;
-      }
-    } else {
-      const { data, error } = await supabase.from("artisans").insert(infos).select().single();
-      if (error) {
-        setMessage("Erreur : " + error.message);
-        return;
-      }
-      setArtisanId(data.id);
+    const { error } = await supabase.from("artisans").update(infos).eq("id", artisanId);
+    if (error) {
+      setMessage("Erreur : " + error.message);
+      return;
     }
 
     setMessage("Profil enregistré !");
   }
 
-  if (chargement) {
+  if (chargementSession || chargement) {
     return (
       <main className="page-shell">
         <Topbar />

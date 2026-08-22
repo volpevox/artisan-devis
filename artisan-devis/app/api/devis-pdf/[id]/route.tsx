@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { supabase } from "@/lib/supabaseClient";
+import { createAdminSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createAdminSupabase();
   const { data: devis } = await supabase.from("devis").select("*").eq("id", params.id).maybeSingle();
 
   if (!devis) {
@@ -17,7 +18,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     .limit(1)
     .maybeSingle();
 
-  const { data: profil } = await supabase.from("artisans").select("*").limit(1).maybeSingle();
+  const { data: profil } = await supabase
+    .from("artisans")
+    .select("*")
+    .eq("id", devis.artisan_id)
+    .maybeSingle();
 
   const tauxTva = profil?.taux_tva ?? 20;
   const totalHT = ligne?.total_ligne ?? devis.total ?? 0;

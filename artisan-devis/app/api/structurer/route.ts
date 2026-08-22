@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabase } from "@/lib/supabaseServerClient";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
   const { texte } = await req.json();
+  const supabase = createServerSupabase(req.headers.get("authorization"));
 
   const { data: prixConnus } = await supabase
     .from("prix_appris")

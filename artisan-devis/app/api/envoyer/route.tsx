@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 
   const lienSignature = devisId ? `${req.nextUrl.origin}/signer/${devisId}` : null;
 
+  const supabase = createServerSupabase(req.headers.get("authorization"));
   const { data: profil } = await supabase.from("artisans").select("*").limit(1).maybeSingle();
 
   const tauxTva = profil?.taux_tva ?? 20;
