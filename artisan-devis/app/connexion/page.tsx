@@ -6,7 +6,7 @@ import { SplashEcran } from "@/components/SplashEcran";
 
 export default function Connexion() {
   const router = useRouter();
-  const [mode, setMode] = useState<"connexion" | "inscription">("connexion");
+  const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">("connexion");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [message, setMessage] = useState("");
@@ -21,6 +21,22 @@ export default function Connexion() {
   async function valider() {
     setMessage("");
     setChargement(true);
+
+    if (mode === "oubli") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reinitialiser-mot-de-passe`,
+      });
+
+      setChargement(false);
+
+      if (error) {
+        setMessage("Erreur : " + error.message);
+        return;
+      }
+
+      setMessage("Email envoyé ! Vérifie ta boîte mail (et tes spams) pour choisir un nouveau mot de passe.");
+      return;
+    }
 
     if (mode === "inscription") {
       const { data, error } = await supabase.auth.signUp({ email, password: motDePasse });
@@ -63,7 +79,7 @@ export default function Connexion() {
 
       <div className="card">
         <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 16, color: "var(--ink)" }}>
-          {mode === "connexion" ? "Se connecter" : "Créer un compte"}
+          {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer un compte" : "Mot de passe oublié"}
         </h2>
 
         <input
@@ -72,17 +88,33 @@ export default function Connexion() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <input
-          className="field"
-          type="password"
-          placeholder="Mot de passe"
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
-        />
+        {mode !== "oubli" && (
+          <input
+            className="field"
+            type="password"
+            placeholder="Mot de passe"
+            value={motDePasse}
+            onChange={(e) => setMotDePasse(e.target.value)}
+          />
+        )}
 
         <button className="btn btn-primary" onClick={valider} disabled={chargement} style={{ width: "100%" }}>
-          {mode === "connexion" ? "Se connecter" : "Créer mon compte"}
+          {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer mon compte" : "Envoyer le lien"}
         </button>
+
+        {mode === "connexion" && (
+          <p style={{ marginTop: 12, fontSize: 13, textAlign: "center" }}>
+            <button
+              onClick={() => {
+                setMode("oubli");
+                setMessage("");
+              }}
+              style={{ background: "none", border: "none", color: "var(--muted)", fontWeight: 600, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+            >
+              Mot de passe oublié ?
+            </button>
+          </p>
+        )}
 
         {message && <p className="message">{message}</p>}
 
