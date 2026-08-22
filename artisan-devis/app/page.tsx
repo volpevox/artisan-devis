@@ -1,8 +1,14 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+
+const AMPLITUDES_ONDE = [
+  0.3, 0.55, 0.4, 0.8, 0.5, 1, 0.65, 0.45, 0.9, 0.35, 0.7, 0.5, 0.85, 0.4, 0.6, 1, 0.5, 0.75, 0.35, 0.9, 0.55, 0.4,
+  0.7, 0.3,
+];
 
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
@@ -275,19 +281,15 @@ export default function Home() {
               {iconeMicro}
             </button>
 
-            {enregistrement && (
-              <div className="voice-wave" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            )}
-
             <span className="mic-label">
               {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez le chantier"}
             </span>
+          </div>
+
+          <div className={`voice-wave${enregistrement ? " active" : ""}`} aria-hidden="true">
+            {AMPLITUDES_ONDE.map((amp, i) => (
+              <span key={i} style={{ "--amp": amp, animationDelay: `${(i % 8) * 0.09}s` } as CSSProperties} />
+            ))}
           </div>
 
           {message && <p className="message">{message}</p>}
