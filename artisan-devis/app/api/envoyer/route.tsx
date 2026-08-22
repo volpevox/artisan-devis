@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       />
     );
 
-    await resend.emails.send({
+    const { error: erreurResend } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: clientEmail,
       subject: `Votre devis - ${clientNom}`,
@@ -74,6 +74,10 @@ export async function POST(req: NextRequest) {
         },
       ],
     });
+
+    if (erreurResend) {
+      return NextResponse.json({ erreur: erreurResend.message }, { status: 500 });
+    }
 
     return NextResponse.json({ succes: true });
   } catch (e: any) {
