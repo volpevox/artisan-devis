@@ -508,10 +508,12 @@ textarea {
 }
 
 .splash-logo {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
   opacity: 0;
+  -webkit-mask-image: radial-gradient(circle, #000 58%, transparent 76%);
+  mask-image: radial-gradient(circle, #000 58%, transparent 76%);
   animation: splash-logo-in 0.9s ease forwards;
 }
 
@@ -522,9 +524,9 @@ textarea {
 }
 
 .splash-tagline {
-  font-family: var(--font-caveat), cursive;
-  font-weight: 700;
-  font-size: 28px;
+  font-family: var(--font-manuscrit), cursive;
+  font-weight: 400;
+  font-size: 26px;
   color: var(--ink);
   text-align: center;
   margin: 0;
