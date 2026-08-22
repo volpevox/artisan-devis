@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15 },
+  clientAdresse: { fontSize: 9.5, color: SOMBRE, marginTop: 3 },
 
   tableHeader: {
     flexDirection: "row",
@@ -216,6 +217,7 @@ interface DevisPdfProps {
     mentionsLegales?: string | null;
   };
   clientNom: string;
+  clientAdresse?: string | null;
   description: string;
   quantite: number;
   unite: string;
@@ -230,6 +232,7 @@ interface DevisPdfProps {
 export function DevisPDF({
   entreprise,
   clientNom,
+  clientAdresse,
   description,
   quantite,
   unite,
@@ -285,6 +288,7 @@ export function DevisPDF({
           <View>
             <Text style={styles.clientLabel}>Devis adressé à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
+            {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
           </View>
 
           <View style={styles.tableHeader}>

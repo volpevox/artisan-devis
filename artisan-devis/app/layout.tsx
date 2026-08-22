@@ -1,3 +1,5 @@
+import "./globals.css";
+
 export const metadata = {
   title: "Artisan Devis",
   description: "Créez vos devis en dictant, en quelques secondes",

@@ -36,6 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         mentionsLegales: profil?.mentions_legales,
       }}
       clientNom={devis.client_nom || ""}
+      clientAdresse={devis.client_adresse}
       description={ligne?.description || ""}
       quantite={ligne?.quantite || 1}
       unite={ligne?.unite || "forfait"}

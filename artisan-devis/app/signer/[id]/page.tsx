@@ -121,13 +121,17 @@ export default function Signer() {
   }
 
   if (chargement) {
-    return <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>Chargement...</main>;
+    return (
+      <main className="page-shell">
+        <p className="message">Chargement...</p>
+      </main>
+    );
   }
 
   if (introuvable) {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <p>Devis introuvable.</p>
+      <main className="page-shell">
+        <p className="message">Devis introuvable.</p>
       </main>
     );
   }
@@ -135,71 +139,94 @@ export default function Signer() {
   const total = ligne?.total_ligne ?? devis.total;
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 480, margin: "0 auto" }}>
-      {profil?.nom_entreprise && <h2 style={{ marginBottom: 4 }}>{profil.nom_entreprise}</h2>}
-      <h1 style={{ fontSize: 22, marginTop: 0 }}>Devis pour {devis.client_nom}</h1>
+    <main className="page-shell">
+      <div className="card">
+        {profil?.nom_entreprise && (
+          <h2 style={{ marginTop: 0, marginBottom: 4, fontSize: 15, color: "var(--ink)" }}>
+            {profil.nom_entreprise}
+          </h2>
+        )}
+        <h1 className="page-title" style={{ marginBottom: devis.client_adresse ? 4 : 16 }}>
+          Devis pour {devis.client_nom}
+        </h1>
+        {devis.client_adresse && (
+          <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--muted)" }}>{devis.client_adresse}</p>
+        )}
 
-      {ligne && (
-        <div style={{ background: "#f4f5f7", padding: 14, borderRadius: 6, marginBottom: 16 }}>
-          <p style={{ margin: "0 0 6px" }}>{ligne.description}</p>
-          <p style={{ margin: 0, fontSize: 14, color: "#555" }}>
-            {ligne.quantite} × {ligne.prix_unitaire} €
-          </p>
-        </div>
-      )}
-
-      <p style={{ fontWeight: "bold", fontSize: 18 }}>Total : {total} €</p>
-
-      {devis.statut === "signe" ? (
-        <div style={{ background: "#e6f4ea", padding: 16, borderRadius: 6, marginTop: 20 }}>
-          <p style={{ margin: "0 0 10px" }}>
-            ✓ Devis signé le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
-          </p>
-          {devis.signature_url && (
-            <img
-              src={devis.signature_url}
-              alt="Signature"
-              style={{ maxWidth: 220, background: "#fff", border: "1px solid #ccc", borderRadius: 4, marginBottom: 10 }}
-            />
-          )}
-          <a href={`/api/devis-pdf/${devisId}`} target="_blank" rel="noreferrer" style={{ display: "block", fontSize: 14 }}>
-            Télécharger le PDF signé
-          </a>
-        </div>
-      ) : (
-        <>
-          <p style={{ marginTop: 24, marginBottom: 8 }}>Signez ci-dessous avec votre doigt ou votre souris :</p>
-          <canvas
-            ref={canvasRef}
-            width={400}
-            height={180}
-            style={{ border: "1px solid #ccc", borderRadius: 6, touchAction: "none", width: "100%", maxWidth: 400 }}
-            onPointerDown={debuterTrait}
-            onPointerMove={tracer}
-            onPointerUp={terminerTrait}
-            onPointerLeave={terminerTrait}
-          />
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <button onClick={effacer} style={{ padding: "8px 16px" }}>
-              Effacer
-            </button>
-            <button
-              onClick={valider}
-              disabled={enregistrement}
-              style={{
-                padding: "8px 20px",
-                background: "green",
-                color: "white",
-                border: "none",
-                borderRadius: 6,
-              }}
-            >
-              Bon pour accord — Valider
-            </button>
+        {ligne && (
+          <div style={{ background: "var(--bg)", padding: 14, borderRadius: 8, marginBottom: 16 }}>
+            <p style={{ margin: "0 0 6px" }}>{ligne.description}</p>
+            <p style={{ margin: 0, fontSize: 14, color: "var(--muted)" }}>
+              {ligne.quantite} × {ligne.prix_unitaire} €
+            </p>
           </div>
-          <p>{message}</p>
-        </>
-      )}
+        )}
+
+        <p className="total-line" style={{ fontSize: 18 }}>
+          Total : {total} €
+        </p>
+
+        {devis.statut === "signe" ? (
+          <div
+            style={{
+              background: "var(--success-bg)",
+              padding: 16,
+              borderRadius: 8,
+              marginTop: 8,
+            }}
+          >
+            <p style={{ margin: "0 0 10px", color: "var(--success)" }}>
+              ✓ Devis signé le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
+            </p>
+            {devis.signature_url && (
+              <img
+                src={devis.signature_url}
+                alt="Signature"
+                style={{
+                  maxWidth: 220,
+                  background: "#fff",
+                  border: "1px solid var(--border)",
+                  borderRadius: 6,
+                  marginBottom: 10,
+                }}
+              />
+            )}
+            <a href={`/api/devis-pdf/${devisId}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
+              Télécharger le PDF signé
+            </a>
+          </div>
+        ) : (
+          <>
+            <p style={{ marginTop: 8, marginBottom: 8 }}>Signez ci-dessous avec votre doigt ou votre souris :</p>
+            <canvas
+              ref={canvasRef}
+              width={400}
+              height={180}
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                touchAction: "none",
+                width: "100%",
+                maxWidth: 400,
+                background: "#fff",
+              }}
+              onPointerDown={debuterTrait}
+              onPointerMove={tracer}
+              onPointerUp={terminerTrait}
+              onPointerLeave={terminerTrait}
+            />
+            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+              <button className="btn btn-outline" onClick={effacer}>
+                Effacer
+              </button>
+              <button className="btn btn-success" onClick={valider} disabled={enregistrement}>
+                Bon pour accord — Valider
+              </button>
+            </div>
+            {message && <p className="message">{message}</p>}
+          </>
+        )}
+      </div>
     </main>
   );
 }

@@ -7,7 +7,8 @@ import { DevisPDF } from "@/lib/devisPdf";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { clientEmail, clientNom, description, quantite, unite, prixUnitaire, prix, devisId } = await req.json();
+  const { clientEmail, clientNom, clientAdresse, description, quantite, unite, prixUnitaire, prix, devisId } =
+    await req.json();
 
   if (!clientEmail) {
     return NextResponse.json({ erreur: "Aucun email de client fourni" }, { status: 400 });
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
           mentionsLegales: profil?.mentions_legales,
         }}
         clientNom={clientNom}
+        clientAdresse={clientAdresse}
         description={description}
         quantite={Number(quantite) || 1}
         unite={unite || "forfait"}

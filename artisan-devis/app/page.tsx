@@ -1,11 +1,12 @@
 "use client";
 import { useState, useRef } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { Topbar } from "@/components/Topbar";
 
 export default function Home() {
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [clientAdresse, setClientAdresse] = useState("");
   const [description, setDescription] = useState("");
   const [prestation, setPrestation] = useState("");
   const [quantite, setQuantite] = useState("1");
@@ -64,6 +65,7 @@ export default function Home() {
       const donnees = await resStructure.json();
 
       if (donnees.client) setClient(donnees.client);
+      if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
       setDescription(donnees.description || data.texte);
       setPrestation(donnees.prestation || "");
       setQuantite(String(donnees.quantite || 1));
@@ -127,7 +129,13 @@ export default function Home() {
 
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
-      .insert({ client_nom: client, client_email: clientEmail, total, statut: "brouillon" })
+      .insert({
+        client_nom: client,
+        client_email: clientEmail,
+        client_adresse: clientAdresse,
+        total,
+        statut: "brouillon",
+      })
       .select()
       .single();
 
@@ -166,6 +174,7 @@ export default function Home() {
       body: JSON.stringify({
         clientEmail,
         clientNom: client,
+        clientAdresse,
         description,
         quantite,
         unite,
@@ -187,6 +196,7 @@ export default function Home() {
     setMessage("Devis envoyé au client !");
     setClient("");
     setClientEmail("");
+    setClientAdresse("");
     setDescription("");
     setPrestation("");
     setQuantite("1");
@@ -197,109 +207,105 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
-      <div style={{ display: "flex", gap: 16, marginBottom: 15 }}>
-        <Link href="/profil">Mon profil →</Link>
-        <Link href="/devis">Mes devis →</Link>
-      </div>
+    <main className="page-shell">
+      <Topbar />
 
-      <h1>Nouveau devis</h1>
+      <h1 className="page-title">Nouveau devis</h1>
 
-      <button
-        onClick={enregistrement ? arreterMicro : demarrerMicro}
-        style={{
-          padding: "10px 20px",
-          marginBottom: 15,
-          background: enregistrement ? "red" : "#333",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-        }}
-      >
-        {enregistrement ? "Arrêter" : "Dicter la prestation"}
-      </button>
+      <div className="card">
+        <div className="mic-wrap">
+          <button
+            className={`mic-button${enregistrement ? " recording" : ""}`}
+            onClick={enregistrement ? arreterMicro : demarrerMicro}
+            aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
+          >
+            🎙️
+          </button>
+          <span className="mic-label">{enregistrement ? "Arrêter" : "Dicter la prestation"}</span>
+        </div>
 
-      <input
-        placeholder="Nom du client"
-        value={client}
-        onChange={(e) => setClient(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="Email du client"
-        value={clientEmail}
-        onChange={(e) => setClientEmail(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <textarea
-        placeholder="Description de la prestation"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="Type de prestation (pour apprendre les prix)"
-        value={prestation}
-        onChange={(e) => setPrestation(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
         <input
-          placeholder="Quantité"
-          value={quantite}
-          onChange={(e) => setQuantite(e.target.value)}
-          style={{ width: "33%", padding: 8 }}
+          className="field"
+          placeholder="Nom et prénom ou raison sociale"
+          value={client}
+          onChange={(e) => setClient(e.target.value)}
         />
         <input
-          placeholder="Unité (m², heure, forfait...)"
-          value={unite}
-          onChange={(e) => setUnite(e.target.value)}
-          style={{ width: "67%", padding: 8 }}
+          className="field"
+          placeholder="Email du client"
+          value={clientEmail}
+          onChange={(e) => setClientEmail(e.target.value)}
         />
+        <input
+          className="field"
+          placeholder="Adresse du client"
+          value={clientAdresse}
+          onChange={(e) => setClientAdresse(e.target.value)}
+        />
+        <textarea
+          className="field"
+          placeholder="Description de la prestation"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          className="field"
+          placeholder="Type de prestation (pour apprendre les prix)"
+          value={prestation}
+          onChange={(e) => setPrestation(e.target.value)}
+        />
+
+        <div className="field-row">
+          <input
+            className="field"
+            style={{ width: "33%" }}
+            placeholder="Quantité"
+            value={quantite}
+            onChange={(e) => setQuantite(e.target.value)}
+          />
+          <input
+            className="field"
+            style={{ width: "67%" }}
+            placeholder="Unité (m², heure, forfait...)"
+            value={unite}
+            onChange={(e) => setUnite(e.target.value)}
+          />
+        </div>
+
+        <input
+          className="field"
+          placeholder="Prix unitaire (€)"
+          value={prixUnitaire}
+          onChange={(e) => {
+            setPrixUnitaire(e.target.value);
+            setPrixPropose(false);
+          }}
+          style={prixPropose ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" } : undefined}
+        />
+        {prixPropose && (
+          <p className="hint-success">Prix unitaire proposé automatiquement d'après tes anciens devis</p>
+        )}
+
+        <p className="total-line">Total HT : {total.toFixed(2)} € (TVA ajoutée sur le devis final)</p>
+
+        {!devisEnregistre ? (
+          <button className="btn btn-primary" onClick={envoyer}>
+            Enregistrer le devis
+          </button>
+        ) : (
+          <button className="btn btn-success" onClick={envoyerAuClient}>
+            Envoyer au client
+          </button>
+        )}
+
+        {message && <p className="message">{message}</p>}
       </div>
-
-      <input
-        placeholder="Prix unitaire (€)"
-        value={prixUnitaire}
-        onChange={(e) => {
-          setPrixUnitaire(e.target.value);
-          setPrixPropose(false);
-        }}
-        style={{
-          display: "block",
-          marginBottom: prixPropose ? 4 : 10,
-          width: "100%",
-          padding: 8,
-          border: prixPropose ? "2px solid #2a7" : undefined,
-        }}
-      />
-      {prixPropose && (
-        <p style={{ fontSize: 12, color: "#2a7", marginTop: 0, marginBottom: 10 }}>
-          Prix unitaire proposé automatiquement d'après tes anciens devis
-        </p>
-      )}
-
-      <p style={{ fontWeight: "bold" }}>Total HT : {total.toFixed(2)} € (TVA ajoutée sur le devis final)</p>
-
-      {!devisEnregistre ? (
-        <button onClick={envoyer} style={{ padding: "10px 20px" }}>
-          Enregistrer le devis
-        </button>
-      ) : (
-        <button
-          onClick={envoyerAuClient}
-          style={{ padding: "10px 20px", background: "green", color: "white", border: "none", borderRadius: 6 }}
-        >
-          Envoyer au client
-        </button>
-      )}
-
-      <p>{message}</p>
 
       {lienSignature && (
-        <div style={{ background: "#f4f5f7", padding: 12, borderRadius: 6, marginTop: 10 }}>
-          <p style={{ margin: "0 0 6px", fontSize: 13 }}>Lien de signature (déjà inclus dans l'email) :</p>
+        <div className="card">
+          <p className="hint" style={{ margin: "0 0 6px" }}>
+            Lien de signature (déjà inclus dans l'email) :
+          </p>
           <a href={lienSignature} target="_blank" rel="noreferrer" style={{ fontSize: 13, wordBreak: "break-all" }}>
             {lienSignature}
           </a>

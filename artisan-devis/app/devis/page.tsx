@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { Topbar } from "@/components/Topbar";
 
 export default function MesDevis() {
   const [devis, setDevis] = useState<any[]>([]);
@@ -25,75 +25,48 @@ export default function MesDevis() {
   }
 
   function badge(statut: string) {
-    if (statut === "signe") return { texte: "Signé", couleur: "#1a7a3c", fond: "#e6f4ea" };
-    if (statut === "envoye") return { texte: "En attente de signature", couleur: "#8a6d1a", fond: "#fdf3d9" };
-    return { texte: "Brouillon", couleur: "#666", fond: "#eee" };
+    if (statut === "signe") return { texte: "Signé", classe: "badge-success" };
+    if (statut === "envoye") return { texte: "En attente de signature", classe: "badge-warning" };
+    return { texte: "Brouillon", classe: "badge-neutral" };
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 600 }}>
-      <Link href="/" style={{ display: "block", marginBottom: 15 }}>
-        ← Retour au devis
-      </Link>
+    <main className="page-shell page-shell--large">
+      <Topbar />
 
-      <h1>Mes devis</h1>
+      <h1 className="page-title">Mes devis</h1>
 
-      {chargement && <p>Chargement...</p>}
-      {!chargement && devis.length === 0 && <p>Aucun devis enregistré pour l'instant.</p>}
+      {chargement && <p className="message">Chargement...</p>}
+      {!chargement && devis.length === 0 && <p className="message">Aucun devis enregistré pour l'instant.</p>}
 
       {devis.map((d) => {
         const b = badge(d.statut);
         return (
-          <div
-            key={d.id}
-            style={{
-              border: "1px solid #eee",
-              borderRadius: 6,
-              padding: 14,
-              marginBottom: 10,
-            }}
-          >
+          <div key={d.id} className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <p style={{ margin: 0, fontWeight: "bold" }}>{d.client_nom || "(sans nom)"}</p>
-                <p style={{ margin: "2px 0", fontSize: 13, color: "#666" }}>
+                <p style={{ margin: 0, fontWeight: 700 }}>{d.client_nom || "(sans nom)"}</p>
+                <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--muted)" }}>
                   {new Date(d.created_at).toLocaleDateString("fr-FR")} · {d.total} €
                 </p>
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: "bold",
-                  color: b.couleur,
-                  background: b.fond,
-                  padding: "3px 8px",
-                  borderRadius: 12,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {b.texte}
-              </span>
+              <span className={`badge ${b.classe}`}>{b.texte}</span>
             </div>
 
             {d.statut === "signe" && d.signe_le && (
-              <p style={{ fontSize: 12, color: "#1a7a3c", margin: "6px 0 0" }}>
+              <p style={{ fontSize: 12, color: "var(--success)", margin: "8px 0 0" }}>
                 Signé le {new Date(d.signe_le).toLocaleDateString("fr-FR")}
               </p>
             )}
 
-            <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
-              <a href={`/signer/${d.id}`} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+            <div className="link-row">
+              <a href={`/signer/${d.id}`} target="_blank" rel="noreferrer">
                 Voir le devis
               </a>
-              <a href={`/api/devis-pdf/${d.id}`} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+              <a href={`/api/devis-pdf/${d.id}`} target="_blank" rel="noreferrer">
                 {d.statut === "signe" ? "Télécharger le PDF signé" : "Télécharger le PDF"}
               </a>
-              <button
-                onClick={() => copierLien(d.id)}
-                style={{ fontSize: 13, background: "none", border: "none", color: "#333", cursor: "pointer", padding: 0 }}
-              >
-                {copie === d.id ? "Copié !" : "Copier le lien"}
-              </button>
+              <button onClick={() => copierLien(d.id)}>{copie === d.id ? "Copié !" : "Copier le lien"}</button>
             </div>
           </div>
         );

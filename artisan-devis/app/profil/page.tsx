@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { Topbar } from "@/components/Topbar";
 
 export default function Profil() {
   const [artisanId, setArtisanId] = useState<string | null>(null);
@@ -93,101 +93,106 @@ export default function Profil() {
   }
 
   if (chargement) {
-    return <main style={{ padding: "2rem" }}>Chargement...</main>;
+    return (
+      <main className="page-shell">
+        <Topbar />
+        <p className="message">Chargement...</p>
+      </main>
+    );
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: 400 }}>
-      <Link href="/" style={{ display: "block", marginBottom: 15 }}>
-        ← Retour au devis
-      </Link>
+    <main className="page-shell">
+      <Topbar />
 
-      <h1>Mon profil</h1>
+      <h1 className="page-title">Mon profil</h1>
 
-      {logoUrl && (
-        <img
-          src={logoUrl}
-          alt="Logo actuel"
-          style={{ maxWidth: 150, maxHeight: 150, display: "block", marginBottom: 10 }}
-        />
-      )}
+      <div className="card">
+        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt="Logo actuel"
+            style={{ maxWidth: 150, maxHeight: 150, display: "block", marginBottom: 12, borderRadius: 8 }}
+          />
+        )}
 
-      <label style={{ display: "block", marginBottom: 10 }}>
-        Logo :
+        <label className="field-label">
+          Logo
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setLogoFichier(e.target.files?.[0] || null)}
+            style={{ display: "block", marginTop: 6 }}
+          />
+        </label>
+
         <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setLogoFichier(e.target.files?.[0] || null)}
-          style={{ display: "block", marginTop: 4 }}
+          className="field"
+          placeholder="Nom de l'entreprise"
+          value={nomEntreprise}
+          onChange={(e) => setNomEntreprise(e.target.value)}
         />
-      </label>
-
-      <input
-        placeholder="Nom de l'entreprise"
-        value={nomEntreprise}
-        onChange={(e) => setNomEntreprise(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="Téléphone"
-        value={telephone}
-        onChange={(e) => setTelephone(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="Adresse"
-        value={adresse}
-        onChange={(e) => setAdresse(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-
-      <h2 style={{ fontSize: 16, marginTop: 20, marginBottom: 10 }}>Informations légales</h2>
-
-      <input
-        placeholder="SIRET"
-        value={siret}
-        onChange={(e) => setSiret(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <label style={{ display: "block", marginBottom: 10 }}>
-        Taux de TVA (%) — mets 0 si tu es en franchise en base de TVA (auto-entrepreneur)
         <input
-          placeholder="Taux de TVA (%)"
-          value={tauxTva}
-          onChange={(e) => setTauxTva(e.target.value)}
-          style={{ display: "block", marginTop: 4, width: "100%", padding: 8 }}
+          className="field"
+          placeholder="Téléphone"
+          value={telephone}
+          onChange={(e) => setTelephone(e.target.value)}
         />
-      </label>
-      <input
-        placeholder="N° TVA intracommunautaire (si assujetti à la TVA)"
-        value={numeroTva}
-        onChange={(e) => setNumeroTva(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <input
-        placeholder="IBAN (pour le RIB, facultatif)"
-        value={iban}
-        onChange={(e) => setIban(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <textarea
-        placeholder="Conditions de paiement (ex: Acompte 30% à la commande, solde à la livraison)"
-        value={conditionsPaiement}
-        onChange={(e) => setConditionsPaiement(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
-      <textarea
-        placeholder="Mentions légales / assurance (ex: Assurance RC Pro n°..., Garantie décennale...)"
-        value={mentionsLegales}
-        onChange={(e) => setMentionsLegales(e.target.value)}
-        style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
-      />
+        <input
+          className="field"
+          placeholder="Adresse"
+          value={adresse}
+          onChange={(e) => setAdresse(e.target.value)}
+        />
+      </div>
 
-      <button onClick={enregistrer} style={{ padding: "10px 20px" }}>
-        Enregistrer
-      </button>
+      <div className="card">
+        <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 14, color: "var(--ink)" }}>Informations légales</h2>
 
-      <p>{message}</p>
+        <input className="field" placeholder="SIRET" value={siret} onChange={(e) => setSiret(e.target.value)} />
+
+        <label className="field-label">
+          Taux de TVA (%) — mets 0 si tu es en franchise en base de TVA (auto-entrepreneur)
+          <input
+            className="field"
+            style={{ marginTop: 6 }}
+            placeholder="Taux de TVA (%)"
+            value={tauxTva}
+            onChange={(e) => setTauxTva(e.target.value)}
+          />
+        </label>
+
+        <input
+          className="field"
+          placeholder="N° TVA intracommunautaire (si assujetti à la TVA)"
+          value={numeroTva}
+          onChange={(e) => setNumeroTva(e.target.value)}
+        />
+        <input
+          className="field"
+          placeholder="IBAN (pour le RIB, facultatif)"
+          value={iban}
+          onChange={(e) => setIban(e.target.value)}
+        />
+        <textarea
+          className="field"
+          placeholder="Conditions de paiement (ex: Acompte 30% à la commande, solde à la livraison)"
+          value={conditionsPaiement}
+          onChange={(e) => setConditionsPaiement(e.target.value)}
+        />
+        <textarea
+          className="field"
+          placeholder="Mentions légales / assurance (ex: Assurance RC Pro n°..., Garantie décennale...)"
+          value={mentionsLegales}
+          onChange={(e) => setMentionsLegales(e.target.value)}
+        />
+
+        <button className="btn btn-primary" onClick={enregistrer}>
+          Enregistrer
+        </button>
+
+        {message && <p className="message">{message}</p>}
+      </div>
     </main>
   );
 }

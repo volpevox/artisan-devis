@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
         role: "system",
         content: `Tu extrais les informations d'un devis dicté par un professionnel indépendant ou une petite entreprise, tous secteurs confondus (bâtiment, espaces verts, agence web, prestations de services, artisanat...). Réponds UNIQUEMENT en JSON, avec exactement ces champs :
 - client (texte, vide si non mentionné)
+- clientAdresse (texte, l'adresse du client si mentionnée, vide sinon)
 - description (texte, le descriptif complet de la prestation tel que dicté)
 - prestation (texte court désignant le type de prestation, sans détail de quantité, ex: "Peinture", "Tonte de pelouse", "Création de site web", "Dépannage informatique", "Consulting")
 - quantite (nombre, la quantité de travail mentionnée : nombre de m², de mètres linéaires, d'heures, de jours, de pages, de points/unités... Si aucune quantité mesurable n'est mentionnée, mets 1)
@@ -49,6 +50,7 @@ Si aucun prix n'est dicté, ne propose un prixUnitaire du carnet que si une pres
   } catch {
     return NextResponse.json({
       client: "",
+      clientAdresse: "",
       description: texte,
       prestation: "",
       quantite: 1,
