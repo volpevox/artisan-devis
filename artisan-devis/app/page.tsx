@@ -6,7 +6,9 @@ export default function Home() {
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [description, setDescription] = useState("");
+  const [prestation, setPrestation] = useState("");
   const [prix, setPrix] = useState("");
+  const [prixPropose, setPrixPropose] = useState(false);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
   const [devisEnregistre, setDevisEnregistre] = useState(false);
@@ -56,9 +58,15 @@ export default function Home() {
 
       if (donnees.client) setClient(donnees.client);
       setDescription(donnees.description || data.texte);
+      setPrestation(donnees.prestation || "");
       if (donnees.prix) setPrix(String(donnees.prix));
+      setPrixPropose(Boolean(donnees.prixPropose));
 
-      setMessage("Devis rempli automatiquement, vérifie avant d'enregistrer.");
+      setMessage(
+        donnees.prixPropose
+          ? "Devis rempli automatiquement. Prix proposé d'après tes anciens devis, vérifie avant d'enregistrer."
+          : "Devis rempli automatiquement, vérifie avant d'enregistrer."
+      );
     };
 
     recorder.start();
@@ -68,6 +76,38 @@ export default function Home() {
   function arreterMicro() {
     mediaRecorderRef.current?.stop();
     setEnregistrement(false);
+  }
+
+  async function apprendrePrix(prestationSaisie: string, prixNum: number) {
+    if (!prestationSaisie.trim() || !prixNum) return;
+
+    const { data: existant } = await supabase
+      .from("prix_appris")
+      .select("*")
+      .ilike("prestation", prestationSaisie.trim())
+      .maybeSingle();
+
+    if (existant) {
+      const nouvelleMoyenne =
+        (existant.prix_moyen * existant.nombre_utilisations + prixNum) /
+        (existant.nombre_utilisations + 1);
+
+      await supabase
+        .from("prix_appris")
+        .update({
+          prix_moyen: nouvelleMoyenne,
+          nombre_utilisations: existant.nombre_utilisations + 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existant.id);
+    } else {
+      await supabase.from("prix_appris").insert({
+        prestation: prestationSaisie.trim(),
+        prix_moyen: prixNum,
+        nombre_utilisations: 1,
+        updated_at: new Date().toISOString(),
+      });
+    }
   }
 
   async function envoyer() {
@@ -97,6 +137,8 @@ export default function Home() {
       return;
     }
 
+    await apprendrePrix(prestation, Number(prix));
+
     setMessage("Devis enregistré ! Tu peux maintenant l'envoyer au client.");
     setDevisEnregistre(true);
   }
@@ -120,7 +162,9 @@ export default function Home() {
     setClient("");
     setClientEmail("");
     setDescription("");
+    setPrestation("");
     setPrix("");
+    setPrixPropose(false);
     setDevisEnregistre(false);
   }
 
@@ -161,11 +205,31 @@ export default function Home() {
         style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
       />
       <input
-        placeholder="Prix (€)"
-        value={prix}
-        onChange={(e) => setPrix(e.target.value)}
+        placeholder="Type de prestation (pour apprendre les prix)"
+        value={prestation}
+        onChange={(e) => setPrestation(e.target.value)}
         style={{ display: "block", marginBottom: 10, width: "100%", padding: 8 }}
       />
+      <input
+        placeholder="Prix (€)"
+        value={prix}
+        onChange={(e) => {
+          setPrix(e.target.value);
+          setPrixPropose(false);
+        }}
+        style={{
+          display: "block",
+          marginBottom: prixPropose ? 4 : 10,
+          width: "100%",
+          padding: 8,
+          border: prixPropose ? "2px solid #2a7" : undefined,
+        }}
+      />
+      {prixPropose && (
+        <p style={{ fontSize: 12, color: "#2a7", marginTop: 0, marginBottom: 10 }}>
+          Prix proposé automatiquement d'après tes anciens devis
+        </p>
+      )}
 
       {!devisEnregistre ? (
         <button onClick={envoyer} style={{ padding: "10px 20px" }}>
