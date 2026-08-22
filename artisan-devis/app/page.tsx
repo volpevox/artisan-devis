@@ -1,11 +1,13 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
+  const [etape, setEtape] = useState<"voice" | "form">("voice");
+  const [nomEntreprise, setNomEntreprise] = useState("");
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
@@ -25,6 +27,18 @@ export default function Home() {
   const chunksRef = useRef<Blob[]>([]);
 
   const total = (Number(quantite) || 0) * (Number(prixUnitaire) || 0);
+
+  useEffect(() => {
+    if (!artisanId) return;
+    supabase
+      .from("artisans")
+      .select("nom_entreprise")
+      .eq("id", artisanId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.nom_entreprise) setNomEntreprise(data.nom_entreprise);
+      });
+  }, [artisanId]);
 
   async function demarrerMicro() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -83,6 +97,7 @@ export default function Home() {
           ? "Devis rempli automatiquement. Prix unitaire proposé d'après tes anciens devis, vérifie avant d'enregistrer."
           : "Devis rempli automatiquement, vérifie avant d'enregistrer."
       );
+      setEtape("form");
     };
 
     recorder.start();
@@ -215,12 +230,83 @@ export default function Home() {
     setPrixUnitaire("");
     setPrixPropose(false);
     setDevisEnregistre(false);
+    setEtape("voice");
   }
 
   if (loading) {
     return (
       <main className="page-shell">
         <p className="message">Chargement...</p>
+      </main>
+    );
+  }
+
+  const iconeMicro = (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 0 0-7 0v5A3.5 3.5 0 0 0 12 15Z"
+        stroke="var(--on-ink)"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v3.5M9 20.5h6"
+        stroke="var(--on-ink)"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+
+  if (etape === "voice") {
+    return (
+      <main className="page-shell">
+        <Topbar />
+
+        <div className="voice-screen">
+          <p className="voice-greeting">Bonjour{nomEntreprise ? ` ${nomEntreprise}` : ""} !</p>
+          <p className="voice-sub">Que souhaitez-vous créer aujourd'hui ?</p>
+
+          <div className="mic-wrap">
+            <button
+              className={`mic-button mic-button--hero${enregistrement ? " recording" : ""}`}
+              onClick={enregistrement ? arreterMicro : demarrerMicro}
+              aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
+            >
+              {iconeMicro}
+            </button>
+
+            {enregistrement && (
+              <div className="voice-wave" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            )}
+
+            <span className="mic-label">
+              {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez le chantier"}
+            </span>
+          </div>
+
+          {message && <p className="message">{message}</p>}
+
+          <button className="voice-skip" onClick={() => setEtape("form")}>
+            Remplir le devis manuellement
+          </button>
+        </div>
+
+        {lienSignature && (
+          <div className="card">
+            <p className="hint" style={{ margin: "0 0 6px" }}>
+              Lien de signature (déjà inclus dans l'email) :
+            </p>
+            <a href={lienSignature} target="_blank" rel="noreferrer" style={{ fontSize: 13, wordBreak: "break-all" }}>
+              {lienSignature}
+            </a>
+          </div>
+        )}
       </main>
     );
   }
@@ -238,21 +324,9 @@ export default function Home() {
             onClick={enregistrement ? arreterMicro : demarrerMicro}
             aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
           >
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-5a3.5 3.5 0 0 0-7 0v5A3.5 3.5 0 0 0 12 15Z"
-                stroke="var(--on-ink)"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v3.5M9 20.5h6"
-                stroke="var(--on-ink)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            {iconeMicro}
           </button>
-          <span className="mic-label">{enregistrement ? "Arrêter" : "Dicter la prestation"}</span>
+          <span className="mic-label">{enregistrement ? "Arrêter" : "Redicter la prestation"}</span>
         </div>
 
         <input
