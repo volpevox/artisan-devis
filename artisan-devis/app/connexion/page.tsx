@@ -47,7 +47,7 @@ export default function Connexion() {
   return (
     <main className="page-shell" style={{ paddingTop: 60 }}>
       <h1 className="page-title" style={{ textAlign: "center" }}>
-        Artisan Devis
+        VolpeVox
       </h1>
 
       <div className="card">

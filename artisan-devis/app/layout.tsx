@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Artisan Devis",
+  title: "VolpeVox",
   description: "Créez vos devis en dictant, en quelques secondes",
 };
 

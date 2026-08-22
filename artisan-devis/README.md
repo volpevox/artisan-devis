@@ -1,4 +1,4 @@
-# Artisan Devis — mise en route
+# VolpeVox — mise en route
 
 ## 1. Décompresser
 Décompresse ce zip où tu veux sur ton ordinateur (par exemple dans "Documents").
