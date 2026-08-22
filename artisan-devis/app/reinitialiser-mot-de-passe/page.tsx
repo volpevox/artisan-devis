@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -21,7 +22,8 @@ export default function ReinitialiserMotDePasse() {
     });
   }, []);
 
-  async function valider() {
+  async function valider(e: FormEvent) {
+    e.preventDefault();
     setMessage("");
 
     if (motDePasse.length < 6) {
@@ -59,10 +61,12 @@ export default function ReinitialiserMotDePasse() {
         </h2>
 
         {pret && !reussi && (
-          <>
+          <form onSubmit={valider} autoComplete="on">
             <input
               className="field"
               type="password"
+              name="new-password"
+              autoComplete="new-password"
               placeholder="Nouveau mot de passe"
               value={motDePasse}
               onChange={(e) => setMotDePasse(e.target.value)}
@@ -70,15 +74,17 @@ export default function ReinitialiserMotDePasse() {
             <input
               className="field"
               type="password"
+              name="confirm-password"
+              autoComplete="new-password"
               placeholder="Confirme le mot de passe"
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
             />
 
-            <button className="btn btn-primary" onClick={valider} disabled={chargement} style={{ width: "100%" }}>
+            <button type="submit" className="btn btn-primary" disabled={chargement} style={{ width: "100%" }}>
               Valider
             </button>
-          </>
+          </form>
         )}
 
         {message && <p className="message">{message}</p>}

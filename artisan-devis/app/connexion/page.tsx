@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SplashEcran } from "@/components/SplashEcran";
@@ -18,7 +19,8 @@ export default function Connexion() {
     setTimeout(() => router.push(destination), 3000);
   }
 
-  async function valider() {
+  async function valider(e: FormEvent) {
+    e.preventDefault();
     setMessage("");
     setChargement(true);
 
@@ -82,39 +84,47 @@ export default function Connexion() {
           {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer un compte" : "Mot de passe oublié"}
         </h2>
 
-        <input
-          className="field"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {mode !== "oubli" && (
+        <form onSubmit={valider} autoComplete="on">
           <input
             className="field"
-            type="password"
-            placeholder="Mot de passe"
-            value={motDePasse}
-            onChange={(e) => setMotDePasse(e.target.value)}
+            type="email"
+            name="email"
+            autoComplete="username"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-        )}
+          {mode !== "oubli" && (
+            <input
+              className="field"
+              type="password"
+              name="password"
+              autoComplete={mode === "inscription" ? "new-password" : "current-password"}
+              placeholder="Mot de passe"
+              value={motDePasse}
+              onChange={(e) => setMotDePasse(e.target.value)}
+            />
+          )}
 
-        <button className="btn btn-primary" onClick={valider} disabled={chargement} style={{ width: "100%" }}>
-          {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer mon compte" : "Envoyer le lien"}
-        </button>
+          <button type="submit" className="btn btn-primary" disabled={chargement} style={{ width: "100%" }}>
+            {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer mon compte" : "Envoyer le lien"}
+          </button>
 
-        {mode === "connexion" && (
-          <p style={{ marginTop: 12, fontSize: 13, textAlign: "center" }}>
-            <button
-              onClick={() => {
-                setMode("oubli");
-                setMessage("");
-              }}
-              style={{ background: "none", border: "none", color: "var(--muted)", fontWeight: 600, cursor: "pointer", padding: 0, textDecoration: "underline" }}
-            >
-              Mot de passe oublié ?
-            </button>
-          </p>
-        )}
+          {mode === "connexion" && (
+            <p style={{ marginTop: 12, fontSize: 13, textAlign: "center" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("oubli");
+                  setMessage("");
+                }}
+                style={{ background: "none", border: "none", color: "var(--muted)", fontWeight: 600, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+              >
+                Mot de passe oublié ?
+              </button>
+            </p>
+          )}
+        </form>
 
         {message && <p className="message">{message}</p>}
 
@@ -123,6 +133,7 @@ export default function Connexion() {
             <>
               Pas encore de compte ?{" "}
               <button
+                type="button"
                 onClick={() => setMode("inscription")}
                 style={{ background: "none", border: "none", color: "var(--ink)", fontWeight: 600, cursor: "pointer", padding: 0 }}
               >
@@ -133,6 +144,7 @@ export default function Connexion() {
             <>
               Déjà un compte ?{" "}
               <button
+                type="button"
                 onClick={() => setMode("connexion")}
                 style={{ background: "none", border: "none", color: "var(--ink)", fontWeight: 600, cursor: "pointer", padding: 0 }}
               >
