@@ -67,12 +67,21 @@ canvas {
 
 .topbar-brand {
   justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-manuscrit), cursive;
   font-weight: 400;
   font-size: 28px;
   letter-spacing: 0.2px;
   text-decoration: none;
   line-height: 1;
+}
+
+.topbar-brand-icon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
 .brand-volpe {
