@@ -345,6 +345,10 @@ textarea {
   margin: 4px 0 22px;
 }
 
+.mic-wrap--hero {
+  gap: 24px;
+}
+
 .mic-button {
   position: relative;
   width: 92px;

@@ -272,7 +272,7 @@ export default function Home() {
           <p className="voice-greeting">Bonjour{nomEntreprise ? ` ${nomEntreprise}` : ""} !</p>
           <p className="voice-sub">Que souhaitez-vous créer aujourd'hui ?</p>
 
-          <div className="mic-wrap">
+          <div className="mic-wrap mic-wrap--hero">
             <span className="mic-label">
               {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez votre prestation"}
             </span>
