@@ -113,16 +113,26 @@ export default function Home() {
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
 
       const lignesRecues = Array.isArray(donnees.lignes) && donnees.lignes.length > 0 ? donnees.lignes : [{}];
-      setLignes(
-        lignesRecues.map((l: any) => ({
-          description: l.description || data.texte,
-          prestation: l.prestation || "",
-          quantite: String(l.quantite || 1),
-          unite: l.unite || "forfait",
-          prixUnitaire: l.prixUnitaire ? String(l.prixUnitaire) : "",
-          prixPropose: Boolean(l.prixPropose),
-        }))
-      );
+      const nouvellesLignes = lignesRecues.map((l: any) => ({
+        description: l.description || data.texte,
+        prestation: l.prestation || "",
+        quantite: String(l.quantite || 1),
+        unite: l.unite || "forfait",
+        prixUnitaire: l.prixUnitaire ? String(l.prixUnitaire) : "",
+        prixPropose: Boolean(l.prixPropose),
+      }));
+
+      // Redicter depuis le formulaire ajoute a ce qui est deja rempli au
+      // lieu de tout remplacer (les lignes vides deja presentes sont
+      // retirees pour ne pas laisser une ligne inutile).
+      if (etape === "form") {
+        setLignes((ls) => {
+          const conservees = ls.filter((l) => l.description.trim() || l.prixUnitaire.trim());
+          return [...conservees, ...nouvellesLignes];
+        });
+      } else {
+        setLignes(nouvellesLignes);
+      }
 
       const auMoinsUnPrixPropose = lignesRecues.some((l: any) => l.prixPropose);
       setMessage(
