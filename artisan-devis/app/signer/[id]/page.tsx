@@ -212,7 +212,7 @@ export default function Signer() {
                 }}
               />
             )}
-            <a href={`/api/devis-pdf/${devisId}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
+            <a href={`/api/devis-pdf/${devisId}?t=${Date.now()}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
               {estFacture ? "Télécharger la facture" : "Télécharger le PDF signé"}
             </a>
           </div>
