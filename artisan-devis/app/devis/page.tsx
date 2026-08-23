@@ -9,7 +9,6 @@ export default function MesDevis() {
   const { artisanId, loading: chargementSession } = useArtisanSession();
   const [devis, setDevis] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
-  const [copie, setCopie] = useState("");
   const [enCours, setEnCours] = useState<string>("");
   const [messages, setMessages] = useState<Record<string, string>>({});
 
@@ -27,13 +26,6 @@ export default function MesDevis() {
     }
     charger();
   }, [artisanId]);
-
-  function copierLien(id: string) {
-    const lien = `${window.location.origin}/signer/${id}`;
-    navigator.clipboard.writeText(lien);
-    setCopie(id);
-    setTimeout(() => setCopie(""), 2000);
-  }
 
   async function transformerEnFacture(id: string) {
     setEnCours(id);
@@ -82,10 +74,8 @@ export default function MesDevis() {
           key={d.id}
           d={d}
           type="devis"
-          copie={copie}
           enCours={enCours}
           message={messages[d.id]}
-          onCopierLien={copierLien}
           onTransformerEnFacture={transformerEnFacture}
         />
       ))}

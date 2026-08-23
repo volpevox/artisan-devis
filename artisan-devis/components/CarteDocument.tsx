@@ -1,10 +1,8 @@
 interface CarteDocumentProps {
   d: any;
   type: "devis" | "facture";
-  copie: string;
   enCours: string;
   message?: string;
-  onCopierLien: (id: string) => void;
   onTransformerEnFacture?: (id: string) => void;
   onEnvoyerFacture?: (id: string) => void;
 }
@@ -18,10 +16,8 @@ function badge(statut: string) {
 export function CarteDocument({
   d,
   type,
-  copie,
   enCours,
   message,
-  onCopierLien,
   onTransformerEnFacture,
   onEnvoyerFacture,
 }: CarteDocumentProps) {
@@ -67,8 +63,6 @@ export function CarteDocument({
         <a href={`/api/devis-pdf/${d.id}`} target="_blank" rel="noreferrer">
           {type === "facture" ? "Télécharger la facture" : d.statut === "signe" ? "Télécharger le PDF signé" : "Télécharger le PDF"}
         </a>
-        <button onClick={() => onCopierLien(d.id)}>{copie === d.id ? "Copié !" : "Copier le lien"}</button>
-
         {type === "devis" && d.statut === "signe" && onTransformerEnFacture && (
           <button onClick={() => onTransformerEnFacture(d.id)} disabled={enCours === d.id}>
             Transformer en facture

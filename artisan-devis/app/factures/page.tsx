@@ -9,7 +9,6 @@ export default function MesFactures() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [factures, setFactures] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
-  const [copie, setCopie] = useState("");
   const [enCours, setEnCours] = useState<string>("");
   const [messages, setMessages] = useState<Record<string, string>>({});
 
@@ -27,13 +26,6 @@ export default function MesFactures() {
     }
     charger();
   }, [artisanId]);
-
-  function copierLien(id: string) {
-    const lien = `${window.location.origin}/signer/${id}`;
-    navigator.clipboard.writeText(lien);
-    setCopie(id);
-    setTimeout(() => setCopie(""), 2000);
-  }
 
   async function envoyerFacture(id: string) {
     setEnCours(id);
@@ -73,10 +65,8 @@ export default function MesFactures() {
           key={d.id}
           d={d}
           type="facture"
-          copie={copie}
           enCours={enCours}
           message={messages[d.id]}
-          onCopierLien={copierLien}
           onEnvoyerFacture={envoyerFacture}
         />
       ))}
