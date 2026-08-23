@@ -9,6 +9,7 @@ export default function Profil() {
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
   const [adresse, setAdresse] = useState("");
+  const [ville, setVille] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoFichier, setLogoFichier] = useState<File | null>(null);
   const [tauxTva, setTauxTva] = useState("20");
@@ -29,6 +30,7 @@ export default function Profil() {
         setNomEntreprise(data.nom_entreprise || "");
         setTelephone(data.telephone || "");
         setAdresse(data.adresse || "");
+        setVille(data.ville || "");
         setLogoUrl(data.logo_url || "");
         setTauxTva(data.taux_tva !== null && data.taux_tva !== undefined ? String(data.taux_tva) : "20");
         setSiret(data.siret || "");
@@ -71,6 +73,7 @@ export default function Profil() {
       nom_entreprise: nomEntreprise,
       telephone,
       adresse,
+      ville,
       logo_url: urlLogo,
       taux_tva: Number(tauxTva) || 0,
       siret,
@@ -140,6 +143,12 @@ export default function Profil() {
           placeholder="Adresse"
           value={adresse}
           onChange={(e) => setAdresse(e.target.value)}
+        />
+        <input
+          className="field"
+          placeholder="Ville (pour « Fait à ... » sur les devis/factures)"
+          value={ville}
+          onChange={(e) => setVille(e.target.value)}
         />
       </div>
 

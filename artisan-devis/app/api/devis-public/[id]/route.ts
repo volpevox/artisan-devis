@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const { data: profil } = await supabase
     .from("artisans")
-    .select("nom_entreprise")
+    .select("nom_entreprise, taux_tva")
     .eq("id", devis.artisan_id)
     .maybeSingle();
 

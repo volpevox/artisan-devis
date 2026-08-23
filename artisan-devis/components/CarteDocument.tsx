@@ -1,3 +1,6 @@
+"use client";
+import { useState } from "react";
+
 interface CarteDocumentProps {
   d: any;
   type: "devis" | "facture";
@@ -5,7 +8,11 @@ interface CarteDocumentProps {
   message?: string;
   onTransformerEnFacture?: (id: string) => void;
   onEnvoyerFacture?: (id: string) => void;
+  onMarquerPayee?: (id: string, moyenPaiement: string) => void;
+  onAnnulerPaiement?: (id: string) => void;
 }
+
+const MOYENS_PAIEMENT = ["Carte bancaire", "Virement bancaire", "Chèque", "Espèces"];
 
 function badge(statut: string) {
   if (statut === "signe") return { texte: "Signé", classe: "badge-success" };
@@ -20,7 +27,10 @@ export function CarteDocument({
   message,
   onTransformerEnFacture,
   onEnvoyerFacture,
+  onMarquerPayee,
+  onAnnulerPaiement,
 }: CarteDocumentProps) {
+  const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
   const b = badge(d.statut);
   const numero = type === "facture" ? d.numero_facture : d.numero_devis;
   const titre = type === "facture" ? "Facture" : "Devis";
@@ -56,6 +66,21 @@ export function CarteDocument({
         </p>
       )}
 
+      {type === "facture" && d.payee_le && (
+        <p style={{ fontSize: 12, color: "var(--success)", margin: "4px 0 0" }}>
+          ✓ Payée le {new Date(d.payee_le).toLocaleDateString("fr-FR")}
+          {d.moyen_paiement ? ` par ${d.moyen_paiement}` : ""}
+          {onAnnulerPaiement && (
+            <button
+              onClick={() => onAnnulerPaiement(d.id)}
+              style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 11, textDecoration: "underline", cursor: "pointer", padding: 0, marginLeft: 8 }}
+            >
+              Annuler
+            </button>
+          )}
+        </p>
+      )}
+
       <div className="link-row">
         <a href={`/signer/${d.id}`} target="_blank" rel="noreferrer">
           {type === "facture" ? "Voir la facture" : "Voir le devis"}
@@ -74,6 +99,26 @@ export function CarteDocument({
           </button>
         )}
       </div>
+
+      {type === "facture" && !d.payee_le && onMarquerPayee && (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
+          <select
+            className="field"
+            style={{ margin: 0, width: "auto" }}
+            value={moyenChoisi}
+            onChange={(e) => setMoyenChoisi(e.target.value)}
+          >
+            {MOYENS_PAIEMENT.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <button onClick={() => onMarquerPayee(d.id, moyenChoisi)} disabled={enCours === d.id}>
+            Marquer comme payée
+          </button>
+        </div>
+      )}
 
       {message && <p className="message">{message}</p>}
     </div>

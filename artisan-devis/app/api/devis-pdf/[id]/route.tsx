@@ -36,6 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         nom: profil?.nom_entreprise,
         telephone: profil?.telephone,
         adresse: profil?.adresse,
+        ville: profil?.ville,
         logoUrl: profil?.logo_url,
         siret: profil?.siret,
         numeroTva: profil?.numero_tva,
@@ -53,10 +54,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }))}
       tauxTva={tauxTva}
       date={new Date(estFacture ? devis.facture_creee_le : devis.created_at)}
+      datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
       signatureUrl={devis.signature_url}
       signeLe={devis.signe_le ? new Date(devis.signe_le) : null}
       type={estFacture ? "facture" : "devis"}
       numero={estFacture ? devis.numero_facture : devis.numero_devis}
+      paiement={{
+        payeeLe: devis.payee_le ? new Date(devis.payee_le) : null,
+        moyenPaiement: devis.moyen_paiement || null,
+      }}
     />
   );
 

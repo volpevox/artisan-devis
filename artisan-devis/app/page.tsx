@@ -23,6 +23,10 @@ function ligneVide(): Ligne {
   return { description: "", prestation: "", quantite: "1", unite: "forfait", prixUnitaire: "", prixPropose: false };
 }
 
+function aujourdhui() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
@@ -31,6 +35,7 @@ export default function Home() {
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
+  const [datePrestation, setDatePrestation] = useState(aujourdhui());
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
   const [devisEnregistre, setDevisEnregistre] = useState(false);
@@ -209,6 +214,7 @@ export default function Home() {
         client_nom: client,
         client_email: clientEmail,
         client_adresse: clientAdresse,
+        date_prestation: datePrestation || null,
         total,
         statut: "brouillon",
       })
@@ -284,6 +290,7 @@ export default function Home() {
     setClientEmail("");
     setClientAdresse("");
     setLignes([ligneVide()]);
+    setDatePrestation(aujourdhui());
     setDevisEnregistre(false);
     setEtape("voice");
   }
@@ -398,6 +405,16 @@ export default function Home() {
           value={clientAdresse}
           onChange={(e) => setClientAdresse(e.target.value)}
         />
+        <label className="field-label">
+          Date de réalisation de la prestation
+          <input
+            className="field"
+            style={{ marginTop: 6 }}
+            type="date"
+            value={datePrestation}
+            onChange={(e) => setDatePrestation(e.target.value)}
+          />
+        </label>
         {lignes.map((ligne, index) => {
           const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
           return (

@@ -128,7 +128,10 @@ export default function Signer() {
     );
   }
 
-  const total = devis.total;
+  const totalHT = devis.total;
+  const tauxTva = profil?.taux_tva ?? 20;
+  const montantTva = (totalHT * tauxTva) / 100;
+  const totalTTC = totalHT + montantTva;
   const estFacture = Boolean(devis.est_facture);
   const motDocument = estFacture ? "Facture" : "Devis";
   const numero = estFacture ? devis.numero_facture : devis.numero_devis;
@@ -158,9 +161,24 @@ export default function Signer() {
           </div>
         ))}
 
-        <p className="total-line" style={{ fontSize: 18 }}>
-          Total : {total} €
-        </p>
+        <div style={{ margin: "10px 0 16px" }}>
+          <p style={{ display: "flex", justifyContent: "space-between", margin: "0 0 4px", fontSize: 13, color: "var(--muted)" }}>
+            <span>Total HT</span>
+            <span>{totalHT.toFixed(2)} €</span>
+          </p>
+          {tauxTva > 0 ? (
+            <p style={{ display: "flex", justifyContent: "space-between", margin: "0 0 4px", fontSize: 13, color: "var(--muted)" }}>
+              <span>TVA ({tauxTva}%)</span>
+              <span>{montantTva.toFixed(2)} €</span>
+            </p>
+          ) : (
+            <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--muted)" }}>TVA non applicable, art. 293 B du CGI</p>
+          )}
+          <p className="total-line" style={{ display: "flex", justifyContent: "space-between", fontSize: 18 }}>
+            <span>Total TTC</span>
+            <span>{totalTTC.toFixed(2)} €</span>
+          </p>
+        </div>
 
         {devis.statut === "signe" ? (
           <div

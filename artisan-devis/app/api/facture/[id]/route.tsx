@@ -57,6 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           nom: profil?.nom_entreprise,
           telephone: profil?.telephone,
           adresse: profil?.adresse,
+          ville: profil?.ville,
           logoUrl: profil?.logo_url,
           siret: profil?.siret,
           numeroTva: profil?.numero_tva,
@@ -74,8 +75,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         }))}
         tauxTva={tauxTva}
         date={new Date(devis.facture_creee_le)}
+        datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
         type="facture"
         numero={devis.numero_facture}
+        paiement={{
+          payeeLe: devis.payee_le ? new Date(devis.payee_le) : null,
+          moyenPaiement: devis.moyen_paiement || null,
+        }}
       />
     );
 

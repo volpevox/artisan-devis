@@ -49,6 +49,39 @@ export default function MesFactures() {
     setMessages((m) => ({ ...m, [id]: "Facture envoyée au client !" }));
   }
 
+  async function marquerPayee(id: string, moyenPaiement: string) {
+    setEnCours(id);
+    const payeeLe = new Date().toISOString();
+
+    const { error } = await supabase.from("devis").update({ payee_le: payeeLe, moyen_paiement: moyenPaiement }).eq("id", id);
+
+    setEnCours("");
+
+    if (error) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + error.message }));
+      return;
+    }
+
+    setFactures((liste) => liste.map((d) => (d.id === id ? { ...d, payee_le: payeeLe, moyen_paiement: moyenPaiement } : d)));
+    setMessages((m) => ({ ...m, [id]: "Facture marquée comme payée !" }));
+  }
+
+  async function annulerPaiement(id: string) {
+    setEnCours(id);
+
+    const { error } = await supabase.from("devis").update({ payee_le: null, moyen_paiement: null }).eq("id", id);
+
+    setEnCours("");
+
+    if (error) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + error.message }));
+      return;
+    }
+
+    setFactures((liste) => liste.map((d) => (d.id === id ? { ...d, payee_le: null, moyen_paiement: null } : d)));
+    setMessages((m) => ({ ...m, [id]: "" }));
+  }
+
   return (
     <main className="page-shell page-shell--large">
       <Topbar />
@@ -68,6 +101,8 @@ export default function MesFactures() {
           enCours={enCours}
           message={messages[d.id]}
           onEnvoyerFacture={envoyerFacture}
+          onMarquerPayee={marquerPayee}
+          onAnnulerPaiement={annulerPaiement}
         />
       ))}
     </main>

@@ -27,18 +27,22 @@ Font.register({
   ],
 });
 
-const NUIT = "#0d1b2a";
-const OR = "#d4af37";
+// Palette imprimable : fond blanc, texte sombre, le dore reste la couleur
+// d'accent (titres, total TTC) pour garder l'identite VolpeVox.
+const ENCRE = "#152238";
+const OR_TEXTE = "#a9790f";
+const OR_FOND = "#d4af37";
 const ARDOISE = "#3a4a5e";
-const TEXTE = "#eef1f6";
-const MUTED = "#93a0b3";
-const MUTED_DOUX = "#b7c0cc";
-const LIGNE = "rgba(255,255,255,0.08)";
-const LIGNE_OR = "rgba(212,175,55,0.4)";
-const TOP_BORDER = "rgba(212,175,55,0.25)";
+const TEXTE = "#2a3444";
+const MUTED = "#6b7280";
+const MUTED_DOUX = "#475467";
+const LIGNE = "#e5e7eb";
+const LIGNE_OR = "#d4af37";
+const TOP_BORDER = "rgba(212,175,55,0.4)";
+const VERT = "#1f9d64";
 
 const styles = StyleSheet.create({
-  page: { fontFamily: "Archivo", fontSize: 10, color: TEXTE, backgroundColor: NUIT },
+  page: { fontFamily: "Archivo", fontSize: 10, color: TEXTE, backgroundColor: "#ffffff" },
 
   top: {
     padding: "26 28 20",
@@ -54,18 +58,21 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: LIGNE,
     alignItems: "center",
     justifyContent: "center",
   },
   logoImage: { width: 36, height: 36, objectFit: "contain" },
-  logoInitiales: { fontFamily: "Fraunces", fontWeight: 700, fontSize: 15, color: NUIT },
+  logoInitiales: { fontFamily: "Fraunces", fontWeight: 700, fontSize: 15, color: ENCRE },
   brandTexte: { flexDirection: "column", gap: 4 },
-  brandNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: "#ffffff" },
+  brandNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: ENCRE },
   brandMeta: { fontSize: 9, color: MUTED },
 
   devisWordmark: { alignItems: "flex-end" },
-  devisWord: { fontFamily: "Fraunces", fontWeight: 900, fontSize: 34, color: OR, marginBottom: 6 },
+  devisWord: { fontFamily: "Fraunces", fontWeight: 900, fontSize: 34, color: OR_TEXTE, marginBottom: 6 },
   devisNumero: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED },
+  devisLieuDate: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED, marginTop: 2 },
 
   contenu: { padding: "24 28", flexGrow: 1 },
 
@@ -73,12 +80,13 @@ const styles = StyleSheet.create({
     fontFamily: "JetBrains Mono",
     fontSize: 8.5,
     letterSpacing: 1.5,
-    color: OR,
+    color: OR_TEXTE,
     marginBottom: 5,
     textTransform: "uppercase",
   },
-  clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: "#ffffff" },
+  clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: ENCRE },
   clientAdresse: { fontSize: 9.5, color: MUTED, marginTop: 3 },
+  datePrestation: { fontSize: 9, color: MUTED, marginTop: 6 },
 
   tableHeader: {
     flexDirection: "row",
@@ -87,7 +95,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     marginTop: 20,
   },
-  tableHeaderTexte: { fontSize: 8.5, fontWeight: 700, color: OR, textTransform: "uppercase" },
+  tableHeaderTexte: { fontSize: 8.5, fontWeight: 700, color: OR_TEXTE, textTransform: "uppercase" },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -106,7 +114,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     backgroundColor: "rgba(212,175,55,0.12)",
     borderWidth: 1,
-    borderColor: OR,
+    borderColor: OR_FOND,
     color: TEXTE,
     padding: 7,
     borderRadius: 3,
@@ -116,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: OR,
+    backgroundColor: OR_FOND,
     borderRadius: 6,
     paddingVertical: 11,
     paddingHorizontal: 14,
@@ -125,11 +133,24 @@ const styles = StyleSheet.create({
   totalTTCLabel: {
     fontFamily: "Fraunces",
     fontSize: 9.5,
-    color: "rgba(13,27,42,0.65)",
+    color: "rgba(21,34,56,0.65)",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  totalTTCValeur: { fontFamily: "Fraunces", fontWeight: 800, fontSize: 19, color: NUIT },
+  totalTTCValeur: { fontFamily: "Fraunces", fontWeight: 800, fontSize: 19, color: ENCRE },
+
+  acquitteeBadge: {
+    fontSize: 9.5,
+    fontWeight: 700,
+    backgroundColor: "rgba(31,157,100,0.1)",
+    borderWidth: 1,
+    borderColor: VERT,
+    color: VERT,
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 12,
+    textAlign: "center",
+  },
 
   footnotes: { flexDirection: "row", gap: 24, marginTop: 26 },
   footnote: { width: "50%" },
@@ -143,10 +164,19 @@ const styles = StyleSheet.create({
   },
   footnoteTexte: { fontSize: 9, color: MUTED_DOUX, lineHeight: 1.5 },
 
+  mentionLegaleFacture: {
+    marginTop: 18,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: LIGNE,
+    borderRadius: 4,
+    backgroundColor: "#f8f9fb",
+  },
+
   signature: { flexDirection: "row", gap: 22, marginTop: 30 },
   signatureSlot: { width: "50%" },
   signatureEspace: { height: 40, alignItems: "center", justifyContent: "flex-end" },
-  signatureCard: { backgroundColor: "#ffffff", borderRadius: 6, padding: 4 },
+  signatureCard: { borderWidth: 1, borderColor: LIGNE, borderRadius: 6, padding: 4 },
   signatureImage: { height: 36, objectFit: "contain" },
   signatureLigne: { borderTopWidth: 1, borderColor: ARDOISE },
   signatureLabel: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED, paddingTop: 5 },
@@ -154,7 +184,7 @@ const styles = StyleSheet.create({
     fontFamily: "JetBrains Mono",
     fontSize: 8,
     fontWeight: 700,
-    color: "#3ed598",
+    color: VERT,
     paddingTop: 5,
   },
 
@@ -173,7 +203,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   piedBrand: { fontSize: 7.5, color: MUTED },
-  piedBrandNom: { color: OR, fontWeight: 700 },
+  piedBrandNom: { color: OR_TEXTE, fontWeight: 700 },
 });
 
 function formaterDate(date: Date) {
@@ -208,6 +238,7 @@ interface DevisPdfProps {
     nom?: string | null;
     telephone?: string | null;
     adresse?: string | null;
+    ville?: string | null;
     logoUrl?: string | null;
     siret?: string | null;
     numeroTva?: string | null;
@@ -220,10 +251,12 @@ interface DevisPdfProps {
   lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
+  datePrestation?: Date | null;
   signatureUrl?: string | null;
   signeLe?: Date | null;
   type?: "devis" | "facture";
   numero?: number | null;
+  paiement?: { payeeLe: Date | null; moyenPaiement: string | null } | null;
 }
 
 export function DevisPDF({
@@ -233,10 +266,12 @@ export function DevisPDF({
   lignes,
   tauxTva,
   date,
+  datePrestation,
   signatureUrl,
   signeLe,
   type = "devis",
   numero,
+  paiement,
 }: DevisPdfProps) {
   const totalHT = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
   const montantTva = (totalHT * tauxTva) / 100;
@@ -275,8 +310,10 @@ export function DevisPDF({
 
           <View style={styles.devisWordmark}>
             <Text style={styles.devisWord}>{motDocument}</Text>
-            <Text style={styles.devisNumero}>
-              N° {numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")} · {formaterDate(date)}
+            <Text style={styles.devisNumero}>N° {numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")}</Text>
+            <Text style={styles.devisLieuDate}>
+              {entreprise.ville ? `Fait à ${entreprise.ville}, le ` : ""}
+              {formaterDate(date)}
             </Text>
           </View>
         </View>
@@ -286,6 +323,9 @@ export function DevisPDF({
             <Text style={styles.clientLabel}>{motDocument} adressé{estFacture ? "e" : ""} à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
             {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
+            {datePrestation ? (
+              <Text style={styles.datePrestation}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
+            ) : null}
           </View>
 
           <View style={styles.tableHeader}>
@@ -324,6 +364,13 @@ export function DevisPDF({
             </View>
           </View>
 
+          {estFacture && paiement?.payeeLe ? (
+            <Text style={styles.acquitteeBadge}>
+              Facture acquittée le {formaterDate(paiement.payeeLe)}
+              {paiement.moyenPaiement ? ` par ${paiement.moyenPaiement}` : ""}
+            </Text>
+          ) : null}
+
           <View style={styles.footnotes}>
             {entreprise.conditionsPaiement ? (
               <View style={styles.footnote}>
@@ -343,8 +390,18 @@ export function DevisPDF({
             )}
           </View>
 
+          {estFacture && (
+            <View style={styles.mentionLegaleFacture}>
+              <Text style={styles.footnoteTexte}>
+                En cas de retard de paiement, une pénalité calculée au taux d'intérêt légal en vigueur majoré de 10
+                points sera appliquée, ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 €
+                (article L441-10 du Code de commerce).
+              </Text>
+            </View>
+          )}
+
           {estFacture ? (
-            <Text style={[styles.footnoteTexte, { marginTop: 26 }]}>Merci pour votre confiance.</Text>
+            <Text style={[styles.footnoteTexte, { marginTop: 18 }]}>Merci pour votre confiance.</Text>
           ) : (
             <View style={styles.signature}>
               <View style={styles.signatureSlot}>
