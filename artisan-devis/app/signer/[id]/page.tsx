@@ -7,7 +7,7 @@ export default function Signer() {
   const devisId = params.id as string;
 
   const [devis, setDevis] = useState<any>(null);
-  const [ligne, setLigne] = useState<any>(null);
+  const [lignes, setLignes] = useState<any[]>([]);
   const [profil, setProfil] = useState<any>(null);
   const [chargement, setChargement] = useState(true);
   const [introuvable, setIntrouvable] = useState(false);
@@ -28,10 +28,10 @@ export default function Signer() {
         return;
       }
 
-      const { devis: devisData, ligne: ligneData, profil: profilData } = await res.json();
+      const { devis: devisData, lignes: lignesData, profil: profilData } = await res.json();
 
       setDevis(devisData);
-      setLigne(ligneData);
+      setLignes(lignesData || []);
       setProfil(profilData);
       setChargement(false);
     }
@@ -128,7 +128,7 @@ export default function Signer() {
     );
   }
 
-  const total = ligne?.total_ligne ?? devis.total;
+  const total = devis.total;
   const estFacture = Boolean(devis.est_facture);
   const motDocument = estFacture ? "Facture" : "Devis";
   const numero = estFacture ? devis.numero_facture : devis.numero_devis;
@@ -149,14 +149,14 @@ export default function Signer() {
           <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--muted)" }}>{devis.client_adresse}</p>
         )}
 
-        {ligne && (
-          <div style={{ background: "var(--bg)", padding: 14, borderRadius: 8, marginBottom: 16 }}>
+        {lignes.map((ligne) => (
+          <div key={ligne.id} style={{ background: "var(--bg)", padding: 14, borderRadius: 8, marginBottom: 10 }}>
             <p style={{ margin: "0 0 6px" }}>{ligne.description}</p>
             <p style={{ margin: 0, fontSize: 14, color: "var(--muted)" }}>
-              {ligne.quantite} × {ligne.prix_unitaire} €
+              {ligne.quantite} {ligne.unite} × {ligne.prix_unitaire} €
             </p>
           </div>
-        )}
+        ))}
 
         <p className="total-line" style={{ fontSize: 18 }}>
           Total : {total} €

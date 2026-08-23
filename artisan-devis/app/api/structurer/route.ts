@@ -27,43 +27,40 @@ export async function POST(req: NextRequest) {
 
   const reponse = await openai.chat.completions.create({
     model: "gpt-4o-mini",
+    response_format: { type: "json_object" },
     messages: [
       {
         role: "system",
         content: `Tu extrais les informations d'un devis dicté par un professionnel indépendant ou une petite entreprise, tous secteurs confondus (bâtiment, espaces verts, agence web, prestations de services, artisanat...). Réponds UNIQUEMENT en JSON, avec exactement ces champs :
 - client (texte, vide si non mentionné)
 - clientAdresse (texte, l'adresse du client si mentionnée, vide sinon)
-- description (texte, le descriptif complet de la prestation tel que dicté)
-- prestation (texte court désignant le type de prestation, sans détail de quantité, ex: "Peinture", "Tonte de pelouse", "Création de site web", "Dépannage informatique", "Consulting")
-- quantite (nombre, la quantité de travail mentionnée : nombre de m², de mètres linéaires, d'heures, de jours, de pages, de points/unités... Si aucune quantité mesurable n'est mentionnée, mets 1)
-- unite (texte, l'unité correspondant à la quantité, à choisir parmi : "m²", "ml", "heure", "jour", "unité", "forfait". Utilise "forfait" si la prestation n'est pas mesurable par quantité (ex: un forfait global), avec quantite à 1)
-- prixUnitaire (nombre, le prix par unité, ou null si aucun prix n'est dicté et qu'aucune prestation connue ne correspond)
-- prixPropose (booléen, true uniquement si prixUnitaire vient du carnet de prix ci-dessous plutôt que d'un montant dicté explicitement)
+- lignes (tableau d'objets) : une entrée par prestation DISTINCTE mentionnée dans la dictée. Si la dictée ne décrit qu'une seule prestation, renvoie un tableau avec une seule entrée. Ne sépare en plusieurs lignes que des tâches réellement différentes (pas un simple découpage artificiel d'une même tâche). Chaque entrée contient :
+  - description (texte, le descriptif de cette prestation tel que dicté)
+  - prestation (texte court désignant le type de prestation, sans détail de quantité, ex: "Peinture", "Tonte de pelouse", "Création de site web", "Dépannage informatique", "Consulting")
+  - quantite (nombre, la quantité de travail mentionnée pour cette prestation : nombre de m², de mètres linéaires, d'heures, de jours, de pages, de points/unités... Si aucune quantité mesurable n'est mentionnée, mets 1)
+  - unite (texte, l'unité correspondant à la quantité, à choisir parmi : "m²", "ml", "heure", "jour", "unité", "forfait". Utilise "forfait" si la prestation n'est pas mesurable par quantité (ex: un forfait global), avec quantite à 1)
+  - prixUnitaire (nombre, le prix par unité pour CETTE prestation, ou null si aucun prix n'est dicté pour elle et qu'aucune prestation connue ne correspond)
+  - prixPropose (booléen, true uniquement si prixUnitaire vient du carnet de prix ci-dessous plutôt que d'un montant dicté explicitement)
 
 Voici les prix déjà appris pour ce professionnel (prestation, par unité, prix moyen par unité) :
 ${listePrixConnus}
 
-Si aucun prix n'est dicté, ne propose un prixUnitaire du carnet que si une prestation de la liste correspond au même type de prestation ET à la même unité (on ne peut pas réutiliser un prix au m² pour une prestation facturée à l'heure, ni l'inverse). Si aucune prestation ne correspond avec la même unité, laisse "prixUnitaire" à null et "prixPropose" à false. Ne mets aucun texte autour du JSON.`,
+Pour chaque ligne, si aucun prix n'est dicté pour elle, ne propose un prixUnitaire du carnet que si une prestation de la liste correspond au même type de prestation ET à la même unité (on ne peut pas réutiliser un prix au m² pour une prestation facturée à l'heure, ni l'inverse). Si aucune prestation ne correspond avec la même unité, laisse "prixUnitaire" à null et "prixPropose" à false pour cette ligne. Ne mets aucun texte autour du JSON.`,
       },
       { role: "user", content: texte },
     ],
   });
 
   const contenu = reponse.choices[0].message.content || "{}";
+  const ligneParDefaut = { description: texte, prestation: "", quantite: 1, unite: "forfait", prixUnitaire: null, prixPropose: false };
 
   try {
     const donnees = JSON.parse(contenu);
+    if (!Array.isArray(donnees.lignes) || donnees.lignes.length === 0) {
+      donnees.lignes = [ligneParDefaut];
+    }
     return NextResponse.json(donnees);
   } catch {
-    return NextResponse.json({
-      client: "",
-      clientAdresse: "",
-      description: texte,
-      prestation: "",
-      quantite: 1,
-      unite: "forfait",
-      prixUnitaire: null,
-      prixPropose: false,
-    });
+    return NextResponse.json({ client: "", clientAdresse: "", lignes: [ligneParDefaut] });
   }
 }

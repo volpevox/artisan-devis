@@ -33,12 +33,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ erreur: "Aucun email de client enregistré sur ce devis" }, { status: 400 });
   }
 
-  const { data: ligne } = await supabase
+  const { data: lignes } = await supabase
     .from("lignes_devis")
     .select("*")
     .eq("devis_id", params.id)
-    .limit(1)
-    .maybeSingle();
+    .order("ordre", { ascending: true });
 
   const { data: profil } = await supabase
     .from("artisans")
@@ -47,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .maybeSingle();
 
   const tauxTva = profil?.taux_tva ?? 20;
-  const totalHT = ligne?.total_ligne ?? devis.total ?? 0;
+  const totalHT = devis.total ?? 0;
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
 
@@ -67,11 +66,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         }}
         clientNom={devis.client_nom || ""}
         clientAdresse={devis.client_adresse}
-        description={ligne?.description || ""}
-        quantite={ligne?.quantite || 1}
-        unite={ligne?.unite || "forfait"}
-        prixUnitaire={ligne?.prix_unitaire || totalHT}
-        totalHT={totalHT}
+        lignes={(lignes || []).map((l) => ({
+          description: l.description || "",
+          quantite: l.quantite || 1,
+          unite: l.unite || "forfait",
+          prixUnitaire: l.prix_unitaire || 0,
+        }))}
         tauxTva={tauxTva}
         date={new Date(devis.facture_creee_le)}
         type="facture"

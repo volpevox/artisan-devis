@@ -196,6 +196,13 @@ function initiales(nom: string) {
     .join("");
 }
 
+interface LigneDevisPdf {
+  description: string;
+  quantite: number;
+  unite: string;
+  prixUnitaire: number;
+}
+
 interface DevisPdfProps {
   entreprise: {
     nom?: string | null;
@@ -210,11 +217,7 @@ interface DevisPdfProps {
   };
   clientNom: string;
   clientAdresse?: string | null;
-  description: string;
-  quantite: number;
-  unite: string;
-  prixUnitaire: number;
-  totalHT: number;
+  lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
   signatureUrl?: string | null;
@@ -227,11 +230,7 @@ export function DevisPDF({
   entreprise,
   clientNom,
   clientAdresse,
-  description,
-  quantite,
-  unite,
-  prixUnitaire,
-  totalHT,
+  lignes,
   tauxTva,
   date,
   signatureUrl,
@@ -239,6 +238,7 @@ export function DevisPDF({
   type = "devis",
   numero,
 }: DevisPdfProps) {
+  const totalHT = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
   const estFacture = type === "facture";
@@ -294,14 +294,16 @@ export function DevisPDF({
             <Text style={[styles.tableHeaderTexte, styles.colPrixUnitaire]}>Prix unit. HT</Text>
             <Text style={[styles.tableHeaderTexte, styles.colTotal]}>Total HT</Text>
           </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.colDescription}>{description}</Text>
-            <Text style={styles.colQuantite}>
-              {quantite} {unite}
-            </Text>
-            <Text style={styles.colPrixUnitaire}>{prixUnitaire.toFixed(2)} €</Text>
-            <Text style={styles.colTotal}>{totalHT.toFixed(2)} €</Text>
-          </View>
+          {lignes.map((ligne, index) => (
+            <View style={styles.tableRow} key={index}>
+              <Text style={styles.colDescription}>{ligne.description}</Text>
+              <Text style={styles.colQuantite}>
+                {ligne.quantite} {ligne.unite}
+              </Text>
+              <Text style={styles.colPrixUnitaire}>{ligne.prixUnitaire.toFixed(2)} €</Text>
+              <Text style={styles.colTotal}>{(ligne.quantite * ligne.prixUnitaire).toFixed(2)} €</Text>
+            </View>
+          ))}
 
           <View style={styles.blocTotaux}>
             <View style={styles.ligneTotal}>

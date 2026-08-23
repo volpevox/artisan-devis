@@ -8,8 +8,7 @@ import { emailHtml } from "@/lib/emailTemplate";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { clientEmail, clientNom, clientAdresse, description, quantite, unite, prixUnitaire, prix, devisId } =
-    await req.json();
+  const { clientEmail, clientNom, clientAdresse, lignes, prix, devisId } = await req.json();
 
   if (!clientEmail) {
     return NextResponse.json({ erreur: "Aucun email de client fourni" }, { status: 400 });
@@ -49,16 +48,14 @@ export async function POST(req: NextRequest) {
         }}
         clientNom={clientNom}
         clientAdresse={clientAdresse}
-        description={description}
-        quantite={Number(quantite) || 1}
-        unite={unite || "forfait"}
-        prixUnitaire={Number(prixUnitaire) || totalHT}
-        totalHT={totalHT}
+        lignes={lignes}
         tauxTva={tauxTva}
         date={date}
         numero={devisRow?.numero_devis}
       />
     );
+
+    const descriptionEmail = (lignes || []).map((l: any) => l.description).filter(Boolean).join(", ");
 
     const { error: erreurResend } = await resend.emails.send({
       from: "onboarding@resend.dev",
@@ -67,7 +64,7 @@ export async function POST(req: NextRequest) {
       html: emailHtml({
         titre: `Devis pour ${clientNom}`,
         corpsHtml: `
-          <p style="margin:0 0 8px;"><strong>Description :</strong> ${description}</p>
+          <p style="margin:0 0 8px;"><strong>Description :</strong> ${descriptionEmail}</p>
           <p style="margin:0 0 16px;"><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
           <p style="margin:0 0 4px;">Vous trouverez le devis détaillé en pièce jointe.</p>
           <p style="margin:0;">N'hésitez pas à nous contacter pour toute question.</p>

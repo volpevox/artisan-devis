@@ -10,6 +10,19 @@ const AMPLITUDES_ONDE = [
   0.7, 0.3,
 ];
 
+interface Ligne {
+  description: string;
+  prestation: string;
+  quantite: string;
+  unite: string;
+  prixUnitaire: string;
+  prixPropose: boolean;
+}
+
+function ligneVide(): Ligne {
+  return { description: "", prestation: "", quantite: "1", unite: "forfait", prixUnitaire: "", prixPropose: false };
+}
+
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
@@ -17,12 +30,7 @@ export default function Home() {
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
-  const [description, setDescription] = useState("");
-  const [prestation, setPrestation] = useState("");
-  const [quantite, setQuantite] = useState("1");
-  const [unite, setUnite] = useState("forfait");
-  const [prixUnitaire, setPrixUnitaire] = useState("");
-  const [prixPropose, setPrixPropose] = useState(false);
+  const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
   const [devisEnregistre, setDevisEnregistre] = useState(false);
@@ -32,7 +40,19 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  const total = (Number(quantite) || 0) * (Number(prixUnitaire) || 0);
+  const total = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
+
+  function majLigne(index: number, champ: keyof Ligne, valeur: string | boolean) {
+    setLignes((ls) => ls.map((l, i) => (i === index ? { ...l, [champ]: valeur } : l)));
+  }
+
+  function ajouterLigne() {
+    setLignes((ls) => [...ls, ligneVide()]);
+  }
+
+  function supprimerLigne(index: number) {
+    setLignes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== index) : ls));
+  }
 
   useEffect(() => {
     if (!artisanId) return;
@@ -91,16 +111,23 @@ export default function Home() {
 
       if (donnees.client) setClient(donnees.client);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
-      setDescription(donnees.description || data.texte);
-      setPrestation(donnees.prestation || "");
-      setQuantite(String(donnees.quantite || 1));
-      setUnite(donnees.unite || "forfait");
-      if (donnees.prixUnitaire) setPrixUnitaire(String(donnees.prixUnitaire));
-      setPrixPropose(Boolean(donnees.prixPropose));
 
+      const lignesRecues = Array.isArray(donnees.lignes) && donnees.lignes.length > 0 ? donnees.lignes : [{}];
+      setLignes(
+        lignesRecues.map((l: any) => ({
+          description: l.description || data.texte,
+          prestation: l.prestation || "",
+          quantite: String(l.quantite || 1),
+          unite: l.unite || "forfait",
+          prixUnitaire: l.prixUnitaire ? String(l.prixUnitaire) : "",
+          prixPropose: Boolean(l.prixPropose),
+        }))
+      );
+
+      const auMoinsUnPrixPropose = lignesRecues.some((l: any) => l.prixPropose);
       setMessage(
-        donnees.prixPropose
-          ? "Devis rempli automatiquement. Prix unitaire proposé d'après tes anciens devis, vérifie avant d'enregistrer."
+        auMoinsUnPrixPropose
+          ? "Devis rempli automatiquement. Certains prix sont proposés d'après tes anciens devis, vérifie avant d'enregistrer."
           : "Devis rempli automatiquement, vérifie avant d'enregistrer."
       );
       setEtape("form");
@@ -183,21 +210,26 @@ export default function Home() {
       return;
     }
 
-    const { error: erreurLigne } = await supabase.from("lignes_devis").insert({
-      devis_id: devis.id,
-      description: description,
-      quantite: Number(quantite),
-      unite,
-      prix_unitaire: Number(prixUnitaire),
-      total_ligne: total,
-    });
+    const { error: erreurLignes } = await supabase.from("lignes_devis").insert(
+      lignes.map((l, index) => ({
+        devis_id: devis.id,
+        ordre: index,
+        description: l.description,
+        quantite: Number(l.quantite),
+        unite: l.unite,
+        prix_unitaire: Number(l.prixUnitaire),
+        total_ligne: (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0),
+      }))
+    );
 
-    if (erreurLigne) {
-      setMessage("Erreur : " + erreurLigne.message);
+    if (erreurLignes) {
+      setMessage("Erreur : " + erreurLignes.message);
       return;
     }
 
-    await apprendrePrix(prestation, unite, Number(prixUnitaire));
+    for (const l of lignes) {
+      await apprendrePrix(l.prestation, l.unite, Number(l.prixUnitaire));
+    }
 
     setDevisId(devis.id);
     setMessage("Devis enregistré ! Tu peux maintenant l'envoyer au client.");
@@ -217,10 +249,12 @@ export default function Home() {
         clientEmail,
         clientNom: client,
         clientAdresse,
-        description,
-        quantite,
-        unite,
-        prixUnitaire,
+        lignes: lignes.map((l) => ({
+          description: l.description,
+          quantite: Number(l.quantite),
+          unite: l.unite,
+          prixUnitaire: Number(l.prixUnitaire),
+        })),
         prix: total,
         devisId,
       }),
@@ -239,12 +273,7 @@ export default function Home() {
     setClient("");
     setClientEmail("");
     setClientAdresse("");
-    setDescription("");
-    setPrestation("");
-    setQuantite("1");
-    setUnite("forfait");
-    setPrixUnitaire("");
-    setPrixPropose(false);
+    setLignes([ligneVide()]);
     setDevisEnregistre(false);
     setEtape("voice");
   }
@@ -359,49 +388,74 @@ export default function Home() {
           value={clientAdresse}
           onChange={(e) => setClientAdresse(e.target.value)}
         />
-        <textarea
-          className="field"
-          placeholder="Description de la prestation"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <input
-          className="field"
-          placeholder="Type de prestation (pour apprendre les prix)"
-          value={prestation}
-          onChange={(e) => setPrestation(e.target.value)}
-        />
+        {lignes.map((ligne, index) => {
+          const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
+          return (
+            <div key={index} style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+              <textarea
+                className="field"
+                placeholder="Description de la prestation"
+                value={ligne.description}
+                onChange={(e) => majLigne(index, "description", e.target.value)}
+              />
+              <input
+                className="field"
+                placeholder="Type de prestation (pour apprendre les prix)"
+                value={ligne.prestation}
+                onChange={(e) => majLigne(index, "prestation", e.target.value)}
+              />
 
-        <div className="field-row">
-          <input
-            className="field"
-            style={{ flex: "1 1 0%" }}
-            placeholder="Quantité"
-            value={quantite}
-            onChange={(e) => setQuantite(e.target.value)}
-          />
-          <input
-            className="field"
-            style={{ flex: "2 1 0%" }}
-            placeholder="Unité (m², heure, forfait...)"
-            value={unite}
-            onChange={(e) => setUnite(e.target.value)}
-          />
-        </div>
+              <div className="field-row">
+                <input
+                  className="field"
+                  style={{ flex: "1 1 0%" }}
+                  placeholder="Quantité"
+                  value={ligne.quantite}
+                  onChange={(e) => majLigne(index, "quantite", e.target.value)}
+                />
+                <input
+                  className="field"
+                  style={{ flex: "2 1 0%" }}
+                  placeholder="Unité (m², heure, forfait...)"
+                  value={ligne.unite}
+                  onChange={(e) => majLigne(index, "unite", e.target.value)}
+                />
+              </div>
 
-        <input
-          className="field"
-          placeholder="Prix unitaire (€)"
-          value={prixUnitaire}
-          onChange={(e) => {
-            setPrixUnitaire(e.target.value);
-            setPrixPropose(false);
-          }}
-          style={prixPropose ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" } : undefined}
-        />
-        {prixPropose && (
-          <p className="hint-success">Prix unitaire proposé automatiquement d'après tes anciens devis</p>
-        )}
+              <input
+                className="field"
+                placeholder="Prix unitaire (€)"
+                value={ligne.prixUnitaire}
+                onChange={(e) => {
+                  majLigne(index, "prixUnitaire", e.target.value);
+                  majLigne(index, "prixPropose", false);
+                }}
+                style={ligne.prixPropose ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" } : undefined}
+              />
+              {ligne.prixPropose && (
+                <p className="hint-success">Prix unitaire proposé automatiquement d'après tes anciens devis</p>
+              )}
+
+              <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>
+                Sous-total : {totalLigne.toFixed(2)} €
+              </p>
+
+              {lignes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => supprimerLigne(index)}
+                  style={{ background: "none", border: "none", color: "var(--danger)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginTop: 8 }}
+                >
+                  Supprimer cette ligne
+                </button>
+              )}
+            </div>
+          );
+        })}
+
+        <button type="button" className="btn btn-outline" onClick={ajouterLigne} style={{ marginBottom: 16 }}>
+          + Ajouter une ligne
+        </button>
 
         <p className="total-line">Total HT : {total.toFixed(2)} € (TVA ajoutée sur le devis final)</p>
 

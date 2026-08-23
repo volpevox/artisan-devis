@@ -15,12 +15,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ erreur: "Devis introuvable" }, { status: 404 });
   }
 
-  const { data: ligne } = await supabase
+  const { data: lignes } = await supabase
     .from("lignes_devis")
     .select("*")
     .eq("devis_id", params.id)
-    .limit(1)
-    .maybeSingle();
+    .order("ordre", { ascending: true });
 
   const { data: profil } = await supabase
     .from("artisans")
@@ -29,7 +28,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     .maybeSingle();
 
   const tauxTva = profil?.taux_tva ?? 20;
-  const totalHT = ligne?.total_ligne ?? devis.total ?? 0;
   const estFacture = Boolean(devis.est_facture);
 
   const pdfBuffer = await renderToBuffer(
@@ -47,11 +45,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }}
       clientNom={devis.client_nom || ""}
       clientAdresse={devis.client_adresse}
-      description={ligne?.description || ""}
-      quantite={ligne?.quantite || 1}
-      unite={ligne?.unite || "forfait"}
-      prixUnitaire={ligne?.prix_unitaire || totalHT}
-      totalHT={totalHT}
+      lignes={(lignes || []).map((l) => ({
+        description: l.description || "",
+        quantite: l.quantite || 1,
+        unite: l.unite || "forfait",
+        prixUnitaire: l.prix_unitaire || 0,
+      }))}
       tauxTva={tauxTva}
       date={new Date(estFacture ? devis.facture_creee_le : devis.created_at)}
       signatureUrl={devis.signature_url}

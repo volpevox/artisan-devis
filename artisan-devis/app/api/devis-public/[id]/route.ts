@@ -14,12 +14,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ erreur: "Devis introuvable" }, { status: 404 });
   }
 
-  const { data: ligne } = await supabase
+  const { data: lignes } = await supabase
     .from("lignes_devis")
     .select("*")
     .eq("devis_id", params.id)
-    .limit(1)
-    .maybeSingle();
+    .order("ordre", { ascending: true });
 
   const { data: profil } = await supabase
     .from("artisans")
@@ -27,5 +26,5 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     .eq("id", devis.artisan_id)
     .maybeSingle();
 
-  return NextResponse.json({ devis, ligne, profil }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ devis, lignes, profil }, { headers: { "Cache-Control": "no-store" } });
 }
