@@ -176,11 +176,12 @@ const styles = StyleSheet.create({
   signature: { flexDirection: "row", gap: 22, marginTop: 30 },
   signatureSlot: { width: "50%" },
   signatureEspace: { height: 40, alignItems: "center", justifyContent: "flex-end" },
+  signatureEspaceBas: { height: 65, alignItems: "center", justifyContent: "flex-start", marginTop: 8 },
   // Fond blanc explicite : le PNG de signature a un arriere-plan transparent
   // (le canvas ne peint pas reellement de blanc, juste affiche en CSS), et
   // le moteur PDF peut rendre la transparence en noir sans ce fond force.
-  signatureCard: { backgroundColor: "#ffffff", borderWidth: 1, borderColor: LIGNE, borderRadius: 6, padding: 4 },
-  signatureImage: { height: 36, objectFit: "contain" },
+  signatureCard: { backgroundColor: "#ffffff", borderWidth: 1, borderColor: LIGNE, borderRadius: 6, padding: 6 },
+  signatureImage: { height: 55, objectFit: "contain" },
   signatureLigne: { borderTopWidth: 1, borderColor: ARDOISE },
   signatureLabel: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED, paddingTop: 5 },
   signeBadge: {
@@ -424,15 +425,15 @@ export function DevisPDF({
                 )}
               </View>
               <View style={styles.signatureSlot}>
-                <View style={styles.signatureEspace}>
+                <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
+                <View style={styles.signatureLigne} />
+                <View style={styles.signatureEspaceBas}>
                   {signatureUrl ? (
                     <View style={styles.signatureCard}>
                       <Image src={signatureUrl} style={styles.signatureImage} />
                     </View>
                   ) : null}
                 </View>
-                <View style={styles.signatureLigne} />
-                <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
               </View>
             </View>
           )}
