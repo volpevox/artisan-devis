@@ -67,9 +67,9 @@ canvas {
 
 .topbar-brand {
   justify-self: center;
-  font-family: var(--font-manuscrit), cursive;
-  font-weight: 400;
-  font-size: 28px;
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: 700;
+  font-size: 24px;
   letter-spacing: 0.2px;
   text-decoration: none;
   line-height: 1;

@@ -1,4 +1,4 @@
-import { Poppins, Montserrat, Patrick_Hand } from "next/font/google";
+import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -17,6 +17,12 @@ const patrickHand = Patrick_Hand({
   subsets: ["latin"],
   weight: ["400"],
   variable: "--font-manuscrit",
+});
+
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["500", "700", "900"],
+  variable: "--font-roboto",
 });
 
 export const metadata = {
@@ -41,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable}`}>
+    <html lang="fr" className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable} ${roboto.variable}`}>
       <body>{children}</body>
     </html>
   );
