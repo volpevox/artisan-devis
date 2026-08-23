@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
+import { createAdminSupabase } from "@/lib/supabaseServerClient";
+import { emailHtml } from "@/lib/emailTemplate";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -9,10 +13,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const supabaseAdmin = createAdminSupabase();
 
   const { devisId, signatureDataUrl, lieuSignature } = await req.json();
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const { data } = supabaseAdmin.storage.from("signatures").getPublicUrl(nomFichier);
 
-  const { error: erreurUpdate } = await supabaseAdmin
+  const { error: erreurUpdate, data: devisSigne } = await supabaseAdmin
     .from("devis")
     .update({
       signature_url: data.publicUrl,
@@ -42,10 +43,47 @@ export async function POST(req: NextRequest) {
       statut: "signe",
       lieu_signature: lieuSignature || null,
     })
-    .eq("id", devisId);
+    .eq("id", devisId)
+    .select("artisan_id, client_nom, numero_devis")
+    .maybeSingle();
 
   if (erreurUpdate) {
     return NextResponse.json({ erreur: erreurUpdate.message }, { status: 500 });
+  }
+
+  // Previent l'artisan par email des qu'un client signe -- le seul evenement
+  // vraiment declenche par le client (le paiement est marque par l'artisan
+  // lui-meme, inutile de se notifier soi-meme).
+  if (devisSigne?.artisan_id) {
+    try {
+      const { data: artisan } = await supabaseAdmin
+        .from("artisans")
+        .select("user_id")
+        .eq("id", devisSigne.artisan_id)
+        .maybeSingle();
+
+      if (artisan?.user_id) {
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(artisan.user_id);
+        const emailArtisan = userData?.user?.email;
+
+        if (emailArtisan) {
+          await resend.emails.send({
+            from: "onboarding@resend.dev",
+            to: emailArtisan,
+            subject: `${devisSigne.client_nom || "Un client"} a signé son devis${devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : ""} !`,
+            html: emailHtml({
+              titre: "Devis signé !",
+              corpsHtml: `<p>${devisSigne.client_nom || "Votre client"} vient de signer son devis${devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : ""}.</p>`,
+              boutonUrl: `${req.nextUrl.origin}/api/devis-pdf/${devisId}`,
+              boutonTexte: "Voir le devis signé",
+            }),
+          });
+        }
+      }
+    } catch {
+      // La signature du client est deja enregistree : un echec de
+      // notification ne doit pas faire echouer la reponse.
+    }
   }
 
   return NextResponse.json({ url: data.publicUrl });

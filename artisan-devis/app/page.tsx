@@ -282,7 +282,10 @@ export default function Home() {
       return;
     }
 
-    await supabase.from("devis").update({ statut: "envoye" }).eq("id", devisId);
+    await supabase
+      .from("devis")
+      .update({ statut: "envoye", envoye_le: new Date().toISOString() })
+      .eq("id", devisId);
 
     setLienSignature(`${window.location.origin}/signer/${devisId}`);
     setMessage("Devis envoyé au client !");

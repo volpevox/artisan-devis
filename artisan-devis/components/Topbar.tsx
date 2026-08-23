@@ -1,13 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { useArtisanSession } from "@/lib/useArtisan";
 
 export function Topbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { artisanId } = useArtisanSession();
   const [ouvert, setOuvert] = useState(false);
+  const [devisSignesNonVus, setDevisSignesNonVus] = useState(0);
+
+  useEffect(() => {
+    if (!artisanId) return;
+
+    async function compter() {
+      const { count } = await supabase
+        .from("devis")
+        .select("id", { count: "exact", head: true })
+        .eq("artisan_id", artisanId)
+        .eq("est_facture", false)
+        .eq("statut", "signe")
+        .is("signature_vue_le", null);
+      setDevisSignesNonVus(count || 0);
+    }
+    compter();
+  }, [artisanId, pathname]);
 
   async function seDeconnecter() {
     setOuvert(false);
@@ -67,8 +86,9 @@ export function Topbar() {
             <Link href="/" onClick={() => setOuvert(false)}>
               Nouveau devis
             </Link>
-            <Link href="/devis" onClick={() => setOuvert(false)}>
+            <Link href="/devis" onClick={() => setOuvert(false)} style={{ position: "relative" }}>
               Devis
+              {devisSignesNonVus > 0 && <span className="badge-point" />}
             </Link>
             <Link href="/factures" onClick={() => setOuvert(false)}>
               Factures
@@ -93,7 +113,7 @@ export function Topbar() {
           </svg>
           <span>Nouveau devis</span>
         </Link>
-        <Link href="/devis" className={`bottom-nav-item${pathname === "/devis" ? " active" : ""}`}>
+        <Link href="/devis" className={`bottom-nav-item${pathname === "/devis" ? " active" : ""}`} style={{ position: "relative" }}>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M6 4h9l3 3v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1ZM9 10h6M9 14h6M9 18h3"
@@ -104,6 +124,7 @@ export function Topbar() {
             />
           </svg>
           <span>Devis</span>
+          {devisSignesNonVus > 0 && <span className="badge-point badge-point--nav" />}
         </Link>
         <Link href="/factures" className={`bottom-nav-item${pathname === "/factures" ? " active" : ""}`}>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

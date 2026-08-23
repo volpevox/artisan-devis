@@ -166,6 +166,23 @@ canvas {
   border-bottom: none;
 }
 
+.badge-point {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
+.badge-point--nav {
+  top: 2px;
+  left: calc(50% + 8px);
+  transform: none;
+}
+
 .menu-dropdown a:hover,
 .menu-dropdown button:hover {
   background: var(--bg);

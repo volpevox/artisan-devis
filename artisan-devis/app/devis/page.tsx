@@ -23,6 +23,13 @@ export default function MesDevis() {
         .order("created_at", { ascending: false });
       setDevis(data || []);
       setChargement(false);
+
+      // Marque les devis signes comme vus, pour faire disparaitre la
+      // pastille de notification dans l'en-tete.
+      const idsNonVus = (data || []).filter((d) => d.statut === "signe" && !d.signature_vue_le).map((d) => d.id);
+      if (idsNonVus.length > 0) {
+        await supabase.from("devis").update({ signature_vue_le: new Date().toISOString() }).in("id", idsNonVus);
+      }
     }
     charger();
   }, [artisanId]);
