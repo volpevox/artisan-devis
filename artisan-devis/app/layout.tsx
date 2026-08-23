@@ -24,6 +24,11 @@ export const metadata = {
   description: "Créez vos devis en dictant, en quelques secondes",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: {
