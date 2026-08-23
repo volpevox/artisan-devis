@@ -212,7 +212,7 @@ export default function Home() {
         artisan_id: artisanId,
         numero_devis: numeroDevis,
         client_nom: client,
-        client_email: clientEmail,
+        client_email: clientEmail.trim(),
         client_adresse: clientAdresse,
         date_prestation: datePrestation || null,
         total,
@@ -262,7 +262,7 @@ export default function Home() {
         Authorization: `Bearer ${session?.access_token}`,
       },
       body: JSON.stringify({
-        clientEmail,
+        clientEmail: clientEmail.trim(),
         clientNom: client,
         clientAdresse,
         lignes: lignes.map((l) => ({
@@ -395,9 +395,12 @@ export default function Home() {
         />
         <input
           className="field"
+          type="email"
+          autoCapitalize="none"
+          autoCorrect="off"
           placeholder="Email du client"
           value={clientEmail}
-          onChange={(e) => setClientEmail(e.target.value)}
+          onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
         />
         <input
           className="field"
