@@ -1,15 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 
+// Next.js (App Router) met en cache les appels fetch() par defaut, y compris
+// ceux que supabase-js fait en interne vers l'API Supabase -- meme dans une
+// route marquee "force-dynamic". Sans ce fetch personnalise, une route peut
+// afficher des donnees perimees (ex: un devis lu comme "non signe" alors
+// qu'il vient d'etre signe en base) tant que le cache n'expire pas.
+function fetchSansCache(url: RequestInfo | URL, options?: RequestInit) {
+  return fetch(url, { ...options, cache: "no-store" });
+}
+
 export function createServerSupabase(authHeader: string | null) {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    authHeader ? { global: { headers: { Authorization: authHeader } } } : undefined
-  );
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    global: {
+      fetch: fetchSansCache,
+      ...(authHeader ? { headers: { Authorization: authHeader } } : {}),
+    },
+  });
 }
 
 export function createAdminSupabase() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    global: { fetch: fetchSansCache },
+  });
 }
 
 // A utiliser dans toute route qui doit agir "pour le compte de" l'artisan
