@@ -3,6 +3,10 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 
+// Le PDF change (statut, signature, facturation) apres sa premiere
+// generation : ne jamais le mettre en cache, ni cote serveur ni navigateur.
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createAdminSupabase();
   const { data: devis } = await supabase.from("devis").select("*").eq("id", params.id).maybeSingle();
@@ -60,6 +64,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="${estFacture ? "facture" : "devis"}-${devis.client_nom || params.id}.pdf"`,
+      "Cache-Control": "no-store",
     },
   });
 }

@@ -5,7 +5,7 @@ import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function MesDevis() {
-  const { artisanId, loading: chargementSession } = useArtisanSession();
+  const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [devis, setDevis] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
   const [copie, setCopie] = useState("");
@@ -62,7 +62,10 @@ export default function MesDevis() {
     setEnCours(id);
     setMessages((m) => ({ ...m, [id]: "Envoi de la facture en cours..." }));
 
-    const res = await fetch(`/api/facture/${id}`, { method: "POST" });
+    const res = await fetch(`/api/facture/${id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+    });
     const data = await res.json();
 
     setEnCours("");

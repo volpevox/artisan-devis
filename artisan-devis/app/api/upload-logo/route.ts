@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 
 export async function POST(req: NextRequest) {
+  const resultat = await getArtisanConnecte(req.headers.get("authorization"));
+  if ("erreur" in resultat) {
+    return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
+  }
+
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json(
       { erreur: "SUPABASE_SERVICE_ROLE_KEY manquante dans les variables d'environnement du serveur" },

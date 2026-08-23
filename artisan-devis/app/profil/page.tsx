@@ -5,7 +5,7 @@ import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function Profil() {
-  const { artisanId, loading: chargementSession } = useArtisanSession();
+  const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
   const [adresse, setAdresse] = useState("");
@@ -51,7 +51,11 @@ export default function Profil() {
       const formData = new FormData();
       formData.append("logo", logoFichier);
 
-      const res = await fetch("/api/upload-logo", { method: "POST", body: formData });
+      const res = await fetch("/api/upload-logo", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: formData,
+      });
       const data = await res.json();
 
       if (data.erreur) {

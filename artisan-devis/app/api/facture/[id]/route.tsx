@@ -1,18 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { createAdminSupabase } from "@/lib/supabaseServerClient";
+import { createAdminSupabase, getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 import { emailHtml } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const resultat = await getArtisanConnecte(req.headers.get("authorization"));
+  if ("erreur" in resultat) {
+    return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
+  }
+  const { artisan } = resultat;
+
   const supabase = createAdminSupabase();
   const { data: devis } = await supabase.from("devis").select("*").eq("id", params.id).maybeSingle();
 
   if (!devis) {
     return NextResponse.json({ erreur: "Devis introuvable" }, { status: 404 });
+  }
+
+  if (devis.artisan_id !== artisan.id) {
+    return NextResponse.json({ erreur: "Ce devis ne t'appartient pas" }, { status: 403 });
   }
 
   if (!devis.est_facture) {

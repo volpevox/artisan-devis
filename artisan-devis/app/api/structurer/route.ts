@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createServerSupabase } from "@/lib/supabaseServerClient";
+import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
   const { texte } = await req.json();
-  const supabase = createServerSupabase(req.headers.get("authorization"));
+
+  const resultat = await getArtisanConnecte(req.headers.get("authorization"));
+  if ("erreur" in resultat) {
+    return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
+  }
+  const { supabase, artisan } = resultat;
 
   const { data: prixConnus } = await supabase
     .from("prix_appris")
     .select("prestation, unite, prix_moyen")
+    .eq("artisan_id", artisan.id)
     .order("nombre_utilisations", { ascending: false })
     .limit(50);
 

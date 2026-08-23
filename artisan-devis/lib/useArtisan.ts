@@ -55,8 +55,13 @@ export function useArtisanSession() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nouvelleSession) => {
-      if (!nouvelleSession) {
+    } = supabase.auth.onAuthStateChange((event, nouvelleSession) => {
+      // Supabase declenche aussi cet evenement avec une session nulle lors du
+      // chargement initial ou d'un rafraichissement transitoire (ex: reseau
+      // instable sur un chantier) : ne renvoyer vers /connexion que sur une
+      // vraie deconnexion, sinon l'utilisateur est ejecte alors qu'il est
+      // toujours connecte.
+      if (event === "SIGNED_OUT") {
         router.push("/connexion");
       }
     });

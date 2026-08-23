@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
 
+// Sert le devis au client final (statut, signature...) : jamais de cache,
+// sinon un client pourrait voir un statut perime apres avoir signe.
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createAdminSupabase();
 
@@ -23,5 +27,5 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     .eq("id", devis.artisan_id)
     .maybeSingle();
 
-  return NextResponse.json({ devis, ligne, profil });
+  return NextResponse.json({ devis, ligne, profil }, { headers: { "Cache-Control": "no-store" } });
 }
