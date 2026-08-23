@@ -220,6 +220,7 @@ interface DevisPdfProps {
   signatureUrl?: string | null;
   signeLe?: Date | null;
   type?: "devis" | "facture";
+  numero?: number | null;
 }
 
 export function DevisPDF({
@@ -236,6 +237,7 @@ export function DevisPDF({
   signatureUrl,
   signeLe,
   type = "devis",
+  numero,
 }: DevisPdfProps) {
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
@@ -274,7 +276,7 @@ export function DevisPDF({
           <View style={styles.devisWordmark}>
             <Text style={styles.devisWord}>{motDocument}</Text>
             <Text style={styles.devisNumero}>
-              N° {numeroDocument(date, estFacture ? "FAC" : "DEV")} · {formaterDate(date)}
+              N° {numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")} · {formaterDate(date)}
             </Text>
           </View>
         </View>

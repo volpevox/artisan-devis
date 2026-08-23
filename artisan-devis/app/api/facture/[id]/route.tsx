@@ -75,13 +75,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         tauxTva={tauxTva}
         date={new Date(devis.facture_creee_le)}
         type="facture"
+        numero={devis.numero_facture}
       />
     );
 
     const { error: erreurResend } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: devis.client_email,
-      subject: `Votre facture - ${devis.client_nom || ""}`,
+      subject: `Votre facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} - ${devis.client_nom || ""}`,
       html: emailHtml({
         titre: `Facture pour ${devis.client_nom || ""}`,
         corpsHtml: `

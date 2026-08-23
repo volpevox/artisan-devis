@@ -5,9 +5,9 @@ import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { CarteDocument } from "@/components/CarteDocument";
 
-export default function MesDevis() {
-  const { artisanId, loading: chargementSession } = useArtisanSession();
-  const [devis, setDevis] = useState<any[]>([]);
+export default function MesFactures() {
+  const { session, artisanId, loading: chargementSession } = useArtisanSession();
+  const [factures, setFactures] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
   const [copie, setCopie] = useState("");
   const [enCours, setEnCours] = useState<string>("");
@@ -20,9 +20,9 @@ export default function MesDevis() {
       const { data } = await supabase
         .from("devis")
         .select("*")
-        .eq("est_facture", false)
-        .order("created_at", { ascending: false });
-      setDevis(data || []);
+        .eq("est_facture", true)
+        .order("facture_creee_le", { ascending: false });
+      setFactures(data || []);
       setChargement(false);
     }
     charger();
@@ -35,50 +35,49 @@ export default function MesDevis() {
     setTimeout(() => setCopie(""), 2000);
   }
 
-  async function transformerEnFacture(id: string) {
+  async function envoyerFacture(id: string) {
     setEnCours(id);
-    const factureCreeeLe = new Date().toISOString();
+    setMessages((m) => ({ ...m, [id]: "Envoi de la facture en cours..." }));
 
-    const { data: numeroFacture } = await supabase.rpc("numero_facture_suivant", { p_artisan_id: artisanId });
-
-    const { error } = await supabase
-      .from("devis")
-      .update({ est_facture: true, facture_creee_le: factureCreeeLe, numero_facture: numeroFacture })
-      .eq("id", id);
+    const res = await fetch(`/api/facture/${id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+    });
+    const data = await res.json();
 
     setEnCours("");
 
-    if (error) {
-      setMessages((m) => ({ ...m, [id]: "Erreur : " + error.message }));
+    if (data.erreur) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + data.erreur }));
       return;
     }
 
-    // Le devis facture n'a plus sa place sur cette page (filtree sur est_facture=false).
-    setDevis((liste) => liste.filter((d) => d.id !== id));
-    setMessages((m) => ({ ...m, [id]: "Devis transformé en facture ! Retrouve-le dans l'onglet Factures." }));
+    const factureEnvoyeeLe = new Date().toISOString();
+    setFactures((liste) => liste.map((d) => (d.id === id ? { ...d, facture_envoyee_le: factureEnvoyeeLe } : d)));
+    setMessages((m) => ({ ...m, [id]: "Facture envoyée au client !" }));
   }
 
   return (
     <main className="page-shell page-shell--large">
       <Topbar />
 
-      <h1 className="page-title">Devis</h1>
+      <h1 className="page-title">Factures</h1>
 
       {(chargementSession || chargement) && <p className="message">Chargement...</p>}
-      {!chargementSession && !chargement && devis.length === 0 && (
-        <p className="message">Aucun devis enregistré pour l'instant.</p>
+      {!chargementSession && !chargement && factures.length === 0 && (
+        <p className="message">Aucune facture pour l'instant.</p>
       )}
 
-      {devis.map((d) => (
+      {factures.map((d) => (
         <CarteDocument
           key={d.id}
           d={d}
-          type="devis"
+          type="facture"
           copie={copie}
           enCours={enCours}
           message={messages[d.id]}
           onCopierLien={copierLien}
-          onTransformerEnFacture={transformerEnFacture}
+          onEnvoyerFacture={envoyerFacture}
         />
       ))}
     </main>

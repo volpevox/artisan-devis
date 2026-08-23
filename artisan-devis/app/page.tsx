@@ -155,10 +155,13 @@ export default function Home() {
     setMessage("Enregistrement...");
     setLienSignature("");
 
+    const { data: numeroDevis } = await supabase.rpc("numero_devis_suivant", { p_artisan_id: artisanId });
+
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
       .insert({
         artisan_id: artisanId,
+        numero_devis: numeroDevis,
         client_nom: client,
         client_email: clientEmail,
         client_adresse: clientAdresse,

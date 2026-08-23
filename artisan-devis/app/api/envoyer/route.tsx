@@ -21,7 +21,11 @@ export async function POST(req: NextRequest) {
   if ("erreur" in resultat) {
     return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
   }
-  const profil = resultat.artisan;
+  const { supabase, artisan: profil } = resultat;
+
+  const { data: devisRow } = devisId
+    ? await supabase.from("devis").select("numero_devis").eq("id", devisId).maybeSingle()
+    : { data: null };
 
   const tauxTva = profil?.taux_tva ?? 20;
   const totalHT = Number(prix) || 0;
@@ -52,13 +56,14 @@ export async function POST(req: NextRequest) {
         totalHT={totalHT}
         tauxTva={tauxTva}
         date={date}
+        numero={devisRow?.numero_devis}
       />
     );
 
     const { error: erreurResend } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: clientEmail,
-      subject: `Votre devis - ${clientNom}`,
+      subject: `Votre devis${devisRow?.numero_devis ? ` n°${devisRow.numero_devis}` : ""} - ${clientNom}`,
       html: emailHtml({
         titre: `Devis pour ${clientNom}`,
         corpsHtml: `

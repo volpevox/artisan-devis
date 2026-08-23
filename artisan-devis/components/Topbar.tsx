@@ -68,7 +68,10 @@ export function Topbar() {
               Nouveau devis
             </Link>
             <Link href="/devis" onClick={() => setOuvert(false)}>
-              Mes devis
+              Devis
+            </Link>
+            <Link href="/factures" onClick={() => setOuvert(false)}>
+              Factures
             </Link>
             <Link href="/profil" onClick={() => setOuvert(false)}>
               Mon profil
@@ -100,7 +103,20 @@ export function Topbar() {
               strokeLinejoin="round"
             />
           </svg>
-          <span>Mes devis</span>
+          <span>Devis</span>
+        </Link>
+        <Link href="/factures" className={`bottom-nav-item${pathname === "/factures" ? " active" : ""}`}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M7 3h10a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-3-2V4a1 1 0 0 1 1-1Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+          <span>Factures</span>
         </Link>
         <Link href="/profil" className={`bottom-nav-item${pathname === "/profil" ? " active" : ""}`}>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
