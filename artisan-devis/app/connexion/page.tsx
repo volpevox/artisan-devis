@@ -12,13 +12,7 @@ export default function Connexion() {
   const [motDePasse, setMotDePasse] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
-  const [afficherSplash, setAfficherSplash] = useState(false);
-  const [destinationSplash, setDestinationSplash] = useState("/");
-
-  function lancerSplashPuisRediriger(destination: string) {
-    setDestinationSplash(destination);
-    setAfficherSplash(true);
-  }
+  const [afficherDemarrage, setAfficherDemarrage] = useState(true);
 
   async function valider(e: FormEvent) {
     e.preventDefault();
@@ -51,7 +45,7 @@ export default function Connexion() {
       }
 
       if (data.session) {
-        lancerSplashPuisRediriger("/profil");
+        router.push("/profil");
       } else {
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);
@@ -67,11 +61,11 @@ export default function Connexion() {
       return;
     }
 
-    lancerSplashPuisRediriger("/");
+    router.push("/");
   }
 
-  if (afficherSplash) {
-    return <SplashEcran onContinuer={() => router.push(destinationSplash)} />;
+  if (afficherDemarrage) {
+    return <SplashEcran onContinuer={() => setAfficherDemarrage(false)} />;
   }
 
   return (

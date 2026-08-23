@@ -35,7 +35,6 @@ export function Topbar() {
         )}
 
         <Link href="/" className="topbar-brand" onClick={() => setOuvert(false)}>
-          <img src="/fox-icon.png" alt="" className="topbar-brand-icon" />
           <span className="brand-volpe">Volpe</span>
           <span className="brand-vox">Vox</span>
         </Link>
