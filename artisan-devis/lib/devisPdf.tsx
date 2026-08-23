@@ -285,11 +285,11 @@ export function DevisPDF({
   const estFacture = type === "facture";
   const motDocument = estFacture ? "Facture" : "Devis";
 
-  // Facture : emise par l'artisan, "Fait a" = sa propre ville. Devis : signe
-  // par le client, "Fait a" = la ville qu'il a renseignee au moment de
-  // signer (rien tant que le devis n'est pas encore signe).
-  const lieuFaitA = estFacture ? entreprise.ville : lieuSignature;
-  const dateFaitA = estFacture ? date : signeLe;
+  // Facture : emise par l'artisan, "Fait a" en haut de page = sa propre
+  // ville. Devis : pas de "Fait a" en haut (le lieu de signature du client
+  // est indique en bas, a cote de "Signe le").
+  const lieuFaitA = estFacture ? entreprise.ville : null;
+  const dateFaitA = estFacture ? date : null;
 
   const infosPied = [
     entreprise.nom,
@@ -419,7 +419,10 @@ export function DevisPDF({
                 <View style={styles.signatureEspace} />
                 <View style={styles.signatureLigne} />
                 {signeLe ? (
-                  <Text style={styles.signeBadge}>Signé le {formaterDate(signeLe)}</Text>
+                  <Text style={styles.signeBadge}>
+                    Signé le {formaterDate(signeLe)}
+                    {lieuSignature ? ` à ${lieuSignature}` : ""}
+                  </Text>
                 ) : (
                   <Text style={styles.signatureLabel}>Date</Text>
                 )}
