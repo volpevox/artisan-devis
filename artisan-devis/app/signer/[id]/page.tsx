@@ -114,6 +114,7 @@ export default function Signer() {
       statut: "signe",
       signe_le: new Date().toISOString(),
       lieu_signature: lieuSignature.trim(),
+      signature_url: data.url,
     }));
     setMessage("Devis signé, merci !");
   }
