@@ -52,19 +52,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: TOP_BORDER,
   },
-  brand: { flexDirection: "row", alignItems: "center", gap: 12 },
+  brand: { flexDirection: "row", alignItems: "center", gap: 14 },
   logoChip: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
+    width: 76,
+    height: 76,
+    borderRadius: 10,
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: LIGNE,
     alignItems: "center",
     justifyContent: "center",
   },
-  logoImage: { width: 36, height: 36, objectFit: "contain" },
-  logoInitiales: { fontFamily: "Fraunces", fontWeight: 700, fontSize: 15, color: ENCRE },
+  logoImage: { width: 68, height: 68, objectFit: "contain" },
+  logoInitiales: { fontFamily: "Fraunces", fontWeight: 700, fontSize: 26, color: ENCRE },
   brandTexte: { flexDirection: "column", gap: 4 },
   brandNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: ENCRE },
   brandMeta: { fontSize: 9, color: MUTED },
@@ -335,7 +335,7 @@ export function DevisPDF({
             <Text style={styles.clientLabel}>{motDocument} adressé{estFacture ? "e" : ""} à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
             {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
-            {datePrestation ? (
+            {estFacture && datePrestation ? (
               <Text style={styles.datePrestation}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
             ) : null}
           </View>
