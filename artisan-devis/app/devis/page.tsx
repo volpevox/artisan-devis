@@ -39,7 +39,15 @@ export default function MesDevis() {
     setEnCours(id);
     const factureCreeeLe = new Date().toISOString();
 
-    const { data: numeroFacture } = await supabase.rpc("numero_facture_suivant", { p_artisan_id: artisanId });
+    const { data: numeroFacture, error: erreurNumero } = await supabase.rpc("numero_facture_suivant", {
+      p_artisan_id: artisanId,
+    });
+
+    if (erreurNumero) {
+      setEnCours("");
+      setMessages((m) => ({ ...m, [id]: "Erreur de numérotation : " + erreurNumero.message }));
+      return;
+    }
 
     const { error } = await supabase
       .from("devis")

@@ -155,7 +155,14 @@ export default function Home() {
     setMessage("Enregistrement...");
     setLienSignature("");
 
-    const { data: numeroDevis } = await supabase.rpc("numero_devis_suivant", { p_artisan_id: artisanId });
+    const { data: numeroDevis, error: erreurNumero } = await supabase.rpc("numero_devis_suivant", {
+      p_artisan_id: artisanId,
+    });
+
+    if (erreurNumero) {
+      setMessage("Erreur de numérotation : " + erreurNumero.message);
+      return;
+    }
 
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")

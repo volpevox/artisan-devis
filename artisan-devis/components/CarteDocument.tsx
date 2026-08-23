@@ -62,7 +62,7 @@ export function CarteDocument({
 
       <div className="link-row">
         <a href={`/signer/${d.id}`} target="_blank" rel="noreferrer">
-          Voir le devis
+          {type === "facture" ? "Voir la facture" : "Voir le devis"}
         </a>
         <a href={`/api/devis-pdf/${d.id}`} target="_blank" rel="noreferrer">
           {type === "facture" ? "Télécharger la facture" : d.statut === "signe" ? "Télécharger le PDF signé" : "Télécharger le PDF"}

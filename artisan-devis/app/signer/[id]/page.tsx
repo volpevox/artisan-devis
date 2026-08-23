@@ -123,12 +123,15 @@ export default function Signer() {
   if (introuvable) {
     return (
       <main className="page-shell">
-        <p className="message">Devis introuvable.</p>
+        <p className="message">Document introuvable.</p>
       </main>
     );
   }
 
   const total = ligne?.total_ligne ?? devis.total;
+  const estFacture = Boolean(devis.est_facture);
+  const motDocument = estFacture ? "Facture" : "Devis";
+  const numero = estFacture ? devis.numero_facture : devis.numero_devis;
 
   return (
     <main className="page-shell">
@@ -139,7 +142,8 @@ export default function Signer() {
           </h2>
         )}
         <h1 className="page-title" style={{ marginBottom: devis.client_adresse ? 4 : 16 }}>
-          Devis pour {devis.client_nom}
+          {motDocument}
+          {numero ? ` n°${numero}` : ""} pour {devis.client_nom}
         </h1>
         {devis.client_adresse && (
           <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--muted)" }}>{devis.client_adresse}</p>
@@ -168,7 +172,7 @@ export default function Signer() {
             }}
           >
             <p style={{ margin: "0 0 10px", color: "var(--success)" }}>
-              ✓ Devis signé le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
+              ✓ {motDocument} signé{estFacture ? "e" : ""} le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
             </p>
             {devis.signature_url && (
               <img
@@ -184,7 +188,7 @@ export default function Signer() {
               />
             )}
             <a href={`/api/devis-pdf/${devisId}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
-              Télécharger le PDF signé
+              {estFacture ? "Télécharger la facture" : "Télécharger le PDF signé"}
             </a>
           </div>
         ) : (
