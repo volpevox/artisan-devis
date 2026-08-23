@@ -13,6 +13,7 @@ export default function Signer() {
   const [introuvable, setIntrouvable] = useState(false);
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState("");
+  const [lieuSignature, setLieuSignature] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dessinRef = useRef(false);
@@ -98,7 +99,7 @@ export default function Signer() {
     const res = await fetch("/api/upload-signature", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ devisId, signatureDataUrl }),
+      body: JSON.stringify({ devisId, signatureDataUrl, lieuSignature: lieuSignature.trim() }),
     });
     const data = await res.json();
 
@@ -108,7 +109,12 @@ export default function Signer() {
       return;
     }
 
-    setDevis((prev: any) => ({ ...prev, statut: "signe", signe_le: new Date().toISOString() }));
+    setDevis((prev: any) => ({
+      ...prev,
+      statut: "signe",
+      signe_le: new Date().toISOString(),
+      lieu_signature: lieuSignature.trim(),
+    }));
     setMessage("Devis signé, merci !");
   }
 
@@ -211,6 +217,12 @@ export default function Signer() {
           </div>
         ) : (
           <>
+            <input
+              className="field"
+              placeholder="Votre ville (pour « Fait à ... »)"
+              value={lieuSignature}
+              onChange={(e) => setLieuSignature(e.target.value)}
+            />
             <p style={{ marginTop: 8, marginBottom: 8 }}>Signez ci-dessous avec votre doigt ou votre souris :</p>
             <canvas
               ref={canvasRef}

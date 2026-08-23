@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const { devisId, signatureDataUrl } = await req.json();
+  const { devisId, signatureDataUrl, lieuSignature } = await req.json();
 
   if (!devisId || !signatureDataUrl) {
     return NextResponse.json({ erreur: "devisId et signatureDataUrl requis" }, { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       signature_url: data.publicUrl,
       signe_le: new Date().toISOString(),
       statut: "signe",
+      lieu_signature: lieuSignature || null,
     })
     .eq("id", devisId);
 

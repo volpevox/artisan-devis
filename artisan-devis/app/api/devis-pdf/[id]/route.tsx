@@ -57,6 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
       signatureUrl={devis.signature_url}
       signeLe={devis.signe_le ? new Date(devis.signe_le) : null}
+      lieuSignature={devis.lieu_signature}
       type={estFacture ? "facture" : "devis"}
       numero={estFacture ? devis.numero_facture : devis.numero_devis}
       paiement={{

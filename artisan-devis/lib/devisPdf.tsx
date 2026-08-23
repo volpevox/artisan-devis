@@ -254,6 +254,7 @@ interface DevisPdfProps {
   datePrestation?: Date | null;
   signatureUrl?: string | null;
   signeLe?: Date | null;
+  lieuSignature?: string | null;
   type?: "devis" | "facture";
   numero?: number | null;
   paiement?: { payeeLe: Date | null; moyenPaiement: string | null } | null;
@@ -269,6 +270,7 @@ export function DevisPDF({
   datePrestation,
   signatureUrl,
   signeLe,
+  lieuSignature,
   type = "devis",
   numero,
   paiement,
@@ -278,6 +280,12 @@ export function DevisPDF({
   const totalTTC = totalHT + montantTva;
   const estFacture = type === "facture";
   const motDocument = estFacture ? "Facture" : "Devis";
+
+  // Facture : emise par l'artisan, "Fait a" = sa propre ville. Devis : signe
+  // par le client, "Fait a" = la ville qu'il a renseignee au moment de
+  // signer (rien tant que le devis n'est pas encore signe).
+  const lieuFaitA = estFacture ? entreprise.ville : lieuSignature;
+  const dateFaitA = estFacture ? date : signeLe;
 
   const infosPied = [
     entreprise.nom,
@@ -312,8 +320,8 @@ export function DevisPDF({
             <Text style={styles.devisWord}>{motDocument}</Text>
             <Text style={styles.devisNumero}>N° {numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")}</Text>
             <Text style={styles.devisLieuDate}>
-              {entreprise.ville ? `Fait à ${entreprise.ville}, le ` : ""}
-              {formaterDate(date)}
+              {lieuFaitA && dateFaitA ? `Fait à ${lieuFaitA}, le ` : ""}
+              {formaterDate(dateFaitA ?? date)}
             </Text>
           </View>
         </View>
