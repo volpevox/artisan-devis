@@ -428,7 +428,9 @@ export function DevisPDF({
                 )}
               </View>
               <View style={styles.signatureSlot}>
-                <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
+                <View style={styles.signatureEspace}>
+                  <Text style={styles.signatureLabel}>Bon pour accord — signature du client</Text>
+                </View>
                 <View style={styles.signatureLigne} />
                 <View style={styles.signatureEspaceBas}>
                   {signatureUrl ? (
