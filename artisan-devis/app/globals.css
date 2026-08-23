@@ -98,8 +98,13 @@ canvas {
   height: 22px;
 }
 
-.hamburger {
+.topbar-right {
   justify-self: end;
+  display: flex;
+  align-items: center;
+}
+
+.hamburger {
   background: none;
   border: none;
   font-size: 22px;
@@ -107,6 +112,24 @@ canvas {
   color: var(--ink);
   cursor: pointer;
   padding: 4px 6px;
+}
+
+.topbar-logout {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  align-items: center;
+}
+
+.topbar-logout svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-nav {
+  display: none;
 }
 
 .menu-dropdown {
@@ -585,5 +608,59 @@ textarea {
   }
   50% {
     opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .hamburger,
+  .menu-dropdown {
+    display: none;
+  }
+
+  .topbar-logout {
+    display: flex;
+  }
+
+  .page-shell {
+    padding-bottom: 92px;
+  }
+
+  .voice-screen {
+    min-height: calc(100svh - 240px);
+  }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    z-index: 40;
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .bottom-nav-item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--ink);
   }
 }
