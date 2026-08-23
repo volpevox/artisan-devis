@@ -17,7 +17,6 @@ export default function Profil() {
   const [numeroTva, setNumeroTva] = useState("");
   const [iban, setIban] = useState("");
   const [conditionsPaiement, setConditionsPaiement] = useState("");
-  const [mentionsLegales, setMentionsLegales] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(true);
 
@@ -37,7 +36,6 @@ export default function Profil() {
         setNumeroTva(data.numero_tva || "");
         setIban(data.iban || "");
         setConditionsPaiement(data.conditions_paiement || "");
-        setMentionsLegales(data.mentions_legales || "");
       }
       setChargement(false);
     }
@@ -80,7 +78,6 @@ export default function Profil() {
       numero_tva: numeroTva,
       iban,
       conditions_paiement: conditionsPaiement,
-      mentions_legales: mentionsLegales,
     };
 
     const { error } = await supabase.from("artisans").update(infos).eq("id", artisanId);
@@ -185,12 +182,6 @@ export default function Profil() {
           placeholder="Conditions de paiement (ex: Acompte 30% à la commande, solde à la livraison)"
           value={conditionsPaiement}
           onChange={(e) => setConditionsPaiement(e.target.value)}
-        />
-        <textarea
-          className="field"
-          placeholder="Mentions légales / assurance (ex: Assurance RC Pro n°..., Garantie décennale...)"
-          value={mentionsLegales}
-          onChange={(e) => setMentionsLegales(e.target.value)}
         />
 
         <button className="btn btn-primary" onClick={enregistrer}>

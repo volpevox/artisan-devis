@@ -152,8 +152,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  footnotes: { flexDirection: "row", gap: 24, marginTop: 26 },
-  footnote: { width: "50%" },
+  footnotes: { marginTop: 26 },
   footnoteTitre: {
     fontFamily: "JetBrains Mono",
     fontSize: 8,
@@ -248,7 +247,6 @@ interface DevisPdfProps {
     numeroTva?: string | null;
     iban?: string | null;
     conditionsPaiement?: string | null;
-    mentionsLegales?: string | null;
   };
   clientNom: string;
   clientAdresse?: string | null;
@@ -383,23 +381,12 @@ export function DevisPDF({
             </Text>
           ) : null}
 
-          <View style={styles.footnotes}>
-            {entreprise.conditionsPaiement ? (
-              <View style={styles.footnote}>
-                <Text style={styles.footnoteTitre}>Conditions de paiement</Text>
-                <Text style={styles.footnoteTexte}>{entreprise.conditionsPaiement}</Text>
-              </View>
-            ) : (
-              <View style={styles.footnote} />
-            )}
-            {entreprise.mentionsLegales ? (
-              <View style={styles.footnote}>
-                <Text style={styles.footnoteTexte}>{entreprise.mentionsLegales}</Text>
-              </View>
-            ) : (
-              <View style={styles.footnote} />
-            )}
-          </View>
+          {entreprise.conditionsPaiement ? (
+            <View style={styles.footnotes}>
+              <Text style={styles.footnoteTitre}>Conditions de paiement</Text>
+              <Text style={styles.footnoteTexte}>{entreprise.conditionsPaiement}</Text>
+            </View>
+          ) : null}
 
           {estFacture && (
             <View style={styles.mentionLegaleFacture}>

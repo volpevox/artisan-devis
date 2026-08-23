@@ -63,7 +63,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           numeroTva: profil?.numero_tva,
           iban: profil?.iban,
           conditionsPaiement: profil?.conditions_paiement,
-          mentionsLegales: profil?.mentions_legales,
         }}
         clientNom={devis.client_nom || ""}
         clientAdresse={devis.client_adresse}

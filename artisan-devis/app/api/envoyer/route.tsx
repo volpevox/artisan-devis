@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
           numeroTva: profil?.numero_tva,
           iban: profil?.iban,
           conditionsPaiement: profil?.conditions_paiement,
-          mentionsLegales: profil?.mentions_legales,
         }}
         clientNom={clientNom}
         clientAdresse={clientAdresse}
