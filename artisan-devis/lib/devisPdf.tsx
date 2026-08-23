@@ -382,7 +382,6 @@ export function DevisPDF({
             )}
             {entreprise.mentionsLegales ? (
               <View style={styles.footnote}>
-                <Text style={styles.footnoteTitre}>Mentions légales</Text>
                 <Text style={styles.footnoteTexte}>{entreprise.mentionsLegales}</Text>
               </View>
             ) : (
