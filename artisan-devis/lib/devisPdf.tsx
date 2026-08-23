@@ -176,7 +176,10 @@ const styles = StyleSheet.create({
   signature: { flexDirection: "row", gap: 22, marginTop: 30 },
   signatureSlot: { width: "50%" },
   signatureEspace: { height: 40, alignItems: "center", justifyContent: "flex-end" },
-  signatureCard: { borderWidth: 1, borderColor: LIGNE, borderRadius: 6, padding: 4 },
+  // Fond blanc explicite : le PNG de signature a un arriere-plan transparent
+  // (le canvas ne peint pas reellement de blanc, juste affiche en CSS), et
+  // le moteur PDF peut rendre la transparence en noir sans ce fond force.
+  signatureCard: { backgroundColor: "#ffffff", borderWidth: 1, borderColor: LIGNE, borderRadius: 6, padding: 4 },
   signatureImage: { height: 36, objectFit: "contain" },
   signatureLigne: { borderTopWidth: 1, borderColor: ARDOISE },
   signatureLabel: { fontFamily: "JetBrains Mono", fontSize: 8, color: MUTED, paddingTop: 5 },
