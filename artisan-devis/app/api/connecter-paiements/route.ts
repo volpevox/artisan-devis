@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
       const compte = await stripe.v2.core.accounts.create({
         account_token: accountToken,
         dashboard: "full",
+        identity: {
+          country: "fr",
+        },
         configuration: {
           merchant: {
             capabilities: {
