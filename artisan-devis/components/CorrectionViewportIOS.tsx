@@ -3,21 +3,31 @@ import { useEffect } from "react";
 
 // Bug connu de Safari iOS en mode "ajoute a l'ecran d'accueil" : au premier
 // affichage, la zone reservee en bas de l'ecran (barre d'accueil) est mal
-// calculee, laissant un espace vide sous les elements fixes en bas de page.
-// Un defilement corrige immediatement l'affichage -- on le declenche donc
-// nous-memes au chargement, uniquement dans ce mode, pour eviter a l'artisan
-// de devoir le faire a la main.
+// calculee pour les elements fixes (comme le menu du bas), laissant un
+// espace vide sous eux. Un vrai defilement corrige l'affichage, mais un
+// simple scrollTo() ne suffit pas quand la page tient deja entierement a
+// l'ecran (rien a faire defiler) -- on force donc un recalcul de la mise
+// en page en modifiant brievement la hauteur du document, ce qui produit
+// le meme effet sans dependre d'un contenu scrollable.
 export function CorrectionViewportIOS() {
   useEffect(() => {
     const modeAutonome = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     if (!modeAutonome) return;
 
-    const delai = setTimeout(() => {
-      window.scrollTo(0, 1);
-      window.scrollTo(0, 0);
-    }, 100);
+    function forcerRecalculMiseEnPage() {
+      document.documentElement.style.height = "calc(100% + 1px)";
+      requestAnimationFrame(() => {
+        document.documentElement.style.height = "";
+      });
+    }
 
-    return () => clearTimeout(delai);
+    const delai = setTimeout(forcerRecalculMiseEnPage, 150);
+    document.addEventListener("visibilitychange", forcerRecalculMiseEnPage);
+
+    return () => {
+      clearTimeout(delai);
+      document.removeEventListener("visibilitychange", forcerRecalculMiseEnPage);
+    };
   }, []);
 
   return null;

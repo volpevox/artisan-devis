@@ -724,7 +724,7 @@ textarea {
     bottom: 0;
     background: var(--card-bg);
     border-top: 1px solid var(--border);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    padding: 6px 4px max(20px, calc(6px + env(safe-area-inset-bottom)));
     z-index: 40;
   }
 
