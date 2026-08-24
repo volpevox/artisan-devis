@@ -7,12 +7,15 @@ import { useArtisanSession } from "@/lib/useArtisan";
 
 export default function Profil() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
+  const [nomComplet, setNomComplet] = useState("");
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
   const [adresse, setAdresse] = useState("");
+  const [codePostal, setCodePostal] = useState("");
   const [ville, setVille] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoFichier, setLogoFichier] = useState<File | null>(null);
+  const [logoApercu, setLogoApercu] = useState("");
   const [tauxTva, setTauxTva] = useState("20");
   const [siret, setSiret] = useState("");
   const [numeroTva, setNumeroTva] = useState("");
@@ -30,11 +33,14 @@ export default function Profil() {
     async function charger() {
       const { data } = await supabase.from("artisans").select("*").eq("id", artisanId).maybeSingle();
       if (data) {
+        setNomComplet(data.nom_complet || "");
         setNomEntreprise(data.nom_entreprise || "");
         setTelephone(data.telephone || "");
         setAdresse(data.adresse || "");
+        setCodePostal(data.code_postal || "");
         setVille(data.ville || "");
         setLogoUrl(data.logo_url || "");
+        setLogoApercu(data.logo_url || "");
         setTauxTva(data.taux_tva !== null && data.taux_tva !== undefined ? String(data.taux_tva) : "20");
         setSiret(data.siret || "");
         setNumeroTva(data.numero_tva || "");
@@ -84,7 +90,7 @@ export default function Profil() {
           },
           body: JSON.stringify({
             contact_email: session?.user?.email || undefined,
-            display_name: nomEntreprise || undefined,
+            display_name: nomEntreprise || nomComplet || undefined,
           }),
         });
         const dataToken = await resToken.json();
@@ -125,7 +131,24 @@ export default function Profil() {
     }
   }
 
+  function choisirLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const fichier = e.target.files?.[0] || null;
+    setLogoFichier(fichier);
+    if (fichier) setLogoApercu(URL.createObjectURL(fichier));
+  }
+
+  function supprimerLogo() {
+    setLogoFichier(null);
+    setLogoUrl("");
+    setLogoApercu("");
+  }
+
   async function enregistrer() {
+    if (!nomComplet.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
+      setMessage("Merci de remplir tous les champs obligatoires (marqués d'un *).");
+      return;
+    }
+
     setMessage("Enregistrement...");
 
     let urlLogo = logoUrl;
@@ -148,12 +171,15 @@ export default function Profil() {
 
       urlLogo = data.url;
       setLogoUrl(urlLogo);
+      setLogoFichier(null);
     }
 
     const infos = {
+      nom_complet: nomComplet,
       nom_entreprise: nomEntreprise,
       telephone,
       adresse,
+      code_postal: codePostal,
       ville,
       logo_url: urlLogo,
       taux_tva: Number(tauxTva) || 0,
@@ -225,27 +251,57 @@ export default function Profil() {
       </div>
 
       <div className="card">
-        {logoUrl && (
-          <img
-            src={logoUrl}
-            alt="Logo actuel"
-            style={{ maxWidth: 150, maxHeight: 150, display: "block", marginBottom: 12, borderRadius: 8 }}
-          />
-        )}
+        <p className="hint" style={{ margin: "0 0 12px" }}>
+          Les champs marqués d'un * sont obligatoires.
+        </p>
 
-        <label className="field-label">
-          Logo
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setLogoFichier(e.target.files?.[0] || null)}
-            style={{ display: "block", marginTop: 6 }}
-          />
-        </label>
+        <label className="field-label">Logo (facultatif)</label>
+        {logoApercu ? (
+          <div style={{ position: "relative", display: "inline-block", marginBottom: 12 }}>
+            <img
+              src={logoApercu}
+              alt="Logo actuel"
+              style={{ maxWidth: 150, maxHeight: 150, display: "block", borderRadius: 8 }}
+            />
+            <button
+              type="button"
+              onClick={supprimerLogo}
+              aria-label="Supprimer le logo"
+              style={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                background: "var(--danger)",
+                color: "#fff",
+                border: "2px solid var(--card-bg)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: 14,
+                lineHeight: 1,
+                padding: 0,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <input type="file" accept="image/*" onChange={choisirLogo} style={{ display: "block", marginBottom: 12 }} />
+        )}
 
         <input
           className="field"
-          placeholder="Nom de l'entreprise"
+          placeholder="Nom et prénom *"
+          value={nomComplet}
+          onChange={(e) => setNomComplet(e.target.value)}
+        />
+        <input
+          className="field"
+          placeholder="Nom de l'entreprise (facultatif)"
           value={nomEntreprise}
           onChange={(e) => setNomEntreprise(e.target.value)}
         />
@@ -257,25 +313,35 @@ export default function Profil() {
         />
         <input
           className="field"
-          placeholder="Adresse"
+          placeholder="Adresse *"
           value={adresse}
           onChange={(e) => setAdresse(e.target.value)}
         />
-        <input
-          className="field"
-          placeholder="Ville (pour « Fait à ... » sur les devis/factures)"
-          value={ville}
-          onChange={(e) => setVille(e.target.value)}
-        />
+        <div className="field-row">
+          <input
+            className="field"
+            style={{ flex: "1 1 0%" }}
+            placeholder="Code postal *"
+            value={codePostal}
+            onChange={(e) => setCodePostal(e.target.value)}
+          />
+          <input
+            className="field"
+            style={{ flex: "2 1 0%" }}
+            placeholder="Ville *"
+            value={ville}
+            onChange={(e) => setVille(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="card">
         <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 14, color: "var(--ink)" }}>Informations légales</h2>
 
-        <input className="field" placeholder="SIRET" value={siret} onChange={(e) => setSiret(e.target.value)} />
+        <input className="field" placeholder="SIRET *" value={siret} onChange={(e) => setSiret(e.target.value)} />
 
         <label className="field-label">
-          Taux de TVA (%) — mets 0 si tu es en franchise en base de TVA (auto-entrepreneur)
+          Taux de TVA (%) * — mets 0 si tu es en franchise en base de TVA (auto-entrepreneur)
           <input
             className="field"
             style={{ marginTop: 6 }}
@@ -287,7 +353,7 @@ export default function Profil() {
 
         <input
           className="field"
-          placeholder="N° TVA intracommunautaire (si assujetti à la TVA)"
+          placeholder="N° TVA intracommunautaire (facultatif, si assujetti à la TVA)"
           value={numeroTva}
           onChange={(e) => setNumeroTva(e.target.value)}
         />
@@ -299,7 +365,7 @@ export default function Profil() {
         />
         <textarea
           className="field"
-          placeholder="Conditions de paiement (ex: Acompte 30% à la commande, solde à la livraison)"
+          placeholder="Conditions de paiement (facultatif, ex: Acompte 30% à la commande, solde à la livraison)"
           value={conditionsPaiement}
           onChange={(e) => setConditionsPaiement(e.target.value)}
         />

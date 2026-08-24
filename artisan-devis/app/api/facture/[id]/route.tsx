@@ -54,9 +54,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const pdfBuffer = await renderToBuffer(
       <DevisPDF
         entreprise={{
-          nom: profil?.nom_entreprise,
+          nom: profil?.nom_entreprise || profil?.nom_complet,
           telephone: profil?.telephone,
           adresse: profil?.adresse,
+          codePostal: profil?.code_postal,
           ville: profil?.ville,
           logoUrl: profil?.logo_url,
           siret: profil?.siret,

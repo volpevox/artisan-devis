@@ -241,6 +241,7 @@ interface DevisPdfProps {
     nom?: string | null;
     telephone?: string | null;
     adresse?: string | null;
+    codePostal?: string | null;
     ville?: string | null;
     logoUrl?: string | null;
     siret?: string | null;
@@ -313,7 +314,14 @@ export function DevisPDF({
             <View style={styles.brandTexte}>
               {entreprise.nom ? <Text style={styles.brandNom}>{entreprise.nom}</Text> : null}
               <Text style={styles.brandMeta}>
-                {[entreprise.adresse, entreprise.telephone].filter(Boolean).join("  ·  ")}
+                {[
+                  [entreprise.adresse, [entreprise.codePostal, entreprise.ville].filter(Boolean).join(" ")]
+                    .filter(Boolean)
+                    .join(", "),
+                  entreprise.telephone,
+                ]
+                  .filter(Boolean)
+                  .join("  ·  ")}
               </Text>
             </View>
           </View>
