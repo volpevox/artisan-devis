@@ -19,15 +19,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ erreur: "Jeton de compte Stripe manquant" }, { status: 400 });
       }
 
-      // Le pays doit etre etabli seul, dans son propre appel, avant tout
-      // autre reglage (configuration, dashboard, devise...).
+      // Le champ identity ne peut pas etre envoye dans le meme appel que
+      // account_token (erreur Stripe "param_alongside_account_token") : on
+      // cree d'abord le compte avec seulement le jeton, puis on fixe le pays
+      // dans un appel a part, puis le reste (dashboard, configuration, devise).
       const compte = await stripe.v2.core.accounts.create({
         account_token: accountToken,
+      });
+      stripeAccountId = compte.id;
+
+      await stripe.v2.core.accounts.update(stripeAccountId, {
         identity: {
           country: "fr",
         },
       });
-      stripeAccountId = compte.id;
 
       await stripe.v2.core.accounts.update(stripeAccountId, {
         dashboard: "full",
