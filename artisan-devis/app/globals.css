@@ -403,7 +403,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 26px -6px rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 26px 0px rgba(212, 175, 55, 0.55);
   transition: transform 0.15s ease;
 }
 
@@ -429,7 +429,7 @@ textarea {
 }
 
 .mic-button.recording {
-  box-shadow: 0 10px 30px -4px rgba(212, 175, 55, 0.7);
+  box-shadow: 0 0 30px 2px rgba(212, 175, 55, 0.7);
 }
 
 .mic-button.recording::before,

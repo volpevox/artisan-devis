@@ -306,7 +306,7 @@ export default function Home() {
     );
   }
 
-  const iconeMicro = <img src="/mic-icon-v6.png" alt="" aria-hidden="true" />;
+  const iconeMicro = <img src="/mic-icon-v9.png" alt="" aria-hidden="true" />;
 
   if (etape === "voice") {
     return (
