@@ -85,13 +85,6 @@ export default function Profil() {
           body: JSON.stringify({
             contact_email: session?.user?.email || undefined,
             display_name: nomEntreprise || undefined,
-            identity: {
-              attestations: {
-                terms_of_service: {
-                  account: { shown_and_accepted: true },
-                },
-              },
-            },
           }),
         });
         const dataToken = await resToken.json();
@@ -215,15 +208,6 @@ export default function Profil() {
             <button className="btn btn-primary" onClick={connecterPaiements} disabled={enCoursStripe}>
               {stripeAccountId ? "Continuer l'inscription Stripe" : "Connecter Stripe"}
             </button>
-            {!stripeAccountId && (
-              <p className="hint" style={{ margin: "10px 0 0", fontSize: 12 }}>
-                En connectant Stripe, tu acceptes le{" "}
-                <a href="https://stripe.com/connect-account/legal" target="_blank" rel="noreferrer">
-                  Contrat de compte connecté Stripe
-                </a>
-                .
-              </p>
-            )}
           </>
         )}
       </div>
