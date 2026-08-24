@@ -36,7 +36,7 @@ export function Topbar() {
 
   return (
     <>
-      <div className="topbar">
+      <div className={`topbar${pathname === "/" ? " topbar--sans-retour" : ""}`}>
         {pathname !== "/" ? (
           <button className="topbar-back" onClick={() => router.back()} aria-label="Retour">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
