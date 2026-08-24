@@ -84,6 +84,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       />
     );
 
+    const lienSuivi = `${req.nextUrl.origin}/signer/${params.id}`;
+    const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif);
+
     const { error: erreurResend } = await resend.emails.send({
       from: "onboarding@resend.dev",
       to: devis.client_email,
@@ -93,10 +96,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         corpsHtml: `
           <p style="margin:0 0 16px;"><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
           <p style="margin:0 0 4px;">Vous trouverez la facture détaillée en pièce jointe.</p>
-          <p style="margin:0;">Merci pour votre confiance.</p>
+          ${
+            paiementEnLigneActif
+              ? `<p style="margin:12px 0 0;"><a href="${lienSuivi}">Télécharger la facture</a></p>`
+              : ""
+          }
+          <p style="margin:12px 0 0;">Merci pour votre confiance.</p>
         `,
-        boutonUrl: `${req.nextUrl.origin}/api/devis-pdf/${params.id}`,
-        boutonTexte: "Télécharger la facture",
+        boutonUrl: paiementEnLigneActif ? lienSuivi : `${req.nextUrl.origin}/api/devis-pdf/${params.id}`,
+        boutonTexte: paiementEnLigneActif ? "Payer en ligne" : "Télécharger la facture",
       }),
       attachments: [
         {

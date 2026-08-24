@@ -18,6 +18,9 @@ export default function Profil() {
   const [numeroTva, setNumeroTva] = useState("");
   const [iban, setIban] = useState("");
   const [conditionsPaiement, setConditionsPaiement] = useState("");
+  const [stripeAccountId, setStripeAccountId] = useState("");
+  const [stripePaiementActif, setStripePaiementActif] = useState(false);
+  const [enCoursStripe, setEnCoursStripe] = useState(false);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(true);
 
@@ -37,11 +40,46 @@ export default function Profil() {
         setNumeroTva(data.numero_tva || "");
         setIban(data.iban || "");
         setConditionsPaiement(data.conditions_paiement || "");
+        setStripeAccountId(data.stripe_account_id || "");
+        setStripePaiementActif(!!data.stripe_paiement_actif);
       }
       setChargement(false);
     }
     charger();
   }, [artisanId]);
+
+  useEffect(() => {
+    if (!session || !stripeAccountId || stripePaiementActif) return;
+
+    async function verifierStatut() {
+      const res = await fetch("/api/statut-paiements", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      const data = await res.json();
+      if (typeof data.actif === "boolean") setStripePaiementActif(data.actif);
+    }
+    verifierStatut();
+  }, [session, stripeAccountId, stripePaiementActif]);
+
+  async function connecterPaiements() {
+    setEnCoursStripe(true);
+    setMessage("");
+
+    const res = await fetch("/api/connecter-paiements", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+    });
+    const data = await res.json();
+
+    if (data.erreur) {
+      setMessage("Erreur : " + data.erreur);
+      setEnCoursStripe(false);
+      return;
+    }
+
+    window.location.href = data.url;
+  }
 
   async function enregistrer() {
     setMessage("Enregistrement...");
@@ -111,6 +149,22 @@ export default function Profil() {
           Gérer mon abonnement VolpeVox
         </span>
       </Link>
+
+      <div className="card">
+        <span style={{ fontWeight: 600, color: "var(--text)" }}>Encaisser mes factures en ligne</span>
+        <p className="hint" style={{ margin: "4px 0 12px" }}>
+          {stripePaiementActif
+            ? "Activé — tes clients peuvent payer leurs factures en ligne, l'argent arrive directement sur ton compte."
+            : stripeAccountId
+              ? "Vérification en cours chez Stripe. Termine ou reprends l'inscription si besoin."
+              : "Connecte un compte Stripe pour proposer le paiement en ligne sur tes factures (aucune commission VolpeVox)."}
+        </p>
+        {!stripePaiementActif && (
+          <button className="btn btn-primary" onClick={connecterPaiements} disabled={enCoursStripe}>
+            {stripeAccountId ? "Continuer l'inscription Stripe" : "Connecter Stripe"}
+          </button>
+        )}
+      </div>
 
       <div className="card">
         {logoUrl && (

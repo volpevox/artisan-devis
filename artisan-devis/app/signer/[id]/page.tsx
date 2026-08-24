@@ -1,9 +1,18 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 
 export default function Signer() {
+  return (
+    <Suspense fallback={null}>
+      <SignerContenu />
+    </Suspense>
+  );
+}
+
+function SignerContenu() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const devisId = params.id as string;
 
   const [devis, setDevis] = useState<any>(null);
@@ -14,6 +23,7 @@ export default function Signer() {
   const [enregistrement, setEnregistrement] = useState(false);
   const [message, setMessage] = useState("");
   const [lieuSignature, setLieuSignature] = useState("");
+  const [enCoursPaiement, setEnCoursPaiement] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dessinRef = useRef(false);
@@ -38,6 +48,47 @@ export default function Signer() {
     }
     charger();
   }, [devisId]);
+
+  useEffect(() => {
+    if (searchParams.get("paiement") !== "succes") return;
+    const sessionId = searchParams.get("session_id");
+    if (!sessionId) return;
+
+    async function confirmer() {
+      setMessage("Confirmation du paiement...");
+      const res = await fetch("/api/confirmer-paiement-facture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ devisId, sessionId }),
+      });
+      const data = await res.json();
+
+      if (data.erreur) {
+        setMessage("Erreur : " + data.erreur);
+        return;
+      }
+
+      setDevis((prev: any) => ({ ...prev, payee_le: data.payee_le, moyen_paiement: data.moyen_paiement }));
+      setMessage("");
+    }
+    confirmer();
+  }, [searchParams, devisId]);
+
+  async function payer() {
+    setEnCoursPaiement(true);
+    setMessage("");
+
+    const res = await fetch(`/api/payer-facture/${devisId}`, { method: "POST" });
+    const data = await res.json();
+
+    if (data.erreur) {
+      setMessage("Erreur : " + data.erreur);
+      setEnCoursPaiement(false);
+      return;
+    }
+
+    window.location.href = data.url;
+  }
 
   function position(e: React.PointerEvent<HTMLCanvasElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -215,6 +266,20 @@ export default function Signer() {
             <a href={`/api/devis-pdf/${devisId}?t=${Date.now()}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
               {estFacture ? "Télécharger la facture" : "Télécharger le PDF signé"}
             </a>
+
+            {estFacture && (
+              <div style={{ marginTop: 16 }}>
+                {devis.payee_le ? (
+                  <p style={{ margin: 0, color: "var(--success)" }}>
+                    ✓ Payée le {new Date(devis.payee_le).toLocaleDateString("fr-FR")}
+                  </p>
+                ) : profil?.stripe_paiement_actif ? (
+                  <button className="btn btn-primary" onClick={payer} disabled={enCoursPaiement}>
+                    Payer {totalTTC.toFixed(2)} € en ligne
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -250,9 +315,9 @@ export default function Signer() {
                 Bon pour accord — Valider
               </button>
             </div>
-            {message && <p className="message">{message}</p>}
           </>
         )}
+        {message && <p className="message">{message}</p>}
       </div>
     </main>
   );
