@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 Voici les prix déjà appris pour ce professionnel (prestation, par unité, prix moyen par unité) :
 ${listePrixConnus}
 
-Pour chaque ligne, si aucun prix n'est dicté pour elle, ne propose un prixUnitaire du carnet que si une prestation de la liste correspond au même type de prestation ET à la même unité (on ne peut pas réutiliser un prix au m² pour une prestation facturée à l'heure, ni l'inverse). Si aucune prestation ne correspond avec la même unité, laisse "prixUnitaire" à null et "prixPropose" à false pour cette ligne. Ne mets aucun texte autour du JSON.`,
+Pour chaque ligne, si aucun prix n'est dicté pour elle, ne propose un prixUnitaire du carnet que si une prestation de la liste correspond au même type de prestation ET à la même unité (on ne peut pas réutiliser un prix au m² pour une prestation facturée à l'heure, ni l'inverse). Dans ce cas, recopie exactement le prix moyen indiqué dans la liste, sans faire aucun calcul, conversion ou moyenne entre plusieurs lignes du carnet. Si aucune prestation ne correspond avec la même unité, laisse "prixUnitaire" à null et "prixPropose" à false pour cette ligne. Ne mets aucun texte autour du JSON.`,
       },
       { role: "user", content: texte },
     ],

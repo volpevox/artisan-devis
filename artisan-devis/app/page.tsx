@@ -123,7 +123,7 @@ export default function Home() {
         prestation: l.prestation || "",
         quantite: String(l.quantite || 1),
         unite: l.unite || "forfait",
-        prixUnitaire: l.prixUnitaire ? String(l.prixUnitaire) : "",
+        prixUnitaire: l.prixUnitaire ? (Math.round(Number(l.prixUnitaire) * 100) / 100).toString() : "",
         prixPropose: Boolean(l.prixPropose),
       }));
 
@@ -170,8 +170,11 @@ export default function Home() {
 
     if (existant) {
       const nouvelleMoyenne =
-        (existant.prix_moyen * existant.nombre_utilisations + prixUnitaireNum) /
-        (existant.nombre_utilisations + 1);
+        Math.round(
+          ((existant.prix_moyen * existant.nombre_utilisations + prixUnitaireNum) /
+            (existant.nombre_utilisations + 1)) *
+            100
+        ) / 100;
 
       await supabase
         .from("prix_appris")

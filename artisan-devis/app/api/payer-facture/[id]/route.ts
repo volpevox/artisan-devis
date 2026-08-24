@@ -17,7 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const { data: artisan } = await supabase
     .from("artisans")
-    .select("stripe_account_id, stripe_paiement_actif, nom_entreprise, taux_tva")
+    .select("stripe_account_id, stripe_paiement_actif, nom_entreprise, taux_tva, logo_url")
     .eq("id", devis.artisan_id)
     .maybeSingle();
 
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             unit_amount: montantCentimes,
             product_data: {
               name: `Facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} — ${artisan.nom_entreprise || ""}`,
+              images: artisan.logo_url ? [artisan.logo_url] : undefined,
             },
           },
           quantity: 1,
