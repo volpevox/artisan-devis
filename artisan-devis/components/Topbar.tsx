@@ -97,6 +97,9 @@ export function Topbar() {
             <Link href="/profil" onClick={() => setOuvert(false)}>
               Mon profil
             </Link>
+            <Link href="/abonnement" onClick={() => setOuvert(false)}>
+              Mon abonnement
+            </Link>
             <button onClick={seDeconnecter}>Déconnexion</button>
           </div>
         )}

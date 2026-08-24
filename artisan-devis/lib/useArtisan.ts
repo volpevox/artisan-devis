@@ -1,13 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
+// L'artisan garde acces a son profil (pour gerer/reactiver son abonnement) et
+// a la page d'abonnement elle-meme meme si l'acces au reste est bloque.
+const PAGES_TOUJOURS_ACCESSIBLES = ["/profil", "/abonnement"];
+
 export function useArtisanSession() {
   const router = useRouter();
+  const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
   const [artisanId, setArtisanId] = useState<string | null>(null);
+  const [accesBloque, setAccesBloque] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,23 +36,35 @@ export function useArtisanSession() {
 
       const { data: profil } = await supabase
         .from("artisans")
-        .select("id")
+        .select("id, essai_expire_le, abonnement_actif")
         .eq("user_id", sessionActuelle.user.id)
         .maybeSingle();
 
       let idArtisan = profil?.id;
+      let essaiExpireLe = profil?.essai_expire_le;
+      let abonnementActif = profil?.abonnement_actif;
 
       if (!idArtisan) {
         const { data: nouveauProfil } = await supabase
           .from("artisans")
           .insert({ user_id: sessionActuelle.user.id })
-          .select("id")
+          .select("id, essai_expire_le, abonnement_actif")
           .single();
         idArtisan = nouveauProfil?.id;
+        essaiExpireLe = nouveauProfil?.essai_expire_le;
+        abonnementActif = nouveauProfil?.abonnement_actif;
+      }
+
+      const essaiTermine = essaiExpireLe ? new Date(essaiExpireLe) < new Date() : false;
+      const bloque = essaiTermine && !abonnementActif;
+
+      if (bloque && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
+        router.push("/abonnement");
       }
 
       if (actif) {
         setArtisanId(idArtisan || null);
+        setAccesBloque(bloque);
         setLoading(false);
       }
     }
@@ -70,7 +88,7 @@ export function useArtisanSession() {
       actif = false;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, [router, pathname]);
 
-  return { session, artisanId, loading };
+  return { session, artisanId, loading, accesBloque };
 }
