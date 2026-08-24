@@ -66,19 +66,32 @@ export default function Profil() {
     setEnCoursStripe(true);
     setMessage("");
 
-    const res = await fetch("/api/connecter-paiements", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/connecter-paiements", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      const texte = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(texte);
+      } catch {
+        setMessage(`Erreur serveur (${res.status}) : ${texte.slice(0, 300)}`);
+        setEnCoursStripe(false);
+        return;
+      }
 
-    if (data.erreur) {
-      setMessage("Erreur : " + data.erreur);
+      if (data.erreur) {
+        setMessage("Erreur : " + data.erreur);
+        setEnCoursStripe(false);
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch (e: any) {
+      setMessage("Erreur : " + e.message);
       setEnCoursStripe(false);
-      return;
     }
-
-    window.location.href = data.url;
   }
 
   async function enregistrer() {
