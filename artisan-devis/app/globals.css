@@ -522,15 +522,17 @@ textarea {
 .voice-greeting {
   font-family: var(--font-poppins), sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--text);
   margin: 0;
 }
 
-.voice-sub {
-  font-size: 14.5px;
-  color: var(--muted);
-  margin: 0;
+.voice-greeting-hand {
+  font-family: var(--font-manuscrit), cursive;
+  font-weight: 400;
+  font-size: 1.5em;
+  color: var(--ink);
+  margin-right: 6px;
 }
 
 .mic-button--hero {

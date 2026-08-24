@@ -336,8 +336,10 @@ export default function Home() {
 
         <div className="voice-screen">
           <div className="voice-top">
-            <p className="voice-greeting">Bonjour{nomEntreprise ? ` ${nomEntreprise}` : ""} !</p>
-            <p className="voice-sub">Qu'est-ce que je peux faire pour toi ?</p>
+            <p className="voice-greeting">
+              <span className="voice-greeting-hand">Bonjour</span>
+              {nomEntreprise ? ` ${nomEntreprise}` : ""} !
+            </p>
           </div>
 
           <div className="voice-middle">
