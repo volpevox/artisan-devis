@@ -5,12 +5,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useArtisanSession } from "@/lib/useArtisan";
 
-export function Topbar() {
+interface TopbarProps {
+  onRetour?: () => void;
+  forcerRetour?: boolean;
+}
+
+export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const { artisanId } = useArtisanSession();
   const [ouvert, setOuvert] = useState(false);
   const [devisSignesNonVus, setDevisSignesNonVus] = useState(0);
+  const afficherRetour = pathname !== "/" || forcerRetour;
 
   useEffect(() => {
     if (!artisanId) return;
@@ -36,9 +42,9 @@ export function Topbar() {
 
   return (
     <>
-      <div className={`topbar${pathname === "/" ? " topbar--sans-retour" : ""}`}>
-        {pathname !== "/" ? (
-          <button className="topbar-back" onClick={() => router.back()} aria-label="Retour">
+      <div className={`topbar${!afficherRetour ? " topbar--sans-retour" : ""}`}>
+        {afficherRetour ? (
+          <button className="topbar-back" onClick={onRetour ?? (() => router.back())} aria-label="Retour">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M15 5 8 12l7 7"

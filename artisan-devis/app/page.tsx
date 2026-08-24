@@ -387,7 +387,7 @@ export default function Home() {
 
   return (
     <main className="page-shell">
-      <Topbar />
+      <Topbar forcerRetour onRetour={() => setEtape("voice")} />
 
       <h1 className="page-title">Nouveau devis</h1>
 
