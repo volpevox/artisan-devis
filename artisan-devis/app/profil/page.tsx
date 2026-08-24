@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { loadStripe } from "@stripe/stripe-js";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function Profil() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
@@ -67,9 +70,35 @@ export default function Profil() {
     setMessage("");
 
     try {
+      let accountToken: string | undefined;
+
+      if (!stripeAccountId) {
+        const stripeJs = await stripePromise;
+        if (!stripeJs) {
+          setMessage("Erreur : impossible de charger Stripe");
+          setEnCoursStripe(false);
+          return;
+        }
+
+        // Obligatoire pour les plateformes basees en France (conformite DSP2) :
+        // Stripe exige un jeton de compte cree cote navigateur avant toute
+        // creation de compte connecte avec configuration marchand.
+        const { token, error } = await stripeJs.createToken("account", {
+          tos_shown_and_accepted: true,
+        });
+
+        if (error || !token) {
+          setMessage("Erreur : " + (error?.message || "création du jeton Stripe impossible"));
+          setEnCoursStripe(false);
+          return;
+        }
+        accountToken = token.id;
+      }
+
       const res = await fetch("/api/connecter-paiements", {
         method: "POST",
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ accountToken }),
       });
       const texte = await res.text();
       let data: any = {};
@@ -173,9 +202,20 @@ export default function Profil() {
               : "Connecte un compte Stripe pour proposer le paiement en ligne sur tes factures (aucune commission VolpeVox)."}
         </p>
         {!stripePaiementActif && (
-          <button className="btn btn-primary" onClick={connecterPaiements} disabled={enCoursStripe}>
-            {stripeAccountId ? "Continuer l'inscription Stripe" : "Connecter Stripe"}
-          </button>
+          <>
+            <button className="btn btn-primary" onClick={connecterPaiements} disabled={enCoursStripe}>
+              {stripeAccountId ? "Continuer l'inscription Stripe" : "Connecter Stripe"}
+            </button>
+            {!stripeAccountId && (
+              <p className="hint" style={{ margin: "10px 0 0", fontSize: 12 }}>
+                En connectant Stripe, tu acceptes le{" "}
+                <a href="https://stripe.com/connect-account/legal" target="_blank" rel="noreferrer">
+                  Contrat de compte connecté Stripe
+                </a>
+                .
+              </p>
+            )}
+          </>
         )}
       </div>
 

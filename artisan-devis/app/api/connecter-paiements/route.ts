@@ -17,7 +17,14 @@ export async function POST(req: NextRequest) {
     let stripeAccountId = artisan.stripe_account_id as string | null;
 
     if (!stripeAccountId) {
+      const { accountToken } = await req.json().catch(() => ({ accountToken: undefined }));
+
+      if (!accountToken) {
+        return NextResponse.json({ erreur: "Jeton de compte Stripe manquant" }, { status: 400 });
+      }
+
       const compte = await stripe.v2.core.accounts.create({
+        account_token: accountToken,
         contact_email: user?.email || undefined,
         display_name: artisan.nom_entreprise || undefined,
         dashboard: "full",
