@@ -73,20 +73,37 @@ export function useArtisanSession() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, nouvelleSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, nouvelleSession) => {
       // Supabase declenche aussi cet evenement avec une session nulle lors du
       // chargement initial ou d'un rafraichissement transitoire (ex: reseau
-      // instable sur un chantier) : ne renvoyer vers /connexion que sur une
-      // vraie deconnexion, sinon l'utilisateur est ejecte alors qu'il est
-      // toujours connecte.
+      // instable sur un chantier, ou telephone reste en veille trop longtemps
+      // pour que le rafraichissement automatique ait eu le temps de passer) :
+      // avant de renvoyer vers /connexion, on retente une fois un rafraichissement
+      // explicite, pour ne pas ejecter un artisan encore reellement connecte.
       if (event === "SIGNED_OUT") {
-        router.push("/connexion");
+        const { data } = await supabase.auth.refreshSession();
+        if (!actif) return;
+        if (!data.session) {
+          router.push("/connexion");
+        }
       }
     });
+
+    // Le telephone met en pause les timers JS quand l'appli est en arriere-plan
+    // (verrouillage d'ecran, changement d'appli sur un chantier) : au retour,
+    // on force une verification/rafraichissement immediat plutot que d'attendre
+    // le prochain cycle automatique, qui peut arriver trop tard.
+    function surRetourAuPremierPlan() {
+      if (document.visibilityState === "visible") {
+        supabase.auth.getSession();
+      }
+    }
+    document.addEventListener("visibilitychange", surRetourAuPremierPlan);
 
     return () => {
       actif = false;
       subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", surRetourAuPremierPlan);
     };
   }, [router, pathname]);
 
