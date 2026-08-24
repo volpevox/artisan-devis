@@ -797,6 +797,43 @@ textarea {
   cursor: pointer;
 }
 
+.connexion-logo {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  opacity: 0;
+  animation: connexion-logo-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes connexion-logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.connexion-brand {
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.2px;
+  margin: 10px 0 0;
+  opacity: 0;
+  animation: connexion-brand-in 0.5s ease 0.35s forwards;
+}
+
+@keyframes connexion-brand-in {
+  to {
+    opacity: 1;
+  }
+}
+
 .splash-logo {
   width: 190px;
   height: 190px;

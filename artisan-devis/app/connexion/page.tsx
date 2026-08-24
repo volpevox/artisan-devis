@@ -70,9 +70,13 @@ export default function Connexion() {
 
   return (
     <main className="page-shell" style={{ paddingTop: 60 }}>
-      <h1 className="page-title" style={{ textAlign: "center" }}>
-        VolpeVox
-      </h1>
+      <div style={{ textAlign: "center", marginBottom: 22 }}>
+        <img src="/fox-icon.png" alt="" aria-hidden="true" className="connexion-logo" />
+        <p className="connexion-brand">
+          <span className="brand-volpe">Volpe</span>
+          <span className="brand-vox">Vox</span>
+        </p>
+      </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 16, color: "var(--ink)" }}>
