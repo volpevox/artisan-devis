@@ -73,19 +73,15 @@ export function useArtisanSession() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, nouvelleSession) => {
-      // Supabase declenche aussi cet evenement avec une session nulle lors du
-      // chargement initial ou d'un rafraichissement transitoire (ex: reseau
-      // instable sur un chantier, ou telephone reste en veille trop longtemps
-      // pour que le rafraichissement automatique ait eu le temps de passer) :
-      // avant de renvoyer vers /connexion, on retente une fois un rafraichissement
-      // explicite, pour ne pas ejecter un artisan encore reellement connecte.
-      if (event === "SIGNED_OUT") {
-        const { data } = await supabase.auth.refreshSession();
-        if (!actif) return;
-        if (!data.session) {
-          router.push("/connexion");
-        }
+    } = supabase.auth.onAuthStateChange((event) => {
+      // Une deconnexion (bouton "Se deconnecter" ou session revoquee) doit
+      // renvoyer vers /connexion immediatement. Tenter de "rattraper" cet
+      // evenement par un rafraichissement (comme on le faisait avant)
+      // retardait -- voire bloquait -- une deconnexion volontaire de
+      // l'artisan : le cas d'un SIGNED_OUT transitoire lors d'un retour au
+      // premier plan est deja couvert par surRetourAuPremierPlan ci-dessous.
+      if (event === "SIGNED_OUT" && actif) {
+        router.push("/connexion");
       }
     });
 
