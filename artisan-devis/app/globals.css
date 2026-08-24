@@ -567,13 +567,30 @@ textarea {
   }
 }
 
-.splash-tagline {
-  font-family: var(--font-manuscrit), cursive;
-  font-weight: 400;
-  font-size: 26px;
-  color: var(--ink);
+.splash-brand {
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: 0.2px;
   text-align: center;
   margin: 0;
+}
+
+.splash-brand-volpe {
+  color: #1c5fc4;
+}
+
+.splash-brand-vox {
+  color: var(--ink);
+}
+
+.splash-sub {
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  margin: 4px 0 0;
   padding: 0 20px;
 }
 

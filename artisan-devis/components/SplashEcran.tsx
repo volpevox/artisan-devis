@@ -14,10 +14,11 @@ export function SplashEcran({ onContinuer }: SplashEcranProps) {
       }}
     >
       <img src="/fox-icon.png" alt="VolpeVox" className="splash-logo" />
-      <p className="splash-tagline">
-        <span className="splash-ligne splash-ligne-1">Devis &amp; Factures :</span>
-        <span className="splash-ligne splash-ligne-2">Juste la voix. Zéro clic.</span>
+      <p className="splash-brand splash-ligne splash-ligne-1">
+        <span className="splash-brand-volpe">Volpe</span>
+        <span className="splash-brand-vox">Vox</span>
       </p>
+      <p className="splash-sub splash-ligne splash-ligne-2">Vos Devis &amp; Factures en 3 clics</p>
       <p className="splash-tap">Touchez pour continuer</p>
     </div>
   );
