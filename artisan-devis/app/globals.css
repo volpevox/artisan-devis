@@ -858,7 +858,7 @@ textarea {
 }
 
 .splash-brand-volpe {
-  color: #1c5fc4;
+  color: var(--text);
 }
 
 .splash-brand-vox {
