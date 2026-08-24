@@ -276,6 +276,41 @@ h1.page-title {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
+.tuiles-carrees {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tuile-carree {
+  flex: 1 1 0%;
+  aspect-ratio: 1 / 1;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tuile-carree:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tuile-carree-titre {
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
 .doc-card {
   background: var(--card-bg);
   border: 1px solid var(--border);

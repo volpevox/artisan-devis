@@ -213,40 +213,24 @@ export default function Profil() {
 
       <h1 className="page-title">Mon profil</h1>
 
-      <Link href="/abonnement" className="card" style={{ display: "block", textDecoration: "none" }}>
-        <span style={{ fontWeight: 600, color: "var(--text)" }}>Mon abonnement</span>
-        <span className="hint" style={{ display: "block", marginTop: 4 }}>
-          Gérer mon abonnement VolpeVox
-        </span>
-      </Link>
-
-      <div className="card">
-        <span style={{ fontWeight: 600, color: "var(--text)" }}>Encaisser mes factures en ligne</span>
+      <div className="tuiles-carrees">
+        <Link href="/abonnement" className="tuile-carree">
+          <span className="tuile-carree-titre">Mon abonnement</span>
+          <span className="hint" style={{ margin: 0 }}>Gérer mon abonnement VolpeVox</span>
+        </Link>
 
         {stripePaiementActif ? (
-          <>
-            <p style={{ margin: "6px 0 12px", color: "var(--success)", fontWeight: 600 }}>✓ Activé</p>
-            <a
-              href="https://dashboard.stripe.com"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-outline"
-              style={{ display: "inline-block" }}
-            >
-              Accéder à mon espace Stripe
-            </a>
-          </>
+          <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="tuile-carree">
+            <span className="tuile-carree-titre">Paiement en ligne</span>
+            <span style={{ color: "var(--success)", fontWeight: 600, fontSize: 13 }}>✓ Activé — voir mon espace Stripe</span>
+          </a>
         ) : (
-          <>
-            <p className="hint" style={{ margin: "4px 0 12px" }}>
-              {stripeAccountId
-                ? "Vérification en cours chez Stripe. Termine ou reprends l'inscription si besoin."
-                : "Connecte un compte Stripe pour proposer le paiement en ligne sur tes factures (aucune commission VolpeVox)."}
-            </p>
-            <button className="btn btn-primary" onClick={connecterPaiements} disabled={enCoursStripe}>
-              {stripeAccountId ? "Continuer l'inscription Stripe" : "Connecter Stripe"}
-            </button>
-          </>
+          <button type="button" className="tuile-carree" onClick={connecterPaiements} disabled={enCoursStripe}>
+            <span className="tuile-carree-titre">Paiement en ligne</span>
+            <span className="hint" style={{ margin: 0 }}>
+              {stripeAccountId ? "Reprendre l'inscription Stripe" : "Connecter Stripe (sans commission)"}
+            </span>
+          </button>
         )}
       </div>
 
