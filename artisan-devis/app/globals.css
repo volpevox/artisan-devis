@@ -248,6 +248,96 @@ h1.page-title {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
+.doc-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.doc-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.doc-card-nom {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15.5px;
+  overflow-wrap: break-word;
+}
+
+.doc-card-meta {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.doc-card-total {
+  margin: 12px 0 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.doc-card-statut-ligne {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+}
+
+.doc-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-solid,
+.btn-ghost {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  border: 1px solid transparent;
+  line-height: 1.3;
+}
+
+.btn-solid {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.btn-solid:hover {
+  background: var(--ink-soft);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.btn-solid:disabled,
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .field {
   display: block;
   width: 100%;

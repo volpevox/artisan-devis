@@ -36,13 +36,13 @@ export function CarteDocument({
   const titre = type === "facture" ? "Facture" : "Devis";
 
   return (
-    <div className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+    <div className="doc-card">
+      <div className="doc-card-top">
         <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontWeight: 700, overflowWrap: "break-word" }}>{d.client_nom || "(sans nom)"}</p>
-          <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--muted)" }}>
+          <p className="doc-card-nom">{d.client_nom || "(sans nom)"}</p>
+          <p className="doc-card-meta">
             {numero ? `${titre} n°${numero} · ` : ""}
-            {new Date(d.created_at).toLocaleDateString("fr-FR")} · {d.total} €
+            {new Date(d.created_at).toLocaleDateString("fr-FR")}
           </p>
         </div>
         {type === "devis" && (
@@ -52,13 +52,15 @@ export function CarteDocument({
         )}
       </div>
 
+      <p className="doc-card-total">{d.total} €</p>
+
       {d.statut === "signe" && d.signe_le && (
-        <p style={{ fontSize: 12, color: "var(--success)", margin: "8px 0 0" }}>
-          Signé le {new Date(d.signe_le).toLocaleDateString("fr-FR")}
+        <p className="doc-card-statut-ligne" style={{ color: "var(--success)" }}>
+          ✓ Signé le {new Date(d.signe_le).toLocaleDateString("fr-FR")}
         </p>
       )}
       {type === "facture" && d.facture_creee_le && (
-        <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 0" }}>
+        <p className="doc-card-statut-ligne" style={{ color: "var(--muted)" }}>
           Facture créée le {new Date(d.facture_creee_le).toLocaleDateString("fr-FR")}
           {d.facture_envoyee_le
             ? ` · envoyée le ${new Date(d.facture_envoyee_le).toLocaleDateString("fr-FR")}`
@@ -67,7 +69,7 @@ export function CarteDocument({
       )}
 
       {type === "facture" && d.payee_le && (
-        <p style={{ fontSize: 12, color: "var(--success)", margin: "4px 0 0" }}>
+        <p className="doc-card-statut-ligne" style={{ color: "var(--success)" }}>
           ✓ Payée le {new Date(d.payee_le).toLocaleDateString("fr-FR")}
           {d.moyen_paiement ? ` par ${d.moyen_paiement}` : ""}
           {onAnnulerPaiement && (
@@ -81,17 +83,17 @@ export function CarteDocument({
         </p>
       )}
 
-      <div className="link-row">
-        <a href={`/api/devis-pdf/${d.id}?t=${Date.now()}`} target="_blank" rel="noreferrer">
+      <div className="doc-card-actions">
+        <a className="btn-ghost" href={`/api/devis-pdf/${d.id}?t=${Date.now()}`} target="_blank" rel="noreferrer">
           {type === "facture" ? "Voir la facture (PDF)" : d.statut === "signe" ? "Voir le PDF signé" : "Voir le devis (PDF)"}
         </a>
         {type === "devis" && d.statut === "signe" && onTransformerEnFacture && (
-          <button onClick={() => onTransformerEnFacture(d.id)} disabled={enCours === d.id}>
+          <button className="btn-solid" onClick={() => onTransformerEnFacture(d.id)} disabled={enCours === d.id}>
             Transformer en facture
           </button>
         )}
         {type === "facture" && onEnvoyerFacture && (
-          <button onClick={() => onEnvoyerFacture(d.id)} disabled={enCours === d.id || !d.client_email}>
+          <button className="btn-solid" onClick={() => onEnvoyerFacture(d.id)} disabled={enCours === d.id || !d.client_email}>
             {d.facture_envoyee_le ? "Renvoyer la facture" : "Envoyer la facture par email"}
           </button>
         )}
@@ -111,7 +113,7 @@ export function CarteDocument({
               </option>
             ))}
           </select>
-          <button onClick={() => onMarquerPayee(d.id, moyenChoisi)} disabled={enCours === d.id}>
+          <button className="btn-ghost" onClick={() => onMarquerPayee(d.id, moyenChoisi)} disabled={enCours === d.id}>
             Marquer comme payée
           </button>
         </div>
