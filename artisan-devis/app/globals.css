@@ -1,8 +1,8 @@
 :root {
-  --ink: #d4af37;
-  --ink-soft: #e8c868;
+  --ink: #dda742;
+  --ink-soft: #e8c17a;
   --on-ink: #0d1b2a;
-  --or: #d4af37;
+  --or: #dda742;
   --bg: #0d1b2a;
   --card-bg: #1e232b;
   --input-bg: #141c29;
@@ -67,12 +67,21 @@ canvas {
 
 .topbar-brand {
   justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-roboto), sans-serif;
   font-weight: 700;
   font-size: 24px;
   letter-spacing: 0.2px;
   text-decoration: none;
   line-height: 1;
+}
+
+.topbar-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
 .brand-volpe {
