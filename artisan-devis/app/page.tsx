@@ -309,7 +309,25 @@ export default function Home() {
     );
   }
 
-  const iconeMicro = <img src="/mic-icon-v9.png" alt="" aria-hidden="true" />;
+  const iconeMicro = (
+    <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="mic-gold" x1="15%" y1="10%" x2="85%" y2="90%">
+          <stop offset="0%" stopColor="#f3da8f" />
+          <stop offset="100%" stopColor="#c8952c" />
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="url(#mic-gold)" />
+      <g stroke="#5eead4" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.85">
+        <path d="M24 38a26 26 0 0 0 0 24" />
+        <path d="M76 38a26 26 0 0 1 0 24" />
+      </g>
+      <rect x="41" y="21" width="18" height="32" rx="9" fill="#0d1b2a" />
+      <path d="M33 46a17 17 0 0 0 34 0" stroke="#0d1b2a" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+      <line x1="50" y1="63" x2="50" y2="72" stroke="#0d1b2a" strokeWidth="4.5" strokeLinecap="round" />
+      <line x1="40" y1="72" x2="60" y2="72" stroke="#0d1b2a" strokeWidth="4.5" strokeLinecap="round" />
+    </svg>
+  );
 
   if (etape === "voice") {
     return (
