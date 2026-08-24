@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: "Compte de paiement introuvable" }, { status: 400 });
   }
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId, { stripeAccount: artisan.stripe_account_id });
+  const session = await stripe.checkout.sessions.retrieve(sessionId, undefined, {
+    stripeAccount: artisan.stripe_account_id,
+  });
 
   if (session.metadata?.devis_id !== devisId || session.payment_status !== "paid") {
     return NextResponse.json({ erreur: "Paiement non confirmé" }, { status: 400 });
