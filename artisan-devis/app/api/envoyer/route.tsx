@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
+import { nomAffichageDocument } from "@/lib/nomAffichage";
 import { emailHtml } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const pdfBuffer = await renderToBuffer(
       <DevisPDF
         entreprise={{
-          nom: profil?.nom_entreprise || profil?.nom_complet,
+          nom: nomAffichageDocument(profil),
           telephone: profil?.telephone,
           adresse: profil?.adresse,
           codePostal: profil?.code_postal,
