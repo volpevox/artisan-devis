@@ -392,8 +392,8 @@ textarea {
 
 .mic-button {
   position: relative;
-  width: 92px;
-  height: 92px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -485,8 +485,8 @@ textarea {
 }
 
 .mic-button--hero {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
 }
 
 .voice-wave {
