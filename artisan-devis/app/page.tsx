@@ -335,30 +335,34 @@ export default function Home() {
         <Topbar />
 
         <div className="voice-screen">
-          <p className="voice-greeting">Bonjour{nomEntreprise ? ` ${nomEntreprise}` : ""} !</p>
-          <p className="voice-sub">Qu'est-ce que je peux faire pour toi ?</p>
-
-          <div className="mic-wrap mic-wrap--hero">
-            <span className="mic-label">
-              {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez votre prestation"}
-            </span>
-
-            <button
-              className={`mic-button mic-button--hero${enregistrement ? " recording" : ""}`}
-              onClick={enregistrement ? arreterMicro : demarrerMicro}
-              aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
-            >
-              {iconeMicro}
-            </button>
+          <div className="voice-top">
+            <p className="voice-greeting">Bonjour{nomEntreprise ? ` ${nomEntreprise}` : ""} !</p>
+            <p className="voice-sub">Qu'est-ce que je peux faire pour toi ?</p>
           </div>
 
-          <div className={`voice-wave${enregistrement ? " active" : ""}`} aria-hidden="true">
-            {AMPLITUDES_ONDE.map((amp, i) => (
-              <span key={i} style={{ "--amp": amp, animationDelay: `${(i % 8) * 0.09}s` } as CSSProperties} />
-            ))}
-          </div>
+          <div className="voice-middle">
+            <div className="mic-wrap mic-wrap--hero">
+              <span className="mic-label">
+                {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez votre prestation"}
+              </span>
 
-          {message && <p className="message">{message}</p>}
+              <button
+                className={`mic-button mic-button--hero${enregistrement ? " recording" : ""}`}
+                onClick={enregistrement ? arreterMicro : demarrerMicro}
+                aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
+              >
+                {iconeMicro}
+              </button>
+            </div>
+
+            <div className={`voice-wave${enregistrement ? " active" : ""}`} aria-hidden="true">
+              {AMPLITUDES_ONDE.map((amp, i) => (
+                <span key={i} style={{ "--amp": amp, animationDelay: `${(i % 8) * 0.09}s` } as CSSProperties} />
+              ))}
+            </div>
+
+            {message && <p className="message">{message}</p>}
+          </div>
 
           <button className="voice-skip" onClick={() => setEtape("form")}>
             Remplir le devis manuellement
