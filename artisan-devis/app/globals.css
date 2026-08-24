@@ -63,6 +63,22 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+.pdf-viewer-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100%;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-viewer-frame {
+  flex: 1 1 auto;
+  width: 100%;
+  border: none;
+  background: #ffffff;
+}
+
 a {
   color: var(--ink);
 }

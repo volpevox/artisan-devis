@@ -103,7 +103,7 @@ export function CarteDocument({
       )}
 
       <div className="doc-card-actions">
-        <a className="btn-ghost" href={`/api/devis-pdf/${d.id}?t=${Date.now()}`}>
+        <a className="btn-ghost" href={`/devis-pdf/${d.id}`}>
           {type === "facture" ? "Voir la facture (PDF)" : d.statut === "signe" ? "Voir le PDF signé" : "Voir le devis (PDF)"}
         </a>
         <button className="btn-ghost" onClick={partager}>
