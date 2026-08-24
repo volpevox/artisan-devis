@@ -94,8 +94,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       subject: `Votre facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} - ${devis.client_nom || ""}`,
       html: emailHtml({
         titre: `Facture pour ${devis.client_nom || ""}`,
-        logoUrl: profil?.logo_url,
-        nomEntreprise: profil?.nom_entreprise,
         corpsHtml: `
           <p style="margin:0 0 12px;">Bonjour${devis.client_nom ? ` ${devis.client_nom}` : ""},</p>
           <p style="margin:0 0 12px;">Voici votre facture, en pièce jointe.</p>

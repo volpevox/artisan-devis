@@ -65,8 +65,6 @@ export async function POST(req: NextRequest) {
       subject: `Votre devis${devisRow?.numero_devis ? ` n°${devisRow.numero_devis}` : ""} - ${clientNom}`,
       html: emailHtml({
         titre: `Devis pour ${clientNom}`,
-        logoUrl: profil?.logo_url,
-        nomEntreprise: profil?.nom_entreprise,
         corpsHtml: `
           <p style="margin:0 0 12px;">Bonjour${clientNom ? ` ${clientNom}` : ""},</p>
           <p style="margin:0 0 12px;">Voici votre devis, avec tous les détails dans le PDF joint.</p>
