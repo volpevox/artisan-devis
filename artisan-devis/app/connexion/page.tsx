@@ -69,7 +69,7 @@ export default function Connexion() {
   }
 
   return (
-    <main className="page-shell" style={{ paddingTop: 60 }}>
+    <main className="page-shell" style={{ justifyContent: "center" }}>
       <div style={{ textAlign: "center", marginBottom: 22 }}>
         <img src="/fox-icon.png" alt="" aria-hidden="true" className="connexion-logo" />
         <p className="connexion-brand">
