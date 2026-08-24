@@ -31,9 +31,28 @@ export function CarteDocument({
   onAnnulerPaiement,
 }: CarteDocumentProps) {
   const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
+  const [lienCopie, setLienCopie] = useState(false);
   const b = badge(d.statut);
   const numero = type === "facture" ? d.numero_facture : d.numero_devis;
   const titre = type === "facture" ? "Facture" : "Devis";
+
+  async function partager() {
+    const url = `${window.location.origin}/api/devis-pdf/${d.id}`;
+    const titreDoc = `${titre}${numero ? ` n°${numero}` : ""} - ${d.client_nom || ""}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: titreDoc, url });
+      } catch {
+        // L'artisan a ferme le menu de partage sans rien choisir : rien a faire.
+      }
+      return;
+    }
+
+    await navigator.clipboard.writeText(url);
+    setLienCopie(true);
+    setTimeout(() => setLienCopie(false), 2000);
+  }
 
   return (
     <div className="doc-card">
@@ -84,9 +103,12 @@ export function CarteDocument({
       )}
 
       <div className="doc-card-actions">
-        <a className="btn-ghost" href={`/api/devis-pdf/${d.id}?t=${Date.now()}`} target="_blank" rel="noreferrer">
+        <a className="btn-ghost" href={`/api/devis-pdf/${d.id}?t=${Date.now()}`}>
           {type === "facture" ? "Voir la facture (PDF)" : d.statut === "signe" ? "Voir le PDF signé" : "Voir le devis (PDF)"}
         </a>
+        <button className="btn-ghost" onClick={partager}>
+          {lienCopie ? "Lien copié !" : "Partager"}
+        </button>
         {type === "devis" && d.statut === "signe" && onTransformerEnFacture && (
           <button className="btn-solid" onClick={() => onTransformerEnFacture(d.id)} disabled={enCours === d.id}>
             Transformer en facture

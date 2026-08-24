@@ -376,7 +376,7 @@ export default function Home() {
             <p className="hint" style={{ margin: "0 0 6px" }}>
               Lien de signature (déjà inclus dans l'email) :
             </p>
-            <a href={lienSignature} target="_blank" rel="noreferrer" style={{ fontSize: 13, wordBreak: "break-all" }}>
+            <a href={lienSignature} style={{ fontSize: 13, wordBreak: "break-all" }}>
               {lienSignature}
             </a>
           </div>
