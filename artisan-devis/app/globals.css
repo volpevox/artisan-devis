@@ -73,17 +73,22 @@ body {
 }
 
 .pdf-viewer-zone {
-  position: relative;
   flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: auto;
+  background: #525659;
 }
 
-.pdf-viewer-frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: #ffffff;
+.pdf-viewer-page {
+  margin: 10px auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.pdf-viewer-page canvas {
+  display: block;
+  max-width: 100%;
 }
 
 a {
