@@ -1,6 +1,5 @@
 import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
 import "./globals.css";
-import { CorrectionViewportIOS } from "@/components/CorrectionViewportIOS";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -55,10 +54,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable} ${roboto.variable}`}>
-      <body>
-        <CorrectionViewportIOS />
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

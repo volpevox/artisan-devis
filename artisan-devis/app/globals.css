@@ -36,6 +36,15 @@ body {
   font-family: var(--font-montserrat), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Sur iPhone en mode "ajoute a l'ecran d'accueil", Safari calcule mal la
+   zone de securite du bas pour les elements fixes quand la page tient deja
+   pile dans l'ecran (rien a faire defiler). En forcant toujours un tout
+   petit surplus de hauteur (invisible), la page reste "defilable" en
+   permanence, ce qui evite ce mode bugue. */
+body {
+  min-height: calc(100svh + 2px);
+}
+
 a {
   color: var(--ink);
 }
