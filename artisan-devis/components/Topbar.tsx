@@ -110,58 +110,6 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
           </div>
         )}
       </div>
-
-      <nav className="bottom-nav">
-        <Link href="/" className={`bottom-nav-item${pathname === "/" ? " active" : ""}`}>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M12 5v14M5 12h14"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span>Nouveau devis</span>
-        </Link>
-        <Link href="/devis" className={`bottom-nav-item${pathname === "/devis" ? " active" : ""}`} style={{ position: "relative" }}>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M6 4h9l3 3v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1ZM9 10h6M9 14h6M9 18h3"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span>Devis</span>
-          {devisSignesNonVus > 0 && <span className="badge-point badge-point--nav" />}
-        </Link>
-        <Link href="/factures" className={`bottom-nav-item${pathname === "/factures" ? " active" : ""}`}>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M7 3h10a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-3-2V4a1 1 0 0 1 1-1Z"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-          <span>Factures</span>
-        </Link>
-        <Link href="/profil" className={`bottom-nav-item${pathname === "/profil" ? " active" : ""}`}>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8c0-3.3 3.1-6 7-6s7 2.7 7 6"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span>Mon profil</span>
-        </Link>
-      </nav>
     </>
   );
 }
