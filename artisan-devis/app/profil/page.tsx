@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
@@ -103,6 +104,13 @@ export default function Profil() {
       <Topbar />
 
       <h1 className="page-title">Mon profil</h1>
+
+      <Link href="/abonnement" className="card" style={{ display: "block", textDecoration: "none" }}>
+        <span style={{ fontWeight: 600, color: "var(--text)" }}>Mon abonnement</span>
+        <span className="hint" style={{ display: "block", marginTop: 4 }}>
+          Gérer mon abonnement VolpeVox
+        </span>
+      </Link>
 
       <div className="card">
         {logoUrl && (
