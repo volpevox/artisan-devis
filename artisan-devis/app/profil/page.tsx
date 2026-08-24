@@ -144,7 +144,7 @@ export default function Profil() {
   }
 
   async function enregistrer() {
-    if (!nomComplet.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
+    if (!nomComplet.trim() || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
       setMessage("Merci de remplir tous les champs obligatoires (marqués d'un *).");
       return;
     }
@@ -302,7 +302,7 @@ export default function Profil() {
           <input className="field" style={{ marginTop: 6 }} value={nomEntreprise} onChange={(e) => setNomEntreprise(e.target.value)} />
         </label>
         <label className="field-label">
-          Téléphone
+          Téléphone *
           <input className="field" style={{ marginTop: 6 }} value={telephone} onChange={(e) => setTelephone(e.target.value)} />
         </label>
         <label className="field-label">
@@ -310,13 +310,13 @@ export default function Profil() {
           <input className="field" style={{ marginTop: 6 }} value={adresse} onChange={(e) => setAdresse(e.target.value)} />
         </label>
         <div className="field-row">
-          <label className="field-label" style={{ flex: "1 1 0%", marginBottom: 0 }}>
+          <label className="field-label" style={{ flex: "1 1 0%", minWidth: 0, marginBottom: 0 }}>
             Code postal *
-            <input className="field" style={{ marginTop: 6 }} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+            <input className="field" style={{ marginTop: 6, width: "100%" }} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
           </label>
-          <label className="field-label" style={{ flex: "2 1 0%", marginBottom: 0 }}>
+          <label className="field-label" style={{ flex: "2 1 0%", minWidth: 0, marginBottom: 0 }}>
             Ville *
-            <input className="field" style={{ marginTop: 6 }} value={ville} onChange={(e) => setVille(e.target.value)} />
+            <input className="field" style={{ marginTop: 6, width: "100%" }} value={ville} onChange={(e) => setVille(e.target.value)} />
           </label>
         </div>
       </div>
