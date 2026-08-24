@@ -196,15 +196,27 @@ export default function Profil() {
 
       <div className="card">
         <span style={{ fontWeight: 600, color: "var(--text)" }}>Encaisser mes factures en ligne</span>
-        <p className="hint" style={{ margin: "4px 0 12px" }}>
-          {stripePaiementActif
-            ? "Activé — tes clients peuvent payer leurs factures en ligne, l'argent arrive directement sur ton compte."
-            : stripeAccountId
-              ? "Vérification en cours chez Stripe. Termine ou reprends l'inscription si besoin."
-              : "Connecte un compte Stripe pour proposer le paiement en ligne sur tes factures (aucune commission VolpeVox)."}
-        </p>
-        {!stripePaiementActif && (
+
+        {stripePaiementActif ? (
           <>
+            <p style={{ margin: "6px 0 12px", color: "var(--success)", fontWeight: 600 }}>✓ Activé</p>
+            <a
+              href="https://dashboard.stripe.com"
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-outline"
+              style={{ display: "inline-block" }}
+            >
+              Accéder à mon espace Stripe
+            </a>
+          </>
+        ) : (
+          <>
+            <p className="hint" style={{ margin: "4px 0 12px" }}>
+              {stripeAccountId
+                ? "Vérification en cours chez Stripe. Termine ou reprends l'inscription si besoin."
+                : "Connecte un compte Stripe pour proposer le paiement en ligne sur tes factures (aucune commission VolpeVox)."}
+            </p>
             <button className="btn btn-primary" onClick={connecterPaiements} disabled={enCoursStripe}>
               {stripeAccountId ? "Continuer l'inscription Stripe" : "Connecter Stripe"}
             </button>
