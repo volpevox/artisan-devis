@@ -326,13 +326,19 @@ export default function Profil() {
         </label>
 
         <label className="field-label">
-          Taux de TVA (%) * — mets 0 si tu es en franchise en base de TVA (auto-entrepreneur)
-          <input
+          Taux de TVA (%) * — choisis 0 % si tu es en franchise en base de TVA (auto-entrepreneur)
+          <select
             className="field"
             style={{ marginTop: 6 }}
             value={tauxTva}
             onChange={(e) => setTauxTva(e.target.value)}
-          />
+          >
+            <option value="0">0 % — Franchise en base (auto-entrepreneur)</option>
+            <option value="2.1">2,1 % — Taux particulier</option>
+            <option value="5.5">5,5 % — Taux réduit</option>
+            <option value="10">10 % — Taux intermédiaire</option>
+            <option value="20">20 % — Taux normal</option>
+          </select>
         </label>
 
         <label className="field-label">
