@@ -1,12 +1,10 @@
 "use client";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SplashEcran } from "@/components/SplashEcran";
 
 export default function Connexion() {
-  const router = useRouter();
   const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">("connexion");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
@@ -45,7 +43,11 @@ export default function Connexion() {
       }
 
       if (data.session) {
-        router.push("/profil");
+        // Une vraie navigation (plutot qu'un changement de page en JS) est
+        // necessaire pour que Safari/Chrome proposent d'enregistrer le mot
+        // de passe : leur heuristique de detection de connexion reussie ne
+        // se declenche pas de facon fiable avec un simple router.push.
+        window.location.href = "/profil";
       } else {
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);
@@ -61,7 +63,9 @@ export default function Connexion() {
       return;
     }
 
-    router.push("/");
+    // Idem : vraie navigation pour laisser le navigateur proposer
+    // l'enregistrement du mot de passe.
+    window.location.href = "/";
   }
 
   if (afficherDemarrage) {
