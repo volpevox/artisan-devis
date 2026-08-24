@@ -293,82 +293,69 @@ export default function Profil() {
           <input type="file" accept="image/*" onChange={choisirLogo} style={{ display: "block", marginBottom: 12 }} />
         )}
 
-        <input
-          className="field"
-          placeholder="Nom et prénom *"
-          value={nomComplet}
-          onChange={(e) => setNomComplet(e.target.value)}
-        />
-        <input
-          className="field"
-          placeholder="Nom de l'entreprise (facultatif)"
-          value={nomEntreprise}
-          onChange={(e) => setNomEntreprise(e.target.value)}
-        />
-        <input
-          className="field"
-          placeholder="Téléphone"
-          value={telephone}
-          onChange={(e) => setTelephone(e.target.value)}
-        />
-        <input
-          className="field"
-          placeholder="Adresse *"
-          value={adresse}
-          onChange={(e) => setAdresse(e.target.value)}
-        />
+        <label className="field-label">
+          Nom et prénom *
+          <input className="field" style={{ marginTop: 6 }} value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
+        </label>
+        <label className="field-label">
+          Nom de l'entreprise (facultatif)
+          <input className="field" style={{ marginTop: 6 }} value={nomEntreprise} onChange={(e) => setNomEntreprise(e.target.value)} />
+        </label>
+        <label className="field-label">
+          Téléphone
+          <input className="field" style={{ marginTop: 6 }} value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+        </label>
+        <label className="field-label">
+          Adresse *
+          <input className="field" style={{ marginTop: 6 }} value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+        </label>
         <div className="field-row">
-          <input
-            className="field"
-            style={{ flex: "1 1 0%" }}
-            placeholder="Code postal *"
-            value={codePostal}
-            onChange={(e) => setCodePostal(e.target.value)}
-          />
-          <input
-            className="field"
-            style={{ flex: "2 1 0%" }}
-            placeholder="Ville *"
-            value={ville}
-            onChange={(e) => setVille(e.target.value)}
-          />
+          <label className="field-label" style={{ flex: "1 1 0%", marginBottom: 0 }}>
+            Code postal *
+            <input className="field" style={{ marginTop: 6 }} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+          </label>
+          <label className="field-label" style={{ flex: "2 1 0%", marginBottom: 0 }}>
+            Ville *
+            <input className="field" style={{ marginTop: 6 }} value={ville} onChange={(e) => setVille(e.target.value)} />
+          </label>
         </div>
       </div>
 
       <div className="card">
         <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 14, color: "var(--ink)" }}>Informations légales</h2>
 
-        <input className="field" placeholder="SIRET *" value={siret} onChange={(e) => setSiret(e.target.value)} />
+        <label className="field-label">
+          SIRET *
+          <input className="field" style={{ marginTop: 6 }} value={siret} onChange={(e) => setSiret(e.target.value)} />
+        </label>
 
         <label className="field-label">
           Taux de TVA (%) * — mets 0 si tu es en franchise en base de TVA (auto-entrepreneur)
           <input
             className="field"
             style={{ marginTop: 6 }}
-            placeholder="Taux de TVA (%)"
             value={tauxTva}
             onChange={(e) => setTauxTva(e.target.value)}
           />
         </label>
 
-        <input
-          className="field"
-          placeholder="N° TVA intracommunautaire (facultatif, si assujetti à la TVA)"
-          value={numeroTva}
-          onChange={(e) => setNumeroTva(e.target.value)}
-        />
-        <input
-          className="field"
-          placeholder="IBAN (pour le RIB, facultatif)"
-          value={iban}
-          onChange={(e) => setIban(e.target.value)}
-        />
-        <textarea
-          className="field"
-          placeholder="Conditions de paiement (facultatif, ex: Acompte 30% à la commande, solde à la livraison)"
-          value={conditionsPaiement}
-          onChange={(e) => setConditionsPaiement(e.target.value)}
-        />
+        <label className="field-label">
+          N° TVA intracommunautaire (facultatif, si assujetti à la TVA)
+          <input className="field" style={{ marginTop: 6 }} value={numeroTva} onChange={(e) => setNumeroTva(e.target.value)} />
+        </label>
+        <label className="field-label">
+          IBAN (pour le RIB, facultatif)
+          <input className="field" style={{ marginTop: 6 }} value={iban} onChange={(e) => setIban(e.target.value)} />
+        </label>
+        <label className="field-label">
+          Conditions de paiement (facultatif, ex: Acompte 30% à la commande, solde à la livraison)
+          <textarea
+            className="field"
+            style={{ marginTop: 6 }}
+            value={conditionsPaiement}
+            onChange={(e) => setConditionsPaiement(e.target.value)}
+          />
+        </label>
 
         <button className="btn btn-primary" onClick={enregistrer}>
           Enregistrer
