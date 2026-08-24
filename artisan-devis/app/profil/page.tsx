@@ -83,6 +83,8 @@ export default function Profil() {
             "Stripe-Version": "2026-07-29.dahlia",
           },
           body: JSON.stringify({
+            contact_email: session?.user?.email || undefined,
+            display_name: nomEntreprise || undefined,
             identity: {
               attestations: {
                 terms_of_service: {

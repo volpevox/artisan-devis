@@ -7,13 +7,9 @@ export async function POST(req: NextRequest) {
   if ("erreur" in resultat) {
     return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
   }
-  const { supabase, artisan } = resultat;
+  const { artisan } = resultat;
 
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     let stripeAccountId = artisan.stripe_account_id as string | null;
 
     if (!stripeAccountId) {
@@ -25,8 +21,6 @@ export async function POST(req: NextRequest) {
 
       const compte = await stripe.v2.core.accounts.create({
         account_token: accountToken,
-        contact_email: user?.email || undefined,
-        display_name: artisan.nom_entreprise || undefined,
         dashboard: "full",
         configuration: {
           merchant: {
