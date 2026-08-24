@@ -60,25 +60,6 @@ export default function Abonnement() {
     window.location.href = data.url;
   }
 
-  async function gererAbonnement() {
-    setEnCours(true);
-    setMessage("");
-
-    const res = await fetch("/api/portail-abonnement", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
-    const data = await res.json();
-
-    if (data.erreur) {
-      setMessage("Erreur : " + data.erreur);
-      setEnCours(false);
-      return;
-    }
-
-    window.location.href = data.url;
-  }
-
   if (chargementSession || chargement) {
     return (
       <main className="page-shell">
@@ -105,37 +86,33 @@ export default function Abonnement() {
 
       <div className="card">
         {abonnementActif ? (
-          <>
-            <span className="badge badge-success">Abonnement actif</span>
-            <p style={{ margin: "10px 0 16px" }}>Merci de ta confiance ! Ton abonnement VolpeVox est actif.</p>
-            <button className="btn-solid" onClick={gererAbonnement} disabled={enCours}>
-              Gérer mon abonnement
-            </button>
-          </>
+          <span className="badge badge-success">Abonnement actif</span>
         ) : (
-          <>
-            <span className={`badge ${essaiTermine ? "badge-warning" : "badge-neutral"}`}>
-              {essaiTermine
-                ? "Essai gratuit terminé"
-                : `Essai gratuit : ${joursRestants} jour${joursRestants > 1 ? "s" : ""} restant${joursRestants > 1 ? "s" : ""}`}
-            </span>
+          <span className={`badge ${essaiTermine ? "badge-warning" : "badge-neutral"}`}>
+            {essaiTermine
+              ? "Essai gratuit terminé"
+              : `Essai gratuit : ${joursRestants} jour${joursRestants > 1 ? "s" : ""} restant${joursRestants > 1 ? "s" : ""}`}
+          </span>
+        )}
 
-            <p className="doc-card-total" style={{ marginTop: 14 }}>
-              79 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois</span>
-            </p>
+        <p className="doc-card-total" style={{ marginTop: 14 }}>
+          79 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois</span>
+        </p>
 
-            <p className="hint" style={{ margin: "2px 0 12px" }}>Sans engagement, résiliable à tout moment.</p>
+        <p className="hint" style={{ margin: "2px 0 12px" }}>Sans engagement, résiliable à tout moment.</p>
 
-            <ul style={{ margin: "0 0 18px", paddingLeft: 18, color: "var(--text)", fontSize: 13.5, lineHeight: 1.75 }}>
-              {FONCTIONNALITES.map((f) => (
-                <li key={f}>{f}</li>
-              ))}
-            </ul>
+        <ul style={{ margin: "0 0 18px", paddingLeft: 18, color: "var(--text)", fontSize: 13.5, lineHeight: 1.75 }}>
+          {FONCTIONNALITES.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
 
-            <button className="btn-solid" onClick={sAbonner} disabled={enCours}>
-              S&apos;abonner maintenant
-            </button>
-          </>
+        {abonnementActif ? (
+          <p style={{ margin: 0, color: "var(--success)", fontWeight: 600 }}>✓ Merci de ta confiance !</p>
+        ) : (
+          <button className="btn-solid" onClick={sAbonner} disabled={enCours}>
+            S&apos;abonner maintenant
+          </button>
         )}
 
         {message && <p className="message">{message}</p>}
@@ -144,7 +121,7 @@ export default function Abonnement() {
       <div className="card">
         <span style={{ fontWeight: 600, color: "var(--text)" }}>Besoin d'aide ?</span>
         <p className="hint" style={{ margin: "6px 0 12px" }}>
-          Une question, un bug, une suggestion ? Écris-moi directement, je réponds rapidement.
+          Une question sur l'outil, ton abonnement, un bug ? Écris-moi directement, je réponds rapidement.
         </p>
         <a className="btn-ghost" href={lienWhatsapp} target="_blank" rel="noreferrer">
           Contacter le support (WhatsApp)
