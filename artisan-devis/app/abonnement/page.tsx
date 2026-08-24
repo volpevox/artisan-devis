@@ -4,6 +4,16 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 
+const NUMERO_WHATSAPP_SUPPORT = "33766213674";
+
+const FONCTIONNALITES = [
+  "Devis et factures dictés à la voix",
+  "Signature électronique des devis, directement sur le téléphone du client",
+  "Relances automatiques (devis en attente, factures impayées)",
+  "Paiement en ligne des factures, sans commission VolpeVox",
+  "Carnet de prix qui apprend de tes devis précédents",
+];
+
 export default function Abonnement() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [essaiExpireLe, setEssaiExpireLe] = useState<string | null>(null);
@@ -83,6 +93,10 @@ export default function Abonnement() {
     ? Math.max(0, Math.ceil((new Date(essaiExpireLe).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 
+  const lienWhatsapp = `https://wa.me/${NUMERO_WHATSAPP_SUPPORT}?text=${encodeURIComponent(
+    "Bonjour, j'ai besoin d'aide avec VolpeVox :"
+  )}`;
+
   return (
     <main className="page-shell">
       <Topbar />
@@ -92,33 +106,49 @@ export default function Abonnement() {
       <div className="card">
         {abonnementActif ? (
           <>
-            <p>Ton abonnement VolpeVox est actif. Merci !</p>
-            <button className="btn btn-primary" onClick={gererAbonnement} disabled={enCours}>
+            <span className="badge badge-success">Abonnement actif</span>
+            <p style={{ margin: "10px 0 16px" }}>Merci de ta confiance ! Ton abonnement VolpeVox est actif.</p>
+            <button className="btn-solid" onClick={gererAbonnement} disabled={enCours}>
               Gérer mon abonnement
             </button>
           </>
         ) : (
           <>
-            {essaiTermine ? (
-              <p className="hint">Ton essai gratuit de 14 jours est terminé.</p>
-            ) : (
-              <p className="hint">
-                Il te reste {joursRestants} jour{joursRestants > 1 ? "s" : ""} d&apos;essai gratuit.
-              </p>
-            )}
+            <span className={`badge ${essaiTermine ? "badge-warning" : "badge-neutral"}`}>
+              {essaiTermine
+                ? "Essai gratuit terminé"
+                : `Essai gratuit : ${joursRestants} jour${joursRestants > 1 ? "s" : ""} restant${joursRestants > 1 ? "s" : ""}`}
+            </span>
 
-            <p style={{ fontSize: 22, fontWeight: 700, margin: "12px 0" }}>79€ / mois</p>
-            <p className="hint" style={{ marginBottom: 16 }}>
-              Devis et factures dictés à la voix, signature électronique, relances automatiques.
+            <p className="doc-card-total" style={{ marginTop: 14 }}>
+              79 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois</span>
             </p>
 
-            <button className="btn btn-primary" onClick={sAbonner} disabled={enCours}>
+            <p className="hint" style={{ margin: "2px 0 12px" }}>Sans engagement, résiliable à tout moment.</p>
+
+            <ul style={{ margin: "0 0 18px", paddingLeft: 18, color: "var(--text)", fontSize: 13.5, lineHeight: 1.75 }}>
+              {FONCTIONNALITES.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+
+            <button className="btn-solid" onClick={sAbonner} disabled={enCours}>
               S&apos;abonner maintenant
             </button>
           </>
         )}
 
         {message && <p className="message">{message}</p>}
+      </div>
+
+      <div className="card">
+        <span style={{ fontWeight: 600, color: "var(--text)" }}>Besoin d'aide ?</span>
+        <p className="hint" style={{ margin: "6px 0 12px" }}>
+          Une question, un bug, une suggestion ? Écris-moi directement, je réponds rapidement.
+        </p>
+        <a className="btn-ghost" href={lienWhatsapp} target="_blank" rel="noreferrer">
+          Contacter le support (WhatsApp)
+        </a>
       </div>
     </main>
   );
