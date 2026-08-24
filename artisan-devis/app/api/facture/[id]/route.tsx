@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif);
 
     const { error: erreurResend } = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "VolpeVox <devis@volpevox.fr>",
       to: devis.client_email,
       subject: `Votre facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} - ${devis.client_nom || ""}`,
       html: emailHtml({

@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     const descriptionEmail = (lignes || []).map((l: any) => l.description).filter(Boolean).join(", ");
 
     const { error: erreurResend } = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "VolpeVox <devis@volpevox.fr>",
       to: clientEmail,
       subject: `Votre devis${devisRow?.numero_devis ? ` n°${devisRow.numero_devis}` : ""} - ${clientNom}`,
       html: emailHtml({

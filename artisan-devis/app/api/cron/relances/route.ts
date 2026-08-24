@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
 
 async function envoyerRelanceDevis(devis: any, origin: string) {
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "VolpeVox <devis@volpevox.fr>",
     to: devis.client_email,
     subject: `Rappel : votre devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} en attente de signature`,
     html: emailHtml({
@@ -91,7 +91,7 @@ async function envoyerRelanceDevis(devis: any, origin: string) {
 
 async function envoyerRelanceFacture(facture: any, origin: string) {
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "VolpeVox <devis@volpevox.fr>",
     to: facture.client_email,
     subject: `Rappel : facture${facture.numero_facture ? ` n°${facture.numero_facture}` : ""} en attente de paiement`,
     html: emailHtml({

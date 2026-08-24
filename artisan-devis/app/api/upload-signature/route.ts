@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
         if (emailArtisan) {
           await resend.emails.send({
-            from: "onboarding@resend.dev",
+            from: "VolpeVox <devis@volpevox.fr>",
             to: emailArtisan,
             subject: `${devisSigne.client_nom || "Un client"} a signé son devis${devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : ""} !`,
             html: emailHtml({
