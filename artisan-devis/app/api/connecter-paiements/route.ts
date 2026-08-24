@@ -19,12 +19,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ erreur: "Jeton de compte Stripe manquant" }, { status: 400 });
       }
 
+      // Le pays doit etre etabli seul avant tout autre reglage (configuration,
+      // devise...), sinon l'API Stripe refuse ces champs dans le meme appel.
       const compte = await stripe.v2.core.accounts.create({
         account_token: accountToken,
         dashboard: "full",
         identity: {
           country: "fr",
         },
+      });
+      stripeAccountId = compte.id;
+
+      await stripe.v2.core.accounts.update(stripeAccountId, {
         configuration: {
           merchant: {
             capabilities: {
@@ -33,17 +39,13 @@ export async function POST(req: NextRequest) {
           },
         },
         defaults: {
+          currency: "eur",
           responsibilities: {
             fees_collector: "stripe",
             losses_collector: "stripe",
           },
           locales: ["fr-FR"],
         },
-      });
-      stripeAccountId = compte.id;
-
-      await stripe.v2.core.accounts.update(stripeAccountId, {
-        defaults: { currency: "eur" },
       });
 
       const supabaseAdmin = createAdminSupabase();
