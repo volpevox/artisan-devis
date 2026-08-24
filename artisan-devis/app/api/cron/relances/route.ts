@@ -36,11 +36,11 @@ export async function GET(req: NextRequest) {
     const joursEcoules = (maintenant - new Date(devis.envoye_le).getTime()) / UN_JOUR_MS;
 
     if (joursEcoules >= 7 && !devis.relance_j7_envoyee_le) {
-      await envoyerRelanceDevis(devis, origin);
+      await envoyerRelanceDevis(devis, origin, supabase);
       await supabase.from("devis").update({ relance_j7_envoyee_le: new Date().toISOString() }).eq("id", devis.id);
       relancesEnvoyees++;
     } else if (joursEcoules >= 3 && !devis.relance_j3_envoyee_le) {
-      await envoyerRelanceDevis(devis, origin);
+      await envoyerRelanceDevis(devis, origin, supabase);
       await supabase.from("devis").update({ relance_j3_envoyee_le: new Date().toISOString() }).eq("id", devis.id);
       relancesEnvoyees++;
     }
@@ -59,11 +59,11 @@ export async function GET(req: NextRequest) {
     const joursEcoules = (maintenant - new Date(facture.facture_envoyee_le).getTime()) / UN_JOUR_MS;
 
     if (joursEcoules >= 7 && !facture.relance_j7_envoyee_le) {
-      await envoyerRelanceFacture(facture, origin);
+      await envoyerRelanceFacture(facture, origin, supabase);
       await supabase.from("devis").update({ relance_j7_envoyee_le: new Date().toISOString() }).eq("id", facture.id);
       relancesEnvoyees++;
     } else if (joursEcoules >= 3 && !facture.relance_j3_envoyee_le) {
-      await envoyerRelanceFacture(facture, origin);
+      await envoyerRelanceFacture(facture, origin, supabase);
       await supabase.from("devis").update({ relance_j3_envoyee_le: new Date().toISOString() }).eq("id", facture.id);
       relancesEnvoyees++;
     }
@@ -72,16 +72,40 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ succes: true, relancesEnvoyees });
 }
 
-async function envoyerRelanceDevis(devis: any, origin: string) {
+// Recupere le logo, le nom d'entreprise et l'email de connexion de
+// l'artisan, pour personnaliser la relance et faire arriver les reponses
+// du client chez lui plutot que dans une boite VolpeVox non surveillee.
+async function recupererArtisan(supabase: ReturnType<typeof createAdminSupabase>, artisanId: string) {
+  const { data: profil } = await supabase
+    .from("artisans")
+    .select("user_id, nom_entreprise, logo_url")
+    .eq("id", artisanId)
+    .maybeSingle();
+
+  let email: string | undefined;
+  if (profil?.user_id) {
+    const { data: userData } = await supabase.auth.admin.getUserById(profil.user_id);
+    email = userData?.user?.email;
+  }
+
+  return { logoUrl: profil?.logo_url, nomEntreprise: profil?.nom_entreprise, email };
+}
+
+async function envoyerRelanceDevis(devis: any, origin: string, supabase: ReturnType<typeof createAdminSupabase>) {
+  const artisan = await recupererArtisan(supabase, devis.artisan_id);
+
   await resend.emails.send({
     from: "VolpeVox <devis@volpevox.fr>",
+    replyTo: artisan.email || undefined,
     to: devis.client_email,
     subject: `Rappel : votre devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} en attente de signature`,
     html: emailHtml({
       titre: "Votre devis est toujours en attente",
+      logoUrl: artisan.logoUrl,
+      nomEntreprise: artisan.nomEntreprise,
       corpsHtml: `
         <p>Bonjour${devis.client_nom ? ` ${devis.client_nom}` : ""},</p>
-        <p>Nous vous rappelons que votre devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} n'a pas encore été signé. N'hésitez pas à le consulter et le valider en ligne.</p>
+        <p>Petit rappel : votre devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} est toujours en attente de signature. Prenez quelques minutes pour le consulter et le valider en ligne quand vous voulez.</p>
       `,
       boutonUrl: `${origin}/signer/${devis.id}`,
       boutonTexte: "Consulter et signer le devis",
@@ -89,16 +113,21 @@ async function envoyerRelanceDevis(devis: any, origin: string) {
   });
 }
 
-async function envoyerRelanceFacture(facture: any, origin: string) {
+async function envoyerRelanceFacture(facture: any, origin: string, supabase: ReturnType<typeof createAdminSupabase>) {
+  const artisan = await recupererArtisan(supabase, facture.artisan_id);
+
   await resend.emails.send({
     from: "VolpeVox <devis@volpevox.fr>",
+    replyTo: artisan.email || undefined,
     to: facture.client_email,
     subject: `Rappel : facture${facture.numero_facture ? ` n°${facture.numero_facture}` : ""} en attente de paiement`,
     html: emailHtml({
       titre: "Facture en attente de règlement",
+      logoUrl: artisan.logoUrl,
+      nomEntreprise: artisan.nomEntreprise,
       corpsHtml: `
         <p>Bonjour${facture.client_nom ? ` ${facture.client_nom}` : ""},</p>
-        <p>Nous vous rappelons que votre facture${facture.numero_facture ? ` n°${facture.numero_facture}` : ""} d'un montant de ${facture.total} € HT reste en attente de règlement.</p>
+        <p>Petit rappel : votre facture${facture.numero_facture ? ` n°${facture.numero_facture}` : ""} d'un montant de ${facture.total} € HT est toujours en attente de règlement. N'hésitez pas à nous contacter si besoin.</p>
       `,
       boutonUrl: `${origin}/api/devis-pdf/${facture.id}`,
       boutonTexte: "Voir la facture",

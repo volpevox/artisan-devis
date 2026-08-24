@@ -52,5 +52,5 @@ export async function getArtisanConnecte(authHeader: string | null) {
     return { erreur: "Profil artisan introuvable", statut: 404 } as const;
   }
 
-  return { supabase, artisan } as const;
+  return { supabase, artisan, email: user.email } as const;
 }

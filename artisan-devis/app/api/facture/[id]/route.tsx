@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if ("erreur" in resultat) {
     return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
   }
-  const { artisan } = resultat;
+  const { artisan, email: emailArtisan } = resultat;
 
   const supabase = createAdminSupabase();
   const { data: devis } = await supabase.from("devis").select("*").eq("id", params.id).maybeSingle();
@@ -89,19 +89,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const { error: erreurResend } = await resend.emails.send({
       from: "VolpeVox <devis@volpevox.fr>",
+      replyTo: emailArtisan || undefined,
       to: devis.client_email,
       subject: `Votre facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} - ${devis.client_nom || ""}`,
       html: emailHtml({
         titre: `Facture pour ${devis.client_nom || ""}`,
+        logoUrl: profil?.logo_url,
+        nomEntreprise: profil?.nom_entreprise,
         corpsHtml: `
-          <p style="margin:0 0 16px;"><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
-          <p style="margin:0 0 4px;">Vous trouverez la facture détaillée en pièce jointe.</p>
+          <p style="margin:0 0 12px;">Bonjour${devis.client_nom ? ` ${devis.client_nom}` : ""},</p>
+          <p style="margin:0 0 12px;">Voici votre facture, en pièce jointe.</p>
+          <p style="margin:0 0 20px;">Total : <strong>${totalTTC.toFixed(2)} € TTC</strong></p>
           ${
             paiementEnLigneActif
-              ? `<p style="margin:12px 0 0;"><a href="${lienSuivi}">Télécharger la facture</a></p>`
+              ? `<p style="margin:0 0 12px;">Vous pouvez régler en ligne directement, en toute sécurité, ci-dessous.</p>`
               : ""
           }
-          <p style="margin:12px 0 0;">Merci pour votre confiance.</p>
+          <p style="margin:0;">Merci pour votre confiance, et à bientôt !</p>
         `,
         boutonUrl: paiementEnLigneActif ? lienSuivi : `${req.nextUrl.origin}/api/devis-pdf/${params.id}`,
         boutonTexte: paiementEnLigneActif ? "Payer en ligne" : "Télécharger la facture",

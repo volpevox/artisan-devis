@@ -60,15 +60,20 @@ export async function POST(req: NextRequest) {
 
     const { error: erreurResend } = await resend.emails.send({
       from: "VolpeVox <devis@volpevox.fr>",
+      replyTo: resultat.email || undefined,
       to: clientEmail,
       subject: `Votre devis${devisRow?.numero_devis ? ` n°${devisRow.numero_devis}` : ""} - ${clientNom}`,
       html: emailHtml({
         titre: `Devis pour ${clientNom}`,
+        logoUrl: profil?.logo_url,
+        nomEntreprise: profil?.nom_entreprise,
         corpsHtml: `
-          <p style="margin:0 0 8px;"><strong>Description :</strong> ${descriptionEmail}</p>
-          <p style="margin:0 0 16px;"><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
-          <p style="margin:0 0 4px;">Vous trouverez le devis détaillé en pièce jointe.</p>
-          <p style="margin:0;">N'hésitez pas à nous contacter pour toute question.</p>
+          <p style="margin:0 0 12px;">Bonjour${clientNom ? ` ${clientNom}` : ""},</p>
+          <p style="margin:0 0 12px;">Voici votre devis, avec tous les détails dans le PDF joint.</p>
+          <p style="margin:0 0 4px;">${descriptionEmail}</p>
+          <p style="margin:0 0 20px;">Total : <strong>${totalTTC.toFixed(2)} € TTC</strong></p>
+          <p style="margin:0 0 12px;">Vous pouvez le signer directement en ligne en un clic, ci-dessous.</p>
+          <p style="margin:0;">Une question ? N'hésitez pas à répondre directement à cet email.</p>
         `,
         boutonUrl: lienSignature,
         boutonTexte: "Signer ce devis en ligne",
