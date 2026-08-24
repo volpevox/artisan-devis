@@ -478,35 +478,6 @@ textarea {
   }
 }
 
-.mic-sweep {
-  position: absolute;
-  inset: -16px;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 305deg,
-    rgba(94, 234, 212, 0.85) 335deg,
-    rgba(212, 175, 55, 0.9) 355deg,
-    transparent 360deg
-  );
-  filter: blur(3px);
-}
-
-.mic-sweep.active {
-  opacity: 1;
-  animation: mic-sweep-rotate 2.4s linear infinite;
-}
-
-@keyframes mic-sweep-rotate {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .mic-label {
   font-size: 13.5px;
   font-weight: 600;

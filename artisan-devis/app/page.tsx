@@ -306,7 +306,7 @@ export default function Home() {
     );
   }
 
-  const iconeMicro = <img src="/mic-icon-v5.png" alt="" aria-hidden="true" />;
+  const iconeMicro = <img src="/mic-icon-v6.png" alt="" aria-hidden="true" />;
 
   if (etape === "voice") {
     return (
@@ -328,7 +328,6 @@ export default function Home() {
               aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
             >
               {iconeMicro}
-              <span className={`mic-sweep${enregistrement ? " active" : ""}`} aria-hidden="true" />
             </button>
           </div>
 
@@ -373,7 +372,6 @@ export default function Home() {
             aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
           >
             {iconeMicro}
-            <span className={`mic-sweep${enregistrement ? " active" : ""}`} aria-hidden="true" />
           </button>
           <span className="mic-label">{enregistrement ? "Arrêter" : "Redicter la prestation"}</span>
         </div>
