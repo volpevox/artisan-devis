@@ -414,8 +414,9 @@ textarea {
 
 .mic-button img,
 .mic-button svg {
-  width: 100%;
-  height: 100%;
+  width: 108%;
+  height: 108%;
+  max-width: none;
   object-fit: contain;
 }
 
