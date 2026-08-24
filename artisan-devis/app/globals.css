@@ -396,7 +396,7 @@ textarea {
 }
 
 .mic-wrap--hero {
-  gap: 26px;
+  gap: 18px;
 }
 
 .mic-button {
@@ -501,8 +501,8 @@ textarea {
   justify-content: center;
   text-align: center;
   min-height: calc(100svh - 160px);
-  padding-bottom: 60px;
-  gap: 18px;
+  padding-bottom: 44px;
+  gap: 12px;
 }
 
 .voice-greeting {
@@ -516,12 +516,12 @@ textarea {
 .voice-sub {
   font-size: 14.5px;
   color: var(--muted);
-  margin: 0 0 44px;
+  margin: 0 0 30px;
 }
 
 .mic-button--hero {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
 }
 
 .voice-wave {
@@ -530,8 +530,8 @@ textarea {
   justify-content: space-between;
   gap: 3px;
   width: 100%;
-  height: 40px;
-  margin-top: 36px;
+  height: 36px;
+  margin-top: 22px;
 }
 
 .voice-wave span {
@@ -565,6 +565,7 @@ textarea {
   left: 50%;
   bottom: 8px;
   transform: translateX(-50%);
+  white-space: nowrap;
   background: none;
   border: none;
   color: var(--muted);
