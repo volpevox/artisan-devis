@@ -1,12 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { loadStripe } from "@stripe/stripe-js";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function Profil() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
@@ -73,26 +70,36 @@ export default function Profil() {
       let accountToken: string | undefined;
 
       if (!stripeAccountId) {
-        const stripeJs = await stripePromise;
-        if (!stripeJs) {
-          setMessage("Erreur : impossible de charger Stripe");
-          setEnCoursStripe(false);
-          return;
-        }
-
         // Obligatoire pour les plateformes basees en France (conformite DSP2) :
-        // Stripe exige un jeton de compte cree cote navigateur avant toute
-        // creation de compte connecte avec configuration marchand.
-        const { token, error } = await stripeJs.createToken("account", {
-          tos_shown_and_accepted: true,
+        // Stripe exige un jeton de compte v2 cree cote navigateur (avec la cle
+        // publique) avant toute creation de compte connecte avec configuration
+        // marchand. Ce jeton ne contient que l'acceptation des conditions,
+        // le reste des informations est collecte par Stripe lors de l'inscription.
+        const resToken = await fetch("https://api.stripe.com/v2/core/account_tokens", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}`,
+            "Content-Type": "application/json",
+            "Stripe-Version": "2026-07-29.dahlia",
+          },
+          body: JSON.stringify({
+            identity: {
+              attestations: {
+                terms_of_service: {
+                  account: { shown_and_accepted: true },
+                },
+              },
+            },
+          }),
         });
+        const dataToken = await resToken.json();
 
-        if (error || !token) {
-          setMessage("Erreur : " + (error?.message || "création du jeton Stripe impossible"));
+        if (!resToken.ok) {
+          setMessage("Erreur : " + (dataToken.error?.message || "création du jeton Stripe impossible"));
           setEnCoursStripe(false);
           return;
         }
-        accountToken = token.id;
+        accountToken = dataToken.id;
       }
 
       const res = await fetch("/api/connecter-paiements", {
