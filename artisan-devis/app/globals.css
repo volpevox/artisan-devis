@@ -396,6 +396,8 @@ textarea {
   height: 120px;
   border-radius: 50%;
   border: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   background: transparent;
   display: flex;
@@ -403,6 +405,11 @@ textarea {
   justify-content: center;
   box-shadow: 0 10px 26px -6px rgba(212, 175, 55, 0.55);
   transition: transform 0.15s ease;
+}
+
+.mic-button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
 }
 
 .mic-button img,
