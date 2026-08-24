@@ -76,6 +76,7 @@ canvas {
   letter-spacing: 0.2px;
   text-decoration: none;
   line-height: 1;
+  margin-left: -56px;
 }
 
 .topbar-logo {
