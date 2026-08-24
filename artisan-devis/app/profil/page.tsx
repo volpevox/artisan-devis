@@ -346,7 +346,7 @@ export default function Profil() {
           <input className="field" style={{ marginTop: 6 }} value={numeroTva} onChange={(e) => setNumeroTva(e.target.value)} />
         </label>
         <label className="field-label">
-          IBAN (pour le RIB, facultatif)
+          IBAN (pour paiement, facultatif)
           <input className="field" style={{ marginTop: 6 }} value={iban} onChange={(e) => setIban(e.target.value)} />
         </label>
         <label className="field-label">
