@@ -28,6 +28,10 @@ const roboto = Roboto({
 export const metadata = {
   title: "VolpeVox",
   description: "Créez vos devis en dictant, en quelques secondes",
+  appleWebApp: {
+    title: "VolpeVox",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 // maximumScale/userScalable a 1/false desactivent le zoom au pincement :
@@ -39,6 +43,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#0d1b2a",
 };
 
 export default function RootLayout({
