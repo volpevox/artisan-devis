@@ -315,7 +315,7 @@ export default function Home() {
 
         <div className="voice-screen">
           <p className="voice-greeting">Bonjour{nomEntreprise ? ` ${nomEntreprise}` : ""} !</p>
-          <p className="voice-sub">Que souhaitez-vous créer aujourd'hui ?</p>
+          <p className="voice-sub">Qu'est-ce que je peux faire pour toi ?</p>
 
           <div className="mic-wrap mic-wrap--hero">
             <span className="mic-label">
