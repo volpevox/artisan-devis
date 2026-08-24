@@ -328,6 +328,7 @@ export default function Home() {
               aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
             >
               {iconeMicro}
+              <span className={`mic-sweep${enregistrement ? " active" : ""}`} aria-hidden="true" />
             </button>
           </div>
 
@@ -372,6 +373,7 @@ export default function Home() {
             aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
           >
             {iconeMicro}
+            <span className={`mic-sweep${enregistrement ? " active" : ""}`} aria-hidden="true" />
           </button>
           <span className="mic-label">{enregistrement ? "Arrêter" : "Redicter la prestation"}</span>
         </div>
