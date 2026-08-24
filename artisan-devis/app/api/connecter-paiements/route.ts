@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
           },
         },
         defaults: {
-          currency: "eur",
           responsibilities: {
             fees_collector: "stripe",
             losses_collector: "stripe",
@@ -42,6 +41,10 @@ export async function POST(req: NextRequest) {
         },
       });
       stripeAccountId = compte.id;
+
+      await stripe.v2.core.accounts.update(stripeAccountId, {
+        defaults: { currency: "eur" },
+      });
 
       const supabaseAdmin = createAdminSupabase();
       await supabaseAdmin.from("artisans").update({ stripe_account_id: stripeAccountId }).eq("id", artisan.id);
