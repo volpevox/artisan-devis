@@ -60,8 +60,8 @@ canvas {
   display: grid;
   grid-template-columns: 36px 1fr 36px;
   align-items: center;
-  padding: 14px 0 20px;
-  margin-bottom: 20px;
+  padding: 14px 20px 20px;
+  margin: 0 calc(50% - 50vw) 20px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -79,8 +79,8 @@ canvas {
 }
 
 .topbar-logo {
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
 }
 
