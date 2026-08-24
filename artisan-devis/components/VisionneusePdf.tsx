@@ -43,7 +43,14 @@ export function VisionneusePdf({ url }: { url: string }) {
         >
           {largeur > 0 &&
             Array.from({ length: nombrePages }, (_, i) => (
-              <Page key={i} pageNumber={i + 1} width={largeur} className="pdf-viewer-page" />
+              <Page
+                key={i}
+                pageNumber={i + 1}
+                width={largeur}
+                className="pdf-viewer-page"
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+              />
             ))}
         </Document>
       )}
