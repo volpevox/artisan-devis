@@ -216,17 +216,29 @@ export default function Profil() {
       <div className="tuiles-carrees">
         <Link href="/abonnement" className="tuile-carree">
           <span className="tuile-carree-titre">Mon abonnement</span>
+          <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M3 9.5h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
           <span className="hint" style={{ margin: 0 }}>Gérer mon abonnement VolpeVox</span>
         </Link>
 
         {stripePaiementActif ? (
           <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="tuile-carree">
             <span className="tuile-carree-titre">Paiement en ligne</span>
+            <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
+            </svg>
             <span style={{ color: "var(--success)", fontWeight: 600, fontSize: 13 }}>✓ Activé — voir mon espace Stripe</span>
           </a>
         ) : (
           <button type="button" className="tuile-carree" onClick={connecterPaiements} disabled={enCoursStripe}>
             <span className="tuile-carree-titre">Paiement en ligne</span>
+            <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
+            </svg>
             <span className="hint" style={{ margin: 0 }}>
               {stripeAccountId ? "Reprendre l'inscription Stripe" : "Connecter Stripe (sans commission)"}
             </span>

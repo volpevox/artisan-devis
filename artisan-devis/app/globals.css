@@ -311,6 +311,13 @@ h1.page-title {
   color: var(--text);
 }
 
+.tuile-carree-icone {
+  width: 30px;
+  height: 30px;
+  color: var(--ink);
+  align-self: center;
+}
+
 .doc-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
