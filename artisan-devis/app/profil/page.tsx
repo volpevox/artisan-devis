@@ -365,6 +365,16 @@ export default function Profil() {
 
         {message && <p className="message">{message}</p>}
       </div>
+
+      <div className="card">
+        <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 10, color: "var(--ink)" }}>Informations légales</h2>
+        <div className="liens-legaux" style={{ marginTop: 0 }}>
+          <Link href="/mentions-legales">Mentions légales</Link>
+          <Link href="/cgu">Conditions générales d'utilisation</Link>
+          <Link href="/cgv">Conditions générales de vente</Link>
+          <Link href="/confidentialite">Confidentialité &amp; cookies</Link>
+        </div>
+      </div>
     </main>
   );
 }

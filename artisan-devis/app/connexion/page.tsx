@@ -11,10 +11,17 @@ export default function Connexion() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [afficherDemarrage, setAfficherDemarrage] = useState(true);
+  const [conditionsAcceptees, setConditionsAcceptees] = useState(false);
 
   async function valider(e: FormEvent) {
     e.preventDefault();
     setMessage("");
+
+    if (mode === "inscription" && !conditionsAcceptees) {
+      setMessage("Merci d'accepter les conditions d'utilisation et la politique de confidentialité pour continuer.");
+      return;
+    }
+
     setChargement(true);
 
     if (mode === "oubli") {
@@ -107,6 +114,32 @@ export default function Connexion() {
               value={motDePasse}
               onChange={(e) => setMotDePasse(e.target.value)}
             />
+          )}
+
+          {mode === "inscription" && (
+            <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)", margin: "4px 0 14px" }}>
+              <input
+                type="checkbox"
+                checked={conditionsAcceptees}
+                onChange={(e) => setConditionsAcceptees(e.target.checked)}
+                style={{ marginTop: 3 }}
+              />
+              <span>
+                J'accepte les{" "}
+                <a href="/cgu" target="_blank" rel="noreferrer" style={{ color: "var(--ink)" }}>
+                  conditions d'utilisation
+                </a>
+                , les{" "}
+                <a href="/cgv" target="_blank" rel="noreferrer" style={{ color: "var(--ink)" }}>
+                  conditions de vente
+                </a>{" "}
+                et la{" "}
+                <a href="/confidentialite" target="_blank" rel="noreferrer" style={{ color: "var(--ink)" }}>
+                  politique de confidentialité
+                </a>
+                .
+              </span>
+            </label>
           )}
 
           <button type="submit" className="btn btn-primary" disabled={chargement} style={{ width: "100%" }}>

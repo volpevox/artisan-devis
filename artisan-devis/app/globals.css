@@ -970,3 +970,42 @@ textarea {
     color: var(--ink);
   }
 }
+
+.prose-legale h2 {
+  font-size: 15px;
+  color: var(--ink);
+  margin: 20px 0 8px;
+}
+
+.prose-legale h2:first-child {
+  margin-top: 0;
+}
+
+.prose-legale p,
+.prose-legale li {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.prose-legale ul {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.prose-legale strong {
+  color: var(--ink);
+}
+
+.liens-legaux {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 16px;
+}
+
+.liens-legaux a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+}
