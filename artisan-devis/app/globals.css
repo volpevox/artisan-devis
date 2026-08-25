@@ -728,8 +728,8 @@ textarea {
 }
 
 .voice-greeting-hand {
-  font-family: var(--font-manuscrit), cursive;
-  font-weight: 400;
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: 500;
   font-size: 1.5em;
   color: var(--ink);
   margin-right: 6px;
