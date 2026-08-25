@@ -32,9 +32,16 @@ export function useArtisanSession() {
   const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
   const [artisanId, setArtisanId] = useState<string | null>(null);
+  const [profilArtisan, setProfilArtisan] = useState<any>(null);
   const [accesBloque, setAccesBloque] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Session et profil ne sont charges qu'une fois au montage (pas a chaque
+  // changement de page) : sur un reseau mobile, refaire cet aller-retour
+  // Supabase a chaque navigation ajoutait un temps de chargement visible sur
+  // toutes les pages. La verification de redirection (effet suivant) reste
+  // par contre re-executee a chaque changement de page, mais sans appel
+  // reseau.
   useEffect(() => {
     let actif = true;
 
@@ -65,28 +72,13 @@ export function useArtisanSession() {
       // Tant qu'elle n'existe pas, idArtisan reste vide et bloque reste vrai
       // -- l'artisan est simplement renvoye vers /abonnement, comme s'il
       // n'etait pas abonne (ce qui est le cas).
-      const idArtisan = profil?.id;
-      const abonnementActif = profil?.abonnement_actif;
-      const profilArtisan = profil;
-
-      // La carte bancaire est desormais obligatoire des l'inscription : sans
-      // abonnement Stripe (trialing ou actif), l'acces est bloque des le
-      // depart, plus de fenetre de grace locale basee sur essai_expire_le.
-      const bloque = !abonnementActif;
-
-      if (bloque && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
-        router.push("/abonnement");
-      } else if (!bloque && !profilComplet(profilArtisan) && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
-        // Juste apres l'inscription (et l'abonnement en place), l'artisan doit
-        // completer son profil avant d'utiliser l'outil -- une fois fait, il
-        // n'y repasse plus jamais et retrouve directement la page dictee aux
-        // connexions suivantes.
-        router.push("/profil");
-      }
-
       if (actif) {
-        setArtisanId(idArtisan || null);
-        setAccesBloque(bloque);
+        setArtisanId(profil?.id || null);
+        setProfilArtisan(profil || null);
+        // La carte bancaire est desormais obligatoire des l'inscription :
+        // sans abonnement Stripe (trialing ou actif), l'acces est bloque des
+        // le depart, plus de fenetre de grace locale basee sur essai_expire_le.
+        setAccesBloque(!profil?.abonnement_actif);
         setLoading(false);
       }
     }
@@ -123,7 +115,24 @@ export function useArtisanSession() {
       subscription.unsubscribe();
       document.removeEventListener("visibilitychange", surRetourAuPremierPlan);
     };
-  }, [router, pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
+
+  // Verification de redirection a chaque changement de page, a partir des
+  // donnees deja chargees ci-dessus -- aucun nouvel appel reseau ici.
+  useEffect(() => {
+    if (loading) return;
+
+    if (accesBloque && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
+      router.push("/abonnement");
+    } else if (!accesBloque && !profilComplet(profilArtisan) && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
+      // Juste apres l'inscription (et l'abonnement en place), l'artisan doit
+      // completer son profil avant d'utiliser l'outil -- une fois fait, il
+      // n'y repasse plus jamais et retrouve directement la page dictee aux
+      // connexions suivantes.
+      router.push("/profil");
+    }
+  }, [pathname, loading, accesBloque, profilArtisan, router]);
 
   return { session, artisanId, loading, accesBloque };
 }
