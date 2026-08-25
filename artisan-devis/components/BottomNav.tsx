@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useDevisSignesNonVus } from "@/lib/useDevisSignesNonVus";
+import { useFacturesNonEnvoyees } from "@/lib/useFacturesNonEnvoyees";
 
 // Pages ou le menu du bas doit apparaitre -- volontairement une liste
 // explicite plutot qu'une exclusion, pour ne jamais l'afficher par erreur
@@ -14,6 +15,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const [artisanId, setArtisanId] = useState<string | null>(null);
   const devisSignesNonVus = useDevisSignesNonVus(artisanId);
+  const facturesNonEnvoyees = useFacturesNonEnvoyees(artisanId);
   const afficher = PAGES_AVEC_MENU.includes(pathname);
 
   // Lecture directe de la session, sans la logique de redirection de
@@ -64,7 +66,7 @@ export function BottomNav() {
         <span>Devis</span>
         {devisSignesNonVus > 0 && <span className="badge-point badge-point--nav" />}
       </Link>
-      <Link href="/factures" className={`bottom-nav-item${pathname === "/factures" ? " active" : ""}`}>
+      <Link href="/factures" className={`bottom-nav-item${pathname === "/factures" ? " active" : ""}`} style={{ position: "relative" }}>
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path
             d="M7 3h10a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-3-2V4a1 1 0 0 1 1-1Z"
@@ -76,6 +78,7 @@ export function BottomNav() {
           <path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         <span>Factures</span>
+        {facturesNonEnvoyees > 0 && <span className="badge-point badge-point--nav" />}
       </Link>
       <Link href="/profil" className={`bottom-nav-item${pathname === "/profil" ? " active" : ""}`}>
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
