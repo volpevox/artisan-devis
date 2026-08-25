@@ -4,9 +4,28 @@ import { useRouter, usePathname } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
-// L'artisan garde acces a son profil (pour gerer/reactiver son abonnement) et
-// a la page d'abonnement elle-meme meme si l'acces au reste est bloque.
+// L'artisan garde acces a son profil (pour gerer/reactiver son abonnement,
+// ou completer les informations obligatoires) et a la page d'abonnement
+// elle-meme meme si l'acces au reste est bloque.
 const PAGES_TOUJOURS_ACCESSIBLES = ["/profil", "/abonnement"];
+
+// Les memes champs que la validation de app/profil/page.tsx : tant qu'ils ne
+// sont pas tous remplis, l'artisan ne doit pas pouvoir utiliser l'outil (les
+// devis/factures generes seraient incomplets). taux_tva peut valoir 0
+// (franchise en base) -- on verifie donc juste qu'il est renseigne, pas
+// qu'il est "truthy".
+export function profilComplet(profil: any) {
+  return Boolean(
+    profil?.nom_complet?.trim() &&
+      profil?.telephone?.trim() &&
+      profil?.adresse?.trim() &&
+      profil?.code_postal?.trim() &&
+      profil?.ville?.trim() &&
+      profil?.siret?.trim() &&
+      profil?.taux_tva !== null &&
+      profil?.taux_tva !== undefined
+  );
+}
 
 export function useArtisanSession() {
   const router = useRouter();
@@ -36,21 +55,23 @@ export function useArtisanSession() {
 
       const { data: profil } = await supabase
         .from("artisans")
-        .select("id, abonnement_actif")
+        .select("id, abonnement_actif, nom_complet, telephone, adresse, code_postal, ville, siret, taux_tva")
         .eq("user_id", sessionActuelle.user.id)
         .maybeSingle();
 
       let idArtisan = profil?.id;
       let abonnementActif = profil?.abonnement_actif;
+      let profilArtisan = profil;
 
       if (!idArtisan) {
         const { data: nouveauProfil } = await supabase
           .from("artisans")
           .insert({ user_id: sessionActuelle.user.id })
-          .select("id, abonnement_actif")
+          .select("id, abonnement_actif, nom_complet, telephone, adresse, code_postal, ville, siret, taux_tva")
           .single();
         idArtisan = nouveauProfil?.id;
         abonnementActif = nouveauProfil?.abonnement_actif;
+        profilArtisan = nouveauProfil;
       }
 
       // La carte bancaire est desormais obligatoire des l'inscription : sans
@@ -60,6 +81,12 @@ export function useArtisanSession() {
 
       if (bloque && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
         router.push("/abonnement");
+      } else if (!bloque && !profilComplet(profilArtisan) && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
+        // Juste apres l'inscription (et l'abonnement en place), l'artisan doit
+        // completer son profil avant d'utiliser l'outil -- une fois fait, il
+        // n'y repasse plus jamais et retrouve directement la page dictee aux
+        // connexions suivantes.
+        router.push("/profil");
       }
 
       if (actif) {

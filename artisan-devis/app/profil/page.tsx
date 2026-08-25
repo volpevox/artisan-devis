@@ -1,11 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
-import { useArtisanSession } from "@/lib/useArtisan";
+import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 
 export default function Profil() {
+  const router = useRouter();
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
+  const [etaitIncomplet, setEtaitIncomplet] = useState(false);
   const [nomComplet, setNomComplet] = useState("");
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
@@ -29,6 +32,7 @@ export default function Profil() {
     async function charger() {
       const { data } = await supabase.from("artisans").select("*").eq("id", artisanId).maybeSingle();
       if (data) {
+        setEtaitIncomplet(!profilComplet(data));
         setNomComplet(data.nom_complet || "");
         setNomEntreprise(data.nom_entreprise || "");
         setTelephone(data.telephone || "");
@@ -109,6 +113,16 @@ export default function Profil() {
     const { error } = await supabase.from("artisans").update(infos).eq("id", artisanId);
     if (error) {
       setMessage("Erreur : " + error.message);
+      return;
+    }
+
+    // Si l'artisan arrivait ici avec un profil incomplet (juste apres
+    // l'inscription, voir useArtisanSession), le profil est maintenant
+    // complet : on l'envoie directement vers la page dictee plutot que de le
+    // laisser sur ce formulaire. Une simple mise a jour ulterieure (logo,
+    // SIRET...) reste sur place avec le message de confirmation habituel.
+    if (etaitIncomplet) {
+      router.push("/");
       return;
     }
 
