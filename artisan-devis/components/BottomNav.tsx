@@ -8,7 +8,7 @@ import { useDevisSignesNonVus } from "@/lib/useDevisSignesNonVus";
 // Pages ou le menu du bas doit apparaitre -- volontairement une liste
 // explicite plutot qu'une exclusion, pour ne jamais l'afficher par erreur
 // sur une page publique (ex: /signer/[id], accessible sans compte).
-const PAGES_AVEC_MENU = ["/", "/devis", "/factures", "/profil", "/abonnement", "/abonnement/succes"];
+const PAGES_AVEC_MENU = ["/", "/devis", "/factures", "/profil", "/abonnement", "/abonnement/succes", "/parametres"];
 
 export function BottomNav() {
   const pathname = usePathname();

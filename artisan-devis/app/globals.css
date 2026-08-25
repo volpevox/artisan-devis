@@ -185,7 +185,8 @@ canvas {
   padding: 4px 6px;
 }
 
-.topbar-logout {
+.topbar-logout,
+.topbar-parametres {
   display: none;
   background: none;
   border: none;
@@ -194,7 +195,8 @@ canvas {
   align-items: center;
 }
 
-.topbar-logout svg {
+.topbar-logout svg,
+.topbar-parametres svg {
   width: 22px;
   height: 22px;
 }
@@ -930,7 +932,8 @@ textarea {
     display: none;
   }
 
-  .topbar-logout {
+  .topbar-logout,
+  .topbar-parametres {
     display: flex;
   }
 
