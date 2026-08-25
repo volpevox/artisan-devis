@@ -24,7 +24,16 @@ export default function Abonnement() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!artisanId) return;
+    if (chargementSession) return;
+
+    // Avant tout premier abonnement, la ligne "artisans" n'existe pas encore
+    // (voir useArtisanSession) : artisanId reste vide, ce qui est le signal
+    // qu'il n'y a simplement rien a charger -- les valeurs par defaut
+    // (aucun essai, aucun abonnement) sont deja correctes pour ce cas.
+    if (!artisanId) {
+      setChargement(false);
+      return;
+    }
 
     async function charger() {
       const { data } = await supabase
@@ -41,7 +50,7 @@ export default function Abonnement() {
       setChargement(false);
     }
     charger();
-  }, [artisanId]);
+  }, [artisanId, chargementSession]);
 
   async function sAbonner() {
     setEnCours(true);

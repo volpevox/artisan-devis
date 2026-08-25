@@ -59,20 +59,15 @@ export function useArtisanSession() {
         .eq("user_id", sessionActuelle.user.id)
         .maybeSingle();
 
-      let idArtisan = profil?.id;
-      let abonnementActif = profil?.abonnement_actif;
-      let profilArtisan = profil;
-
-      if (!idArtisan) {
-        const { data: nouveauProfil } = await supabase
-          .from("artisans")
-          .insert({ user_id: sessionActuelle.user.id })
-          .select("id, abonnement_actif, nom_complet, telephone, adresse, code_postal, ville, siret, taux_tva")
-          .single();
-        idArtisan = nouveauProfil?.id;
-        abonnementActif = nouveauProfil?.abonnement_actif;
-        profilArtisan = nouveauProfil;
-      }
+      // Aucune ligne "artisans" n'est creee ici : elle n'existe qu'une fois
+      // l'abonnement Stripe reellement demarre (voir le webhook Stripe), pour
+      // ne pas polluer la base avec des comptes crees puis jamais abonnes.
+      // Tant qu'elle n'existe pas, idArtisan reste vide et bloque reste vrai
+      // -- l'artisan est simplement renvoye vers /abonnement, comme s'il
+      // n'etait pas abonne (ce qui est le cas).
+      const idArtisan = profil?.id;
+      const abonnementActif = profil?.abonnement_actif;
+      const profilArtisan = profil;
 
       // La carte bancaire est desormais obligatoire des l'inscription : sans
       // abonnement Stripe (trialing ou actif), l'acces est bloque des le

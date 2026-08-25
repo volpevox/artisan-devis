@@ -27,6 +27,15 @@ export default function Profil() {
   const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
+    // Sans abonnement, la ligne "artisans" n'existe pas encore (voir
+    // useArtisanSession) -- rien a afficher ici, on renvoie vers l'etape
+    // qui doit forcement venir avant : s'abonner.
+    if (!chargementSession && !artisanId) {
+      router.push("/abonnement");
+    }
+  }, [artisanId, chargementSession, router]);
+
+  useEffect(() => {
     if (!artisanId) return;
 
     async function charger() {

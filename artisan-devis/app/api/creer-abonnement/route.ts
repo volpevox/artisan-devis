@@ -1,29 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripeClient";
-import { getArtisanConnecte, createAdminSupabase } from "@/lib/supabaseServerClient";
+import { createServerSupabase } from "@/lib/supabaseServerClient";
 
 export async function POST(req: NextRequest) {
-  const resultat = await getArtisanConnecte(req.headers.get("Authorization"));
-  if ("erreur" in resultat) {
-    return NextResponse.json({ erreur: resultat.erreur }, { status: resultat.statut });
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return NextResponse.json({ erreur: "Non authentifié" }, { status: 401 });
   }
-  const { supabase, artisan } = resultat;
 
+  const supabase = createServerSupabase(authHeader);
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let stripeCustomerId = artisan.stripe_customer_id as string | null;
+  if (!user) {
+    return NextResponse.json({ erreur: "Session invalide ou expirée" }, { status: 401 });
+  }
+
+  // Pas de ligne "artisans" a ce stade pour un premier abonnement : elle
+  // n'est creee qu'une fois l'abonnement Stripe reellement demarre (voir le
+  // webhook Stripe), pour ne pas polluer la base avec des comptes crees puis
+  // jamais abonnes. Si l'artisan reactive un abonnement resilie, sa ligne
+  // existe deja -- on reutilise alors son stripe_customer_id.
+  const { data: artisanExistant } = await supabase
+    .from("artisans")
+    .select("stripe_customer_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  let stripeCustomerId = artisanExistant?.stripe_customer_id as string | null | undefined;
 
   if (!stripeCustomerId) {
     const client = await stripe.customers.create({
-      email: user?.email || undefined,
-      metadata: { artisan_id: artisan.id },
+      email: user.email || undefined,
+      metadata: { user_id: user.id },
     });
     stripeCustomerId = client.id;
-
-    const supabaseAdmin = createAdminSupabase();
-    await supabaseAdmin.from("artisans").update({ stripe_customer_id: stripeCustomerId }).eq("id", artisan.id);
   }
 
   // Offre decouverte (45€/mois les 12 premiers mois) reservee aux 20
@@ -47,7 +59,7 @@ export async function POST(req: NextRequest) {
     ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
     success_url: `${req.nextUrl.origin}/abonnement/succes`,
     cancel_url: `${req.nextUrl.origin}/abonnement`,
-    metadata: { artisan_id: artisan.id },
+    metadata: { user_id: user.id },
   });
 
   return NextResponse.json({ url: session.url });

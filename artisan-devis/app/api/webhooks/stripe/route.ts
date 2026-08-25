@@ -19,17 +19,31 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const artisanId = session.metadata?.artisan_id;
-      if (artisanId && typeof session.subscription === "string") {
+      const userId = session.metadata?.user_id;
+      if (userId && typeof session.subscription === "string" && typeof session.customer === "string") {
         const abonnement = await stripe.subscriptions.retrieve(session.subscription);
-        await supabaseAdmin
+        const infosAbonnement = {
+          abonnement_actif: true,
+          stripe_customer_id: session.customer,
+          stripe_subscription_id: session.subscription,
+          essai_expire_le: abonnement.trial_end ? new Date(abonnement.trial_end * 1000).toISOString() : null,
+        };
+
+        // La ligne "artisans" n'existe pas forcement encore : c'est ici,
+        // seulement une fois l'abonnement reellement demarre, qu'elle est
+        // creee pour un premier abonnement. Pour une reactivation, la ligne
+        // existe deja (voir /api/creer-abonnement) -- on la met a jour.
+        const { data: artisanExistant } = await supabaseAdmin
           .from("artisans")
-          .update({
-            abonnement_actif: true,
-            stripe_subscription_id: session.subscription,
-            essai_expire_le: abonnement.trial_end ? new Date(abonnement.trial_end * 1000).toISOString() : null,
-          })
-          .eq("id", artisanId);
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (artisanExistant) {
+          await supabaseAdmin.from("artisans").update(infosAbonnement).eq("id", artisanExistant.id);
+        } else {
+          await supabaseAdmin.from("artisans").insert({ user_id: userId, ...infosAbonnement });
+        }
       }
       break;
     }
