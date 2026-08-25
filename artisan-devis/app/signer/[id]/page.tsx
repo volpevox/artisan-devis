@@ -134,6 +134,11 @@ function SignerContenu() {
   }
 
   async function valider() {
+    if (!lieuSignature.trim()) {
+      setMessage("Merci d'indiquer votre ville avant de signer.");
+      return;
+    }
+
     if (!aDessineRef.current) {
       setMessage("Merci de signer avant de valider.");
       return;
@@ -285,7 +290,7 @@ function SignerContenu() {
           <>
             <input
               className="field"
-              placeholder="Votre ville (pour « Fait à ... »)"
+              placeholder="Votre ville * (pour « Fait à ... »)"
               value={lieuSignature}
               onChange={(e) => setLieuSignature(e.target.value)}
             />
