@@ -1012,3 +1012,55 @@ textarea {
   color: var(--muted);
   text-decoration: underline;
 }
+
+.notif-propose-fond {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+
+.notif-propose-feuille {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 18px 18px 0 0;
+  padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+}
+
+.notif-propose-icone {
+  width: 44px;
+  height: 44px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.notif-propose-titre {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+
+.notif-propose-texte {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.notif-propose-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notif-propose-actions .btn {
+  width: 100%;
+}

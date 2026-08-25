@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
+import { PropositionNotifications } from "@/components/PropositionNotifications";
 import { useArtisanSession } from "@/lib/useArtisan";
 
 const AMPLITUDES_ONDE = [
@@ -326,6 +327,7 @@ export default function Home() {
     return (
       <main className="page-shell">
         <Topbar />
+        <PropositionNotifications session={session} artisanId={artisanId} />
 
         <div className="voice-screen">
           <div className="voice-top">
