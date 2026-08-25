@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { useDevisRealtime } from "@/lib/useDevisRealtime";
 import { CarteDocument } from "@/components/CarteDocument";
 
 export default function MesFactures() {
@@ -12,20 +13,25 @@ export default function MesFactures() {
   const [enCours, setEnCours] = useState<string>("");
   const [messages, setMessages] = useState<Record<string, string>>({});
 
+  async function charger() {
+    const { data } = await supabase
+      .from("devis")
+      .select("*")
+      .eq("est_facture", true)
+      .order("facture_creee_le", { ascending: false });
+    setFactures(data || []);
+    setChargement(false);
+  }
+
   useEffect(() => {
     if (!artisanId) return;
-
-    async function charger() {
-      const { data } = await supabase
-        .from("devis")
-        .select("*")
-        .eq("est_facture", true)
-        .order("facture_creee_le", { ascending: false });
-      setFactures(data || []);
-      setChargement(false);
-    }
     charger();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artisanId]);
+
+  // Rafraichit automatiquement la liste (ex: une facture qui vient d'etre
+  // payee en ligne) sans que l'artisan ait besoin de recharger la page.
+  useDevisRealtime(artisanId, charger);
 
   async function envoyerFacture(id: string) {
     setEnCours(id);

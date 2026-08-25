@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { useDevisSignesNonVus } from "@/lib/useDevisSignesNonVus";
 
 interface TopbarProps {
   onRetour?: () => void;
@@ -15,24 +16,8 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
   const pathname = usePathname();
   const { artisanId } = useArtisanSession();
   const [ouvert, setOuvert] = useState(false);
-  const [devisSignesNonVus, setDevisSignesNonVus] = useState(0);
+  const devisSignesNonVus = useDevisSignesNonVus(artisanId);
   const afficherRetour = pathname !== "/" || forcerRetour;
-
-  useEffect(() => {
-    if (!artisanId) return;
-
-    async function compter() {
-      const { count } = await supabase
-        .from("devis")
-        .select("id", { count: "exact", head: true })
-        .eq("artisan_id", artisanId)
-        .eq("est_facture", false)
-        .eq("statut", "signe")
-        .is("signature_vue_le", null);
-      setDevisSignesNonVus(count || 0);
-    }
-    compter();
-  }, [artisanId, pathname]);
 
   async function seDeconnecter() {
     setOuvert(false);

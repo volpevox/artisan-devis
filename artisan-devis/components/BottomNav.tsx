@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { useDevisSignesNonVus } from "@/lib/useDevisSignesNonVus";
 
 // Pages ou le menu du bas doit apparaitre -- volontairement une liste
 // explicite plutot qu'une exclusion, pour ne jamais l'afficher par erreur
@@ -12,7 +13,7 @@ const PAGES_AVEC_MENU = ["/", "/devis", "/factures", "/profil", "/abonnement", "
 export function BottomNav() {
   const pathname = usePathname();
   const [artisanId, setArtisanId] = useState<string | null>(null);
-  const [devisSignesNonVus, setDevisSignesNonVus] = useState(0);
+  const devisSignesNonVus = useDevisSignesNonVus(artisanId);
   const afficher = PAGES_AVEC_MENU.includes(pathname);
 
   // Lecture directe de la session, sans la logique de redirection de
@@ -39,22 +40,6 @@ export function BottomNav() {
       actif = false;
     };
   }, [afficher]);
-
-  useEffect(() => {
-    if (!artisanId) return;
-
-    async function compter() {
-      const { count } = await supabase
-        .from("devis")
-        .select("id", { count: "exact", head: true })
-        .eq("artisan_id", artisanId)
-        .eq("est_facture", false)
-        .eq("statut", "signe")
-        .is("signature_vue_le", null);
-      setDevisSignesNonVus(count || 0);
-    }
-    compter();
-  }, [artisanId, pathname]);
 
   if (!afficher) return null;
 
