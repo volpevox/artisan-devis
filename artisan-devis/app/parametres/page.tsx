@@ -24,11 +24,6 @@ export default function Parametres() {
   const [notifEnCours, setNotifEnCours] = useState(false);
   const [notifMessage, setNotifMessage] = useState("");
 
-  const [nouveauMotDePasse, setNouveauMotDePasse] = useState("");
-  const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
-  const [motDePasseMessage, setMotDePasseMessage] = useState("");
-  const [motDePasseEnCours, setMotDePasseEnCours] = useState(false);
-
   useEffect(() => {
     if (!artisanId) return;
 
@@ -75,32 +70,6 @@ export default function Parametres() {
     }
 
     setNotifEnCours(false);
-  }
-
-  async function changerMotDePasse() {
-    setMotDePasseMessage("");
-
-    if (nouveauMotDePasse.length < 6) {
-      setMotDePasseMessage("Le mot de passe doit faire au moins 6 caractères.");
-      return;
-    }
-    if (nouveauMotDePasse !== confirmationMotDePasse) {
-      setMotDePasseMessage("Les deux mots de passe ne sont pas identiques.");
-      return;
-    }
-
-    setMotDePasseEnCours(true);
-    const { error } = await supabase.auth.updateUser({ password: nouveauMotDePasse });
-    setMotDePasseEnCours(false);
-
-    if (error) {
-      setMotDePasseMessage("Erreur : " + error.message);
-      return;
-    }
-
-    setNouveauMotDePasse("");
-    setConfirmationMotDePasse("");
-    setMotDePasseMessage("Mot de passe mis à jour !");
   }
 
   useEffect(() => {
@@ -230,48 +199,54 @@ export default function Parametres() {
 
       {message && <p className="message">{message}</p>}
 
-      {etatNotifications !== "indisponible" && (
-        <div className="card">
-          <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 8, color: "var(--ink)" }}>Notifications</h2>
-          <p className="hint" style={{ margin: "0 0 12px" }}>
-            Reçois une alerte sur ton téléphone dès qu'un devis est signé ou qu'une facture est payée. Fonctionne si
-            VolpeVox est ajouté à l'écran d'accueil.
-          </p>
-          {etatNotifications !== "verification" && (
-            <button className="btn btn-primary" onClick={basculerNotifications} disabled={notifEnCours}>
-              {etatNotifications === "actif" ? "Désactiver les notifications" : "Activer les notifications"}
-            </button>
-          )}
-          {notifMessage && <p className="message">{notifMessage}</p>}
-        </div>
-      )}
+      <div className="tuiles-carrees">
+        {etatNotifications === "indisponible" ? (
+          <span className="tuile-carree" style={{ opacity: 0.6 }}>
+            <span className="tuile-carree-titre">Notifications</span>
+            <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.2 1-.5 1.4L5 15h14l-1.5-2.4a2 2 0 0 1-.5-1.4V8a5 5 0 0 0-5-5Z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <span className="hint" style={{ margin: 0 }}>Non disponible sur ce navigateur</span>
+          </span>
+        ) : (
+          <button type="button" className="tuile-carree" onClick={basculerNotifications} disabled={notifEnCours}>
+            <span className="tuile-carree-titre">Notifications</span>
+            <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.2 1-.5 1.4L5 15h14l-1.5-2.4a2 2 0 0 1-.5-1.4V8a5 5 0 0 0-5-5Z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            {etatNotifications === "actif" ? (
+              <span style={{ color: "var(--success)", fontWeight: 600, fontSize: 13 }}>✓ Activées</span>
+            ) : (
+              <span className="hint" style={{ margin: 0 }}>Activer les alertes</span>
+            )}
+          </button>
+        )}
 
-      <div className="card">
-        <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 8, color: "var(--ink)" }}>Mot de passe</h2>
-        <p className="hint" style={{ margin: "0 0 12px" }}>
-          Change le mot de passe de ton compte VolpeVox.
-        </p>
-        <input
-          className="field"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Nouveau mot de passe"
-          value={nouveauMotDePasse}
-          onChange={(e) => setNouveauMotDePasse(e.target.value)}
-        />
-        <input
-          className="field"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Confirme le mot de passe"
-          value={confirmationMotDePasse}
-          onChange={(e) => setConfirmationMotDePasse(e.target.value)}
-        />
-        <button className="btn btn-primary" onClick={changerMotDePasse} disabled={motDePasseEnCours}>
-          Mettre à jour le mot de passe
-        </button>
-        {motDePasseMessage && <p className="message">{motDePasseMessage}</p>}
+        <Link href="/parametres/mot-de-passe" className="tuile-carree">
+          <span className="tuile-carree-titre">Mot de passe</span>
+          <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+          <span className="hint" style={{ margin: 0 }}>Modifier mon mot de passe</span>
+        </Link>
       </div>
+
+      {notifMessage && <p className="message">{notifMessage}</p>}
 
       <div className="card">
         <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 10, color: "var(--ink)" }}>Informations légales</h2>
