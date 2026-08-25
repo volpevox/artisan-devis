@@ -1,16 +1,26 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SplashEcran } from "@/components/SplashEcran";
 
-export default function Connexion() {
-  const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">("connexion");
+function ConnexionContenu() {
+  // Le bouton "Demarrer mon essai gratuit" de la landing page pointe vers
+  // /connexion?mode=inscription : on saute directement au formulaire de
+  // creation de compte (et on passe l'ecran de demarrage) pour eviter deux
+  // clics inutiles a quelqu'un qui vient deja de decider de s'inscrire.
+  const searchParams = useSearchParams();
+  const modeInscriptionDirect = searchParams.get("mode") === "inscription";
+
+  const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">(
+    modeInscriptionDirect ? "inscription" : "connexion"
+  );
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
-  const [afficherDemarrage, setAfficherDemarrage] = useState(true);
+  const [afficherDemarrage, setAfficherDemarrage] = useState(!modeInscriptionDirect);
   const [conditionsAcceptees, setConditionsAcceptees] = useState(false);
 
   async function valider(e: FormEvent) {
@@ -194,5 +204,13 @@ export default function Connexion() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function Connexion() {
+  return (
+    <Suspense fallback={null}>
+      <ConnexionContenu />
+    </Suspense>
   );
 }
