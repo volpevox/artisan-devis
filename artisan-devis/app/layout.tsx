@@ -1,4 +1,5 @@
 import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 
@@ -54,8 +55,41 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable} ${roboto.variable}`}>
+    <html
+      lang="fr"
+      className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable} ${roboto.variable}`}
+      suppressHydrationWarning
+    >
       <body>
+        {/* Sur Safari iOS en mode "ajoute a l'ecran d'accueil", ni 100vh ni
+            100dvh ne sont fiables au tout premier affichage : la barre
+            d'adresse/outils met un court instant a se stabiliser, et la
+            valeur du viewport n'est recalculee qu'au prochain scroll -- d'ou
+            le menu du bas qui flotte jusqu'a ce que l'utilisateur scrolle
+            manuellement. window.visualViewport.height est fiable des le
+            depart ; on l'ecrit dans --vh et on la recalcule a quelques
+            reprises juste apres le chargement pour remplacer ce scroll
+            manuel. Doit s'executer avant l'hydratation (beforeInteractive)
+            pour eviter tout flash visible. */}
+        <Script id="hauteur-reelle-ios" strategy="beforeInteractive">
+          {`
+            (function () {
+              function ajusterHauteur() {
+                var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+                document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
+              }
+              ajusterHauteur();
+              window.addEventListener('resize', ajusterHauteur);
+              window.addEventListener('orientationchange', ajusterHauteur);
+              if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', ajusterHauteur);
+                window.visualViewport.addEventListener('scroll', ajusterHauteur);
+              }
+              setTimeout(ajusterHauteur, 50);
+              setTimeout(ajusterHauteur, 300);
+            })();
+          `}
+        </Script>
         <div className="app-viewport">
           <div className="app-scroll">{children}</div>
           <BottomNav />

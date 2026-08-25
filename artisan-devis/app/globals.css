@@ -54,6 +54,10 @@ body {
   height: 100vh;
   height: 100svh;
   height: 100dvh;
+  /* --vh est ecrite en JS (voir app/layout.tsx) a partir de
+     window.visualViewport.height, plus fiable que dvh sur Safari iOS au
+     tout premier affichage en mode "ajoute a l'ecran d'accueil". */
+  height: calc(var(--vh, 1vh) * 100);
 }
 
 .app-scroll {
