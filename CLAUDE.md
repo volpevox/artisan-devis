@@ -44,19 +44,19 @@ La vision complète du parcours (dictée → devis → signature → facture →
 - Redesign graphique : bouton de dictée (icône SVG, plus de pixelisation), cartes devis/factures (montant mis en avant, vrais boutons), écran de connexion (logo animé, centré)
 - PWA : icône d'écran d'accueil correcte (iOS/Android), manifest, menu du bas dans un vrai cadre plein écran (`app-viewport`/`app-scroll`, plus de `position: fixed`)
 - Domaine `volpevox.fr` sur Cloudflare, DNS Resend (DKIM/SPF/MX/DMARC) configurés
+- Pages légales rédigées (mentions légales, CGU, CGV, confidentialité/cookies) — reste la validation par une personne assermentée avant la mise en prod réelle
+- Phase de test complète effectuée par Marley (dictée, devis, facture, signature, abonnement avec carte test, 2 paiements en ligne test) — aucun problème rencontré
 
 ## Bugs connus, mis de côté (faible priorité)
 - En mode "ajouté à l'écran d'accueil" sur iPhone, le menu du bas flotte au tout premier chargement et se recolle après un défilement manuel — plusieurs correctifs tentés sans succès total, mis de côté par Marley
 - Le remplissage automatique des mots de passe (et Face ID associé) ne fonctionne pas en mode app iPhone, seulement dans Safari classique — limitation connue d'iOS, mise de côté
 
 ## Reste à faire (dans cet ordre convenu avec Marley)
-1. **Pages légales de l'outil** — mentions légales, CGU, CGV, confidentialité/cookies. Prochaine session : rédiger une base standard, que Marley fera ensuite valider par une personne assermentée avant la mise en prod réelle. Placement prévu : section dédiée sur la page Profil + case à cocher à l'inscription.
-2. **Phase de test complète** de l'outil par Marley (dictée, devis, facture, signature, paiement en ligne, abonnement) avant de le faire essayer à d'autres.
-3. **Nouvel hébergement o2switch** pour la landing page (compte séparé de rema3302/agencevolpe.fr, "domaine plus tard" à la commande pour ne pas re-toucher aux DNS Cloudflare).
-4. **Landing page WordPress** (volpevox.fr) — tout à la fin. Angle marketing central : "récupère tes soirées" (temps gagné), pas une liste de fonctionnalités — voir memoire `landing_page_positionnement_prix`.
-5. **Stripe en mode réel** — quand Marley est prêt à facturer/encaisser pour de vrai : vérification d'identité de la plateforme + remplacement des clés test par les clés live dans Vercel.
-6. **Petit ménage** — fichiers `node_modules/`, `package.json`, `package-lock.json` à la racine du dépôt (hors du dossier `artisan-devis/`), origine inconnue, à clarifier avec Marley avant suppression.
-7. **Performance / fluidité** — minification, cache — en tout dernier, une fois toutes les fonctionnalités en place.
+1. **Nouvel hébergement o2switch** pour la landing page (compte séparé de rema3302/agencevolpe.fr, "domaine plus tard" à la commande pour ne pas re-toucher aux DNS Cloudflare).
+2. **Landing page WordPress** (volpevox.fr) — angle marketing central : "récupère tes soirées" (temps gagné), pas une liste de fonctionnalités — voir memoire `landing_page_positionnement_prix`. En cours.
+3. **Stripe en mode réel** — quand Marley est prêt à facturer/encaisser pour de vrai : vérification d'identité de la plateforme + remplacement des clés test par les clés live dans Vercel.
+4. **Petit ménage** — fichiers `node_modules/`, `package.json`, `package-lock.json` à la racine du dépôt (hors du dossier `artisan-devis/`), origine inconnue, à clarifier avec Marley avant suppression.
+5. **Performance / fluidité** — minification, cache — en tout dernier, une fois toutes les fonctionnalités en place.
 
 ## Comment travailler avec moi (Marley, le fondateur)
 - Je ne suis pas développeur. Explications simples, pas de jargon non expliqué.
