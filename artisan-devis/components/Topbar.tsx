@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { useDevisSignesNonVus } from "@/lib/useDevisSignesNonVus";
-import { useFacturesNonEnvoyees } from "@/lib/useFacturesNonEnvoyees";
+import { useFacturesNonVues } from "@/lib/useFacturesNonVues";
 
 interface TopbarProps {
   onRetour?: () => void;
@@ -18,7 +18,7 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
   const { artisanId } = useArtisanSession();
   const [ouvert, setOuvert] = useState(false);
   const devisSignesNonVus = useDevisSignesNonVus(artisanId);
-  const facturesNonEnvoyees = useFacturesNonEnvoyees(artisanId);
+  const facturesNonVues = useFacturesNonVues(artisanId);
   const afficherRetour = pathname !== "/" || forcerRetour;
 
   async function seDeconnecter() {
@@ -99,7 +99,7 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
             </Link>
             <Link href="/factures" onClick={() => setOuvert(false)} style={{ position: "relative" }}>
               Factures
-              {facturesNonEnvoyees > 0 && <span className="badge-point" />}
+              {facturesNonVues > 0 && <span className="badge-point" />}
             </Link>
             <Link href="/profil" onClick={() => setOuvert(false)}>
               Mon profil

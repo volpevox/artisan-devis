@@ -21,6 +21,13 @@ export default function MesFactures() {
       .order("facture_creee_le", { ascending: false });
     setFactures(data || []);
     setChargement(false);
+
+    // Marque les factures comme vues, pour faire disparaitre la pastille de
+    // notification dans l'en-tete et le menu du bas.
+    const idsNonVues = (data || []).filter((d) => !d.facture_vue_le).map((d) => d.id);
+    if (idsNonVues.length > 0) {
+      await supabase.from("devis").update({ facture_vue_le: new Date().toISOString() }).in("id", idsNonVues);
+    }
   }
 
   useEffect(() => {
