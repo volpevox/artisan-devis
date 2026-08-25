@@ -1064,3 +1064,136 @@ textarea {
 .notif-propose-actions .btn {
   width: 100%;
 }
+
+.abo-carte {
+  position: relative;
+  background: linear-gradient(165deg, var(--card-bg) 0%, #171d27 100%);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 20px 20px;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.abo-ruban {
+  position: absolute;
+  top: 18px;
+  right: -38px;
+  transform: rotate(45deg);
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  padding: 4px 42px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.abo-prix {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 16px 0 2px;
+}
+
+.abo-prix-montant {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 800;
+  font-size: 40px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.abo-prix-periode {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.abo-prix-suite {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 4px 0 14px;
+}
+
+.abo-garantie {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: rgba(221, 167, 66, 0.08);
+  border: 1px solid rgba(221, 167, 66, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0 0 18px;
+}
+
+.abo-garantie svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 1px;
+  color: var(--ink);
+}
+
+.abo-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.abo-liste li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.abo-liste-icone {
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.abo-liste-icone svg {
+  width: 11px;
+  height: 11px;
+}
+
+.abo-cta {
+  width: 100%;
+  font-size: 15px;
+  padding: 13px 20px;
+}
+
+.abo-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--success);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.abo-confirmation svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}

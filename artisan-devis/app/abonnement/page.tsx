@@ -89,13 +89,17 @@ export default function Abonnement() {
     "Bonjour, j'ai besoin d'aide avec VolpeVox :"
   )}`;
 
+  const offreDecouverte = !stripeSubscriptionId;
+
   return (
     <main className="page-shell">
       <Topbar />
 
       <h1 className="page-title">Mon abonnement</h1>
 
-      <div className="card">
+      <div className="abo-carte">
+        {offreDecouverte && <span className="abo-ruban">Découverte</span>}
+
         {abonnementActif ? (
           <span className="badge badge-success">Abonnement actif</span>
         ) : stripeSubscriptionId ? (
@@ -110,38 +114,51 @@ export default function Abonnement() {
           </p>
         ) : null}
 
-        {!stripeSubscriptionId ? (
-          <p className="doc-card-total" style={{ marginTop: 14, fontSize: 20 }}>
-            45 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois pendant 12 mois</span>
-            <br />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
-              Offre découverte, places limitées — puis 79 €/mois
-            </span>
-          </p>
-        ) : (
-          <p className="doc-card-total" style={{ marginTop: 14 }}>
-            79 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois</span>
-          </p>
-        )}
+        <div className="abo-prix">
+          <span className="abo-prix-montant">{offreDecouverte ? "45 €" : "79 €"}</span>
+          <span className="abo-prix-periode">/ mois{offreDecouverte ? " pendant 12 mois" : ""}</span>
+        </div>
+        {offreDecouverte && <p className="abo-prix-suite">Places limitées — puis 79 €/mois</p>}
 
-        <p className="hint" style={{ margin: "2px 0 12px" }}>
-          {!stripeSubscriptionId
-            ? "Essai gratuit de 21 jours, carte bancaire requise, aucun prélèvement avant la fin de l'essai. Sans engagement, résiliable à tout moment."
-            : "Sans engagement, résiliable à tout moment."}
-        </p>
-
-        <ul style={{ margin: "0 0 18px", paddingLeft: 18, color: "var(--text)", fontSize: 13.5, lineHeight: 1.75 }}>
+        <ul className="abo-liste">
           {FONCTIONNALITES.map((f) => (
-            <li key={f}>{f}</li>
+            <li key={f}>
+              <span className="abo-liste-icone">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12.5 10 17 19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              {f}
+            </li>
           ))}
         </ul>
 
         {abonnementActif ? (
-          <p style={{ margin: 0, color: "var(--success)", fontWeight: 600 }}>✓ Merci de ta confiance !</p>
+          <p className="abo-confirmation">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M8 12.5 11 15.5 16 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Merci de ta confiance !
+          </p>
         ) : (
-          <button className="btn-solid" onClick={sAbonner} disabled={enCours}>
-            {stripeSubscriptionId ? "Réactiver mon abonnement" : "Démarrer mon essai gratuit"}
-          </button>
+          <>
+            <div className="abo-garantie">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <span>
+                {stripeSubscriptionId
+                  ? "Sans engagement, résiliable à tout moment."
+                  : "Essai gratuit de 14 jours, carte bancaire requise, aucun prélèvement avant la fin de l'essai. Sans engagement, résiliable à tout moment."}
+              </span>
+            </div>
+
+            <button className="btn btn-primary abo-cta" onClick={sAbonner} disabled={enCours}>
+              {enCours ? "Un instant..." : stripeSubscriptionId ? "Réactiver mon abonnement" : "Démarrer mon essai gratuit"}
+            </button>
+          </>
         )}
 
         {message && <p className="message">{message}</p>}

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     customer: stripeCustomerId,
     line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
-    subscription_data: { trial_period_days: 21 },
+    subscription_data: { trial_period_days: 14 },
     ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
     success_url: `${req.nextUrl.origin}/abonnement/succes`,
     cancel_url: `${req.nextUrl.origin}/abonnement`,
