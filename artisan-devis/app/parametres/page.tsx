@@ -6,6 +6,8 @@ import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { notificationsPossibles, abonnementActuel, activerNotifications, desactiverNotifications } from "@/lib/pushClient";
 
+const NUMERO_WHATSAPP_SUPPORT = "33766213674";
+
 export default function Parametres() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [nomComplet, setNomComplet] = useState("");
@@ -21,6 +23,11 @@ export default function Parametres() {
   );
   const [notifEnCours, setNotifEnCours] = useState(false);
   const [notifMessage, setNotifMessage] = useState("");
+
+  const [nouveauMotDePasse, setNouveauMotDePasse] = useState("");
+  const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
+  const [motDePasseMessage, setMotDePasseMessage] = useState("");
+  const [motDePasseEnCours, setMotDePasseEnCours] = useState(false);
 
   useEffect(() => {
     if (!artisanId) return;
@@ -68,6 +75,32 @@ export default function Parametres() {
     }
 
     setNotifEnCours(false);
+  }
+
+  async function changerMotDePasse() {
+    setMotDePasseMessage("");
+
+    if (nouveauMotDePasse.length < 6) {
+      setMotDePasseMessage("Le mot de passe doit faire au moins 6 caractères.");
+      return;
+    }
+    if (nouveauMotDePasse !== confirmationMotDePasse) {
+      setMotDePasseMessage("Les deux mots de passe ne sont pas identiques.");
+      return;
+    }
+
+    setMotDePasseEnCours(true);
+    const { error } = await supabase.auth.updateUser({ password: nouveauMotDePasse });
+    setMotDePasseEnCours(false);
+
+    if (error) {
+      setMotDePasseMessage("Erreur : " + error.message);
+      return;
+    }
+
+    setNouveauMotDePasse("");
+    setConfirmationMotDePasse("");
+    setMotDePasseMessage("Mot de passe mis à jour !");
   }
 
   useEffect(() => {
@@ -214,12 +247,68 @@ export default function Parametres() {
       )}
 
       <div className="card">
+        <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 8, color: "var(--ink)" }}>Mot de passe</h2>
+        <p className="hint" style={{ margin: "0 0 12px" }}>
+          Change le mot de passe de ton compte VolpeVox.
+        </p>
+        <input
+          className="field"
+          type="password"
+          autoComplete="new-password"
+          placeholder="Nouveau mot de passe"
+          value={nouveauMotDePasse}
+          onChange={(e) => setNouveauMotDePasse(e.target.value)}
+        />
+        <input
+          className="field"
+          type="password"
+          autoComplete="new-password"
+          placeholder="Confirme le mot de passe"
+          value={confirmationMotDePasse}
+          onChange={(e) => setConfirmationMotDePasse(e.target.value)}
+        />
+        <button className="btn btn-primary" onClick={changerMotDePasse} disabled={motDePasseEnCours}>
+          Mettre à jour le mot de passe
+        </button>
+        {motDePasseMessage && <p className="message">{motDePasseMessage}</p>}
+      </div>
+
+      <div className="card">
         <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 10, color: "var(--ink)" }}>Informations légales</h2>
         <div className="liens-legaux" style={{ marginTop: 0 }}>
           <Link href="/mentions-legales">Mentions légales</Link>
           <Link href="/cgu">Conditions générales d'utilisation</Link>
           <Link href="/cgv">Conditions générales de vente</Link>
           <Link href="/confidentialite">Confidentialité &amp; cookies</Link>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 8, color: "var(--ink)" }}>Mes données</h2>
+        <p className="hint" style={{ margin: "0 0 12px" }}>
+          Conformément à ta politique de confidentialité, tu peux demander l'export ou la suppression de tes données à
+          tout moment. Écris-moi directement, je m'en occupe.
+        </p>
+        <div className="liens-legaux" style={{ marginTop: 0 }}>
+          <a
+            href={`https://wa.me/${NUMERO_WHATSAPP_SUPPORT}?text=${encodeURIComponent(
+              "Bonjour, je souhaite demander l'export de mes données VolpeVox."
+            )}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Demander l'export de mes données
+          </a>
+          <a
+            href={`https://wa.me/${NUMERO_WHATSAPP_SUPPORT}?text=${encodeURIComponent(
+              "Bonjour, je souhaite demander la suppression de mon compte VolpeVox et de mes données."
+            )}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: "var(--danger)" }}
+          >
+            Supprimer mon compte
+          </a>
         </div>
       </div>
     </main>
