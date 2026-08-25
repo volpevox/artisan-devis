@@ -54,7 +54,10 @@ export default function Connexion() {
         // necessaire pour que Safari/Chrome proposent d'enregistrer le mot
         // de passe : leur heuristique de detection de connexion reussie ne
         // se declenche pas de facon fiable avec un simple router.push.
-        window.location.href = "/profil";
+        // Direction /abonnement (et non /profil) : la carte bancaire est
+        // desormais obligatoire des l'inscription, useArtisan.ts y renverrait
+        // de toute facon tant qu'aucun abonnement Stripe n'existe.
+        window.location.href = "/abonnement";
       } else {
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);

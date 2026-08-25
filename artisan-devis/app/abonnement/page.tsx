@@ -18,6 +18,7 @@ export default function Abonnement() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [essaiExpireLe, setEssaiExpireLe] = useState<string | null>(null);
   const [abonnementActif, setAbonnementActif] = useState(false);
+  const [stripeSubscriptionId, setStripeSubscriptionId] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState(false);
   const [message, setMessage] = useState("");
@@ -28,13 +29,14 @@ export default function Abonnement() {
     async function charger() {
       const { data } = await supabase
         .from("artisans")
-        .select("essai_expire_le, abonnement_actif")
+        .select("essai_expire_le, abonnement_actif, stripe_subscription_id")
         .eq("id", artisanId)
         .maybeSingle();
 
       if (data) {
         setEssaiExpireLe(data.essai_expire_le);
         setAbonnementActif(data.abonnement_actif);
+        setStripeSubscriptionId(data.stripe_subscription_id);
       }
       setChargement(false);
     }
@@ -87,19 +89,37 @@ export default function Abonnement() {
       <div className="card">
         {abonnementActif ? (
           <span className="badge badge-success">Abonnement actif</span>
+        ) : stripeSubscriptionId ? (
+          <span className="badge badge-warning">Abonnement inactif</span>
         ) : (
-          <span className={`badge ${essaiTermine ? "badge-warning" : "badge-neutral"}`}>
-            {essaiTermine
-              ? "Essai gratuit terminé"
-              : `Essai gratuit : ${joursRestants} jour${joursRestants > 1 ? "s" : ""} restant${joursRestants > 1 ? "s" : ""}`}
-          </span>
+          <span className="badge badge-neutral">Aucun abonnement en cours</span>
         )}
 
-        <p className="doc-card-total" style={{ marginTop: 14 }}>
-          79 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois</span>
-        </p>
+        {abonnementActif && essaiExpireLe && !essaiTermine ? (
+          <p className="hint" style={{ margin: "8px 0 0" }}>
+            Essai gratuit : {joursRestants} jour{joursRestants > 1 ? "s" : ""} restant{joursRestants > 1 ? "s" : ""}
+          </p>
+        ) : null}
 
-        <p className="hint" style={{ margin: "2px 0 12px" }}>Sans engagement, résiliable à tout moment.</p>
+        {!stripeSubscriptionId ? (
+          <p className="doc-card-total" style={{ marginTop: 14, fontSize: 20 }}>
+            45 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois pendant 12 mois</span>
+            <br />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+              Offre découverte, places limitées — puis 79 €/mois
+            </span>
+          </p>
+        ) : (
+          <p className="doc-card-total" style={{ marginTop: 14 }}>
+            79 € <span style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>/ mois</span>
+          </p>
+        )}
+
+        <p className="hint" style={{ margin: "2px 0 12px" }}>
+          {!stripeSubscriptionId
+            ? "Essai gratuit de 21 jours, carte bancaire requise, aucun prélèvement avant la fin de l'essai. Sans engagement, résiliable à tout moment."
+            : "Sans engagement, résiliable à tout moment."}
+        </p>
 
         <ul style={{ margin: "0 0 18px", paddingLeft: 18, color: "var(--text)", fontSize: 13.5, lineHeight: 1.75 }}>
           {FONCTIONNALITES.map((f) => (
@@ -111,7 +131,7 @@ export default function Abonnement() {
           <p style={{ margin: 0, color: "var(--success)", fontWeight: 600 }}>✓ Merci de ta confiance !</p>
         ) : (
           <button className="btn-solid" onClick={sAbonner} disabled={enCours}>
-            S&apos;abonner maintenant
+            {stripeSubscriptionId ? "Réactiver mon abonnement" : "Démarrer mon essai gratuit"}
           </button>
         )}
 

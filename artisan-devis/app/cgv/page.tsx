@@ -25,13 +25,17 @@ export default function Cgv() {
         <p>
           L'accès à VolpeVox est proposé sous forme d'un abonnement mensuel au tarif affiché sur la page « Mon
           abonnement » de l'application (79 € par mois au lancement, toutes taxes comprises selon le régime fiscal en
-          vigueur), précédé d'une période d'essai gratuite de 14 jours sans engagement.
+          vigueur), précédé d'une période d'essai gratuite de 21 jours sans engagement. Une offre découverte réservée
+          aux 20 premiers artisans inscrits permet de bénéficier d'un tarif de 45 € par mois pendant les 12 premiers
+          mois d'abonnement, avant de basculer automatiquement au tarif standard de 79 € par mois.
         </p>
 
         <h2>3. Modalités de paiement</h2>
         <p>
-          Le paiement de l'abonnement est prélevé automatiquement chaque mois par carte bancaire, via la plateforme
-          de paiement Stripe. VolpeVox ne stocke à aucun moment les coordonnées bancaires de l'artisan.
+          La carte bancaire de l'artisan est enregistrée dès l'inscription, via la plateforme de paiement Stripe :
+          aucun prélèvement n'intervient avant la fin de la période d'essai gratuite de 21 jours. Passé ce délai, le
+          paiement de l'abonnement est prélevé automatiquement chaque mois par carte bancaire, sauf résiliation avant
+          la fin de l'essai. VolpeVox ne stocke à aucun moment les coordonnées bancaires de l'artisan.
         </p>
 
         <h2>4. Durée et résiliation</h2>
@@ -52,8 +56,9 @@ export default function Cgv() {
         <h2>6. Absence de droit de rétractation</h2>
         <p>
           VolpeVox étant un service souscrit par un professionnel pour les besoins de son activité, le droit de
-          rétractation de 14 jours prévu par le Code de la consommation ne s'applique pas. La période d'essai
-          gratuite de 14 jours permet néanmoins de tester le service sans engagement avant tout paiement.
+          rétractation prévu par le Code de la consommation ne s'applique pas. La période d'essai gratuite de 21
+          jours permet néanmoins de tester le service sans engagement et sans aucun prélèvement avant son terme,
+          même si une carte bancaire est enregistrée dès l'inscription.
         </p>
 
         <h2>7. Facturation</h2>

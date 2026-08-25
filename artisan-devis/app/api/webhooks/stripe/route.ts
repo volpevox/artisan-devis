@@ -21,9 +21,14 @@ export async function POST(req: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session;
       const artisanId = session.metadata?.artisan_id;
       if (artisanId && typeof session.subscription === "string") {
+        const abonnement = await stripe.subscriptions.retrieve(session.subscription);
         await supabaseAdmin
           .from("artisans")
-          .update({ abonnement_actif: true, stripe_subscription_id: session.subscription })
+          .update({
+            abonnement_actif: true,
+            stripe_subscription_id: session.subscription,
+            essai_expire_le: abonnement.trial_end ? new Date(abonnement.trial_end * 1000).toISOString() : null,
+          })
           .eq("id", artisanId);
       }
       break;

@@ -36,27 +36,27 @@ export function useArtisanSession() {
 
       const { data: profil } = await supabase
         .from("artisans")
-        .select("id, essai_expire_le, abonnement_actif")
+        .select("id, abonnement_actif")
         .eq("user_id", sessionActuelle.user.id)
         .maybeSingle();
 
       let idArtisan = profil?.id;
-      let essaiExpireLe = profil?.essai_expire_le;
       let abonnementActif = profil?.abonnement_actif;
 
       if (!idArtisan) {
         const { data: nouveauProfil } = await supabase
           .from("artisans")
           .insert({ user_id: sessionActuelle.user.id })
-          .select("id, essai_expire_le, abonnement_actif")
+          .select("id, abonnement_actif")
           .single();
         idArtisan = nouveauProfil?.id;
-        essaiExpireLe = nouveauProfil?.essai_expire_le;
         abonnementActif = nouveauProfil?.abonnement_actif;
       }
 
-      const essaiTermine = essaiExpireLe ? new Date(essaiExpireLe) < new Date() : false;
-      const bloque = essaiTermine && !abonnementActif;
+      // La carte bancaire est desormais obligatoire des l'inscription : sans
+      // abonnement Stripe (trialing ou actif), l'acces est bloque des le
+      // depart, plus de fenetre de grace locale basee sur essai_expire_le.
+      const bloque = !abonnementActif;
 
       if (bloque && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
         router.push("/abonnement");
