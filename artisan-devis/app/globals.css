@@ -31,7 +31,12 @@ body {
   overflow-x: clip;
   overscroll-behavior-x: none;
   touch-action: pan-y;
-  background: var(--bg);
+  /* Couleur du menu (--card-bg) en dessous de tout, plutot que --bg : sur
+     iPhone en mode "ajoute a l'ecran d'accueil", un espace peut apparaitre
+     sous le menu au tout premier chargement (bug de Safari, non corrigeable
+     cote code -- voir CLAUDE.md). Avec la meme couleur que le menu juste en
+     dessous, cet espace se fond dans le menu au lieu de trancher. */
+  background: var(--card-bg);
   color: var(--text);
   font-family: var(--font-montserrat), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -54,6 +59,7 @@ body {
   height: 100vh;
   height: 100svh;
   height: 100dvh;
+  background: var(--bg);
 }
 
 .app-scroll {
