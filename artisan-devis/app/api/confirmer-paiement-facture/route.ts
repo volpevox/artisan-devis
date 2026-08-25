@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripeClient";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
+import { envoyerNotificationPush } from "@/lib/pushNotifications";
 
 export async function POST(req: NextRequest) {
   const { devisId, sessionId } = await req.json();
@@ -11,7 +12,11 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminSupabase();
 
-  const { data: devis } = await supabase.from("devis").select("artisan_id, payee_le").eq("id", devisId).maybeSingle();
+  const { data: devis } = await supabase
+    .from("devis")
+    .select("artisan_id, payee_le, client_nom, numero_facture")
+    .eq("id", devisId)
+    .maybeSingle();
 
   if (!devis) {
     return NextResponse.json({ erreur: "Facture introuvable" }, { status: 404 });
@@ -43,6 +48,12 @@ export async function POST(req: NextRequest) {
   const moyenPaiement = "Carte bancaire (en ligne)";
 
   await supabase.from("devis").update({ payee_le: payeeLe, moyen_paiement: moyenPaiement }).eq("id", devisId);
+
+  await envoyerNotificationPush(devis.artisan_id, {
+    titre: "Facture payée !",
+    corps: `${devis.client_nom || "Un client"} a payé sa facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} en ligne.`,
+    url: "/factures",
+  });
 
   return NextResponse.json({ succes: true, payee_le: payeeLe, moyen_paiement: moyenPaiement });
 }

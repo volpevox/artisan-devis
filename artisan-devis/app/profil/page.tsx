@@ -4,9 +4,15 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { notificationsPossibles, abonnementActuel, activerNotifications, desactiverNotifications } from "@/lib/pushClient";
 
 export default function Profil() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
+  const [etatNotifications, setEtatNotifications] = useState<"verification" | "indisponible" | "inactif" | "actif">(
+    "verification"
+  );
+  const [notifEnCours, setNotifEnCours] = useState(false);
+  const [notifMessage, setNotifMessage] = useState("");
   const [nomComplet, setNomComplet] = useState("");
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
@@ -53,6 +59,34 @@ export default function Profil() {
     }
     charger();
   }, [artisanId]);
+
+  useEffect(() => {
+    if (!notificationsPossibles()) {
+      setEtatNotifications("indisponible");
+      return;
+    }
+    abonnementActuel().then((sub) => setEtatNotifications(sub ? "actif" : "inactif"));
+  }, []);
+
+  async function basculerNotifications() {
+    if (!session) return;
+    setNotifEnCours(true);
+    setNotifMessage("");
+
+    try {
+      if (etatNotifications === "actif") {
+        await desactiverNotifications(session.access_token);
+        setEtatNotifications("inactif");
+      } else {
+        await activerNotifications(session.access_token);
+        setEtatNotifications("actif");
+      }
+    } catch (e: any) {
+      setNotifMessage(e.message || "Erreur");
+    }
+
+    setNotifEnCours(false);
+  }
 
   useEffect(() => {
     if (!session || !stripeAccountId || stripePaiementActif) return;
@@ -245,6 +279,22 @@ export default function Profil() {
           </button>
         )}
       </div>
+
+      {etatNotifications !== "indisponible" && (
+        <div className="card">
+          <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 8, color: "var(--ink)" }}>Notifications</h2>
+          <p className="hint" style={{ margin: "0 0 12px" }}>
+            Reçois une alerte sur ton téléphone dès qu'un devis est signé ou qu'une facture est payée. Fonctionne si
+            VolpeVox est ajouté à l'écran d'accueil.
+          </p>
+          {etatNotifications !== "verification" && (
+            <button className="btn btn-primary" onClick={basculerNotifications} disabled={notifEnCours}>
+              {etatNotifications === "actif" ? "Désactiver les notifications" : "Activer les notifications"}
+            </button>
+          )}
+          {notifMessage && <p className="message">{notifMessage}</p>}
+        </div>
+      )}
 
       <div className="card">
         <p className="hint" style={{ margin: "0 0 12px" }}>

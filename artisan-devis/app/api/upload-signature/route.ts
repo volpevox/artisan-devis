@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
 import { emailHtml } from "@/lib/emailTemplate";
+import { envoyerNotificationPush } from "@/lib/pushNotifications";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -51,10 +52,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: erreurUpdate.message }, { status: 500 });
   }
 
-  // Previent l'artisan par email des qu'un client signe -- le seul evenement
-  // vraiment declenche par le client (le paiement est marque par l'artisan
-  // lui-meme, inutile de se notifier soi-meme).
+  // Previent l'artisan par email et par notification push des qu'un client
+  // signe.
   if (devisSigne?.artisan_id) {
+    await envoyerNotificationPush(devisSigne.artisan_id, {
+      titre: "Devis signé !",
+      corps: `${devisSigne.client_nom || "Un client"} a signé son devis${devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : ""}.`,
+      url: "/devis",
+    });
+
     try {
       const { data: artisan } = await supabaseAdmin
         .from("artisans")
