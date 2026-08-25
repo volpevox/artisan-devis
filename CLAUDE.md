@@ -8,7 +8,7 @@ La vision complète du parcours (dictée → devis → signature → facture →
 ## Stack technique
 - Next.js 14 (App Router) + React + TypeScript
 - Hébergement : Vercel
-- Base de données : Supabase (région Europe/Frankfurt), RLS **désactivé** pour l'instant (à activer avant mise en prod avec de vrais artisans)
+- Base de données : Supabase (région Europe/Frankfurt), RLS **activée** (`supabase/rls-policies.sql`) — vérifié le 2026-08-25 : la clé publique ne peut lire aucune ligne de `artisans`/`devis`/`lignes_devis`/`prix_appris` sans session
 - Transcription vocale : OpenAI Whisper (`/api/transcrire`)
 - IA de structuration du devis : OpenAI GPT-4o-mini (`/api/structurer`)
 - Envoi d'emails : Resend, domaine `volpevox.fr` vérifié, envois depuis `devis@volpevox.fr` (`/api/envoyer`, `/api/facture/[id]`, `/api/upload-signature`, `/api/cron/relances`)
