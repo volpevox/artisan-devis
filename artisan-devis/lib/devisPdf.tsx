@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
   },
   clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: ENCRE },
   clientAdresse: { fontSize: 9.5, color: MUTED, marginTop: 3 },
-  datePrestation: { fontSize: 9, color: MUTED, marginTop: 6 },
 
   tableHeader: {
     flexDirection: "row",
@@ -254,7 +253,6 @@ interface DevisPdfProps {
   lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
-  datePrestation?: Date | null;
   signatureUrl?: string | null;
   signeLe?: Date | null;
   lieuSignature?: string | null;
@@ -270,7 +268,6 @@ export function DevisPDF({
   lignes,
   tauxTva,
   date,
-  datePrestation,
   signatureUrl,
   signeLe,
   lieuSignature,
@@ -341,9 +338,6 @@ export function DevisPDF({
             <Text style={styles.clientLabel}>{motDocument} adressé{estFacture ? "e" : ""} à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
             {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
-            {estFacture && datePrestation ? (
-              <Text style={styles.datePrestation}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
-            ) : null}
           </View>
 
           <View style={styles.tableHeader}>

@@ -55,7 +55,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }))}
       tauxTva={tauxTva}
       date={new Date(estFacture ? devis.facture_creee_le : devis.created_at)}
-      datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
       signatureUrl={devis.signature_url}
       signeLe={devis.signe_le ? new Date(devis.signe_le) : null}
       lieuSignature={devis.lieu_signature}

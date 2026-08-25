@@ -76,7 +76,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         }))}
         tauxTva={tauxTva}
         date={new Date(devis.facture_creee_le)}
-        datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
         type="facture"
         numero={devis.numero_facture}
         paiement={{

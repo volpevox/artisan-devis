@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   const { supabase, artisan: profil } = resultat;
 
   const { data: devisRow } = devisId
-    ? await supabase.from("devis").select("numero_devis, date_prestation").eq("id", devisId).maybeSingle()
+    ? await supabase.from("devis").select("numero_devis").eq("id", devisId).maybeSingle()
     : { data: null };
 
   const tauxTva = profil?.taux_tva ?? 20;
@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
         lignes={lignes}
         tauxTva={tauxTva}
         date={date}
-        datePrestation={devisRow?.date_prestation ? new Date(devisRow.date_prestation) : null}
         numero={devisRow?.numero_devis}
       />
     );
