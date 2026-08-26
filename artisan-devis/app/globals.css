@@ -1082,6 +1082,14 @@ textarea {
   align-items: flex-end;
   justify-content: center;
   z-index: 50;
+  /* Sur iPhone en mode "ajoute a l'ecran d'accueil", les elements en
+     position: fixed n'atteignent pas toujours le vrai bord de l'ecran (bug
+     connu de Safari, voir CLAUDE.md) : le bas de la feuille -- et donc son
+     bouton -- peut se retrouver hors de la zone visible. On rend le fond
+     scrollable pour qu'il reste toujours possible d'atteindre le bouton en
+     faisant defiler, meme si la feuille est poussee hors champ. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .notif-propose-feuille {
@@ -1092,6 +1100,7 @@ textarea {
   border-radius: 18px 18px 0 0;
   padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
   box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+  margin-top: auto;
 }
 
 .notif-propose-icone {
