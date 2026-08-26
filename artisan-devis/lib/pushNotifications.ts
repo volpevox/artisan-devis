@@ -25,7 +25,10 @@ export async function envoyerNotificationPush(artisanId: string, notif: Notifica
       .select("*")
       .eq("artisan_id", artisanId);
 
-    if (!abonnements || abonnements.length === 0) return;
+    if (!abonnements || abonnements.length === 0) {
+      console.error(`[push] aucun abonnement enregistre pour l'artisan ${artisanId}`);
+      return;
+    }
 
     const payload = JSON.stringify({ title: notif.titre, body: notif.corps, url: notif.url || "/" });
 
@@ -39,12 +42,16 @@ export async function envoyerNotificationPush(artisanId: string, notif: Notifica
         } catch (err: any) {
           if (err?.statusCode === 404 || err?.statusCode === 410) {
             await supabaseAdmin.from("push_subscriptions").delete().eq("id", abo.id);
+          } else {
+            console.error(`[push] echec d'envoi (abonnement ${abo.id}) :`, err?.statusCode, err?.body || err?.message || err);
           }
         }
       })
     );
-  } catch {
+  } catch (err: any) {
     // Une notification push ratee ne doit jamais faire echouer l'action
-    // principale (signature enregistree, paiement confirme...).
+    // principale (signature enregistree, paiement confirme...) -- mais on
+    // garde une trace de l'erreur pour pouvoir la diagnostiquer.
+    console.error("[push] erreur inattendue lors de l'envoi :", err?.message || err);
   }
 }
