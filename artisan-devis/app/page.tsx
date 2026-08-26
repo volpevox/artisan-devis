@@ -41,6 +41,20 @@ function dateDuJour() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// La base attend une date ISO (AAAA-MM-JJ), mais on affiche/saisit au format
+// francais JJ/MM/AAAA -- ces deux fonctions font la conversion dans les deux
+// sens.
+function isoVersAffichage(iso: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+}
+
+function chiffresVersAffichage(chiffres: string) {
+  if (chiffres.length > 4) return `${chiffres.slice(0, 2)}/${chiffres.slice(2, 4)}/${chiffres.slice(4)}`;
+  if (chiffres.length > 2) return `${chiffres.slice(0, 2)}/${chiffres.slice(2)}`;
+  return chiffres;
+}
+
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
@@ -50,6 +64,7 @@ export default function Home() {
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
   const [datePrestation, setDatePrestation] = useState(dateDuJour());
+  const [dateAffichage, setDateAffichage] = useState(isoVersAffichage(dateDuJour()));
   const [modePaiement, setModePaiement] = useState(MODES_PAIEMENT_FACTURE[1].valeur);
   const [paiementEnLigneDisponible, setPaiementEnLigneDisponible] = useState(false);
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
@@ -375,6 +390,7 @@ export default function Home() {
     setClientEmail("");
     setClientAdresse("");
     setDatePrestation(dateDuJour());
+    setDateAffichage(isoVersAffichage(dateDuJour()));
     setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
     setLignes([ligneVide()]);
     setDevisEnregistre(false);
@@ -541,16 +557,25 @@ export default function Home() {
           onChange={(e) => setClientAdresse(e.target.value)}
         />
         {typeDocument === "facture" && (
-          <div style={{ marginBottom: 16, overflow: "hidden" }}>
+          <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>
               Date de la prestation
             </label>
             <input
               className="field"
-              type="date"
-              style={{ marginBottom: 0, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
-              value={datePrestation}
-              onChange={(e) => setDatePrestation(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              placeholder="JJ/MM/AAAA"
+              maxLength={10}
+              style={{ marginBottom: 0 }}
+              value={dateAffichage}
+              onChange={(e) => {
+                const chiffres = e.target.value.replace(/\D/g, "").slice(0, 8);
+                setDateAffichage(chiffresVersAffichage(chiffres));
+                if (chiffres.length === 8) {
+                  setDatePrestation(`${chiffres.slice(4, 8)}-${chiffres.slice(2, 4)}-${chiffres.slice(0, 2)}`);
+                }
+              }}
             />
           </div>
         )}
