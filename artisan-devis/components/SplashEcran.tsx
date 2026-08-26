@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface SplashEcranProps {
   onContinuer: () => void;
 }
@@ -13,7 +15,7 @@ export function SplashEcran({ onContinuer }: SplashEcranProps) {
         if (e.key === "Enter" || e.key === " ") onContinuer();
       }}
     >
-      <img src="/fox-icon.png" alt="VolpeVox" className="splash-logo" />
+      <Image src="/fox-icon.png" alt="VolpeVox" width={260} height={260} className="splash-logo" priority />
       <p className="splash-brand splash-ligne splash-ligne-1">
         <span className="splash-brand-volpe">Volpe</span>
         <span className="splash-brand-vox">Vox</span>

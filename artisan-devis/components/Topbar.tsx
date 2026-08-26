@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -47,7 +48,7 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
         )}
 
         <Link href="/" className="topbar-brand" onClick={() => setOuvert(false)}>
-          <img src="/fox-icon.png" alt="" className="topbar-logo" aria-hidden="true" />
+          <Image src="/fox-icon.png" alt="" width={34} height={34} className="topbar-logo" aria-hidden="true" priority />
           <span className="brand-volpe">Volpe</span>
           <span className="brand-vox">Vox</span>
         </Link>

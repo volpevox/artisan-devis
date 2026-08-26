@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useState } from "react";
 import type { FormEvent } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SplashEcran } from "@/components/SplashEcran";
@@ -114,7 +115,7 @@ function ConnexionContenu() {
   return (
     <main className="page-shell" style={{ justifyContent: "center" }}>
       <div style={{ textAlign: "center", marginBottom: 22 }}>
-        <img src="/fox-icon.png" alt="" aria-hidden="true" className="connexion-logo" />
+        <Image src="/fox-icon.png" alt="" aria-hidden="true" width={84} height={84} className="connexion-logo" priority />
         <p className="connexion-brand">
           <span className="brand-volpe">Volpe</span>
           <span className="brand-vox">Vox</span>

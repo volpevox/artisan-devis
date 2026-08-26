@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -17,7 +18,7 @@ export function EnteteLegale() {
       </button>
 
       <Link href="/" className="topbar-brand">
-        <img src="/fox-icon.png" alt="" className="topbar-logo" aria-hidden="true" />
+        <Image src="/fox-icon.png" alt="" width={34} height={34} className="topbar-logo" aria-hidden="true" />
         <span className="brand-volpe">Volpe</span>
         <span className="brand-vox">Vox</span>
       </Link>
