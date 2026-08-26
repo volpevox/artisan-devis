@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -13,7 +13,30 @@ function ConnexionContenu() {
   // clics inutiles a quelqu'un qui vient deja de decider de s'inscrire.
   const searchParams = useSearchParams();
   const modeInscriptionDirect = searchParams.get("mode") === "inscription";
-  const codeInvitation = searchParams.get("invite");
+  const codeInvitationUrl = searchParams.get("invite");
+  const [codeInvitationStocke, setCodeInvitationStocke] = useState<string | null>(null);
+
+  // L'app installee sur l'ecran d'accueil se relance toujours sur "/"
+  // (start_url du manifest), en perdant le "?invite=CODE" de l'URL d'origine.
+  // On memorise donc le code des qu'on le voit dans l'URL (visite via Safari
+  // avant l'installation), pour pouvoir le retrouver ensuite meme sans le
+  // parametre d'URL. Ca ne fonctionne que si le stockage est partage entre
+  // Safari et l'app installee -- Apple a parfois change ce comportement selon
+  // les versions d'iOS, impossible a garantir sans tester sur un vrai iPhone.
+  useEffect(() => {
+    try {
+      if (codeInvitationUrl) {
+        localStorage.setItem("code_invitation_gratuite", codeInvitationUrl);
+      } else {
+        setCodeInvitationStocke(localStorage.getItem("code_invitation_gratuite"));
+      }
+    } catch {
+      // Stockage indisponible (navigation privee, etc.) : tant pis, on
+      // retombe sur le parcours payant normal.
+    }
+  }, [codeInvitationUrl]);
+
+  const codeInvitation = codeInvitationUrl || codeInvitationStocke;
 
   const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">(
     modeInscriptionDirect ? "inscription" : "connexion"
@@ -83,6 +106,9 @@ function ConnexionContenu() {
           } catch {
             // Ignore : useArtisan.ts renverra vers /abonnement si l'activation a echoue.
           }
+          try {
+            localStorage.removeItem("code_invitation_gratuite");
+          } catch {}
         }
 
         // Une vraie navigation (plutot qu'un changement de page en JS) est
