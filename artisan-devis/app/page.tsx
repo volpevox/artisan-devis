@@ -117,6 +117,7 @@ export default function Home() {
 
       const res = await fetch("/api/transcrire", {
         method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}` },
         body: formData,
       });
       const data = await res.json();

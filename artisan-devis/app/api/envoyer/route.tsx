@@ -15,7 +15,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: "Aucun email de client fourni" }, { status: 400 });
   }
 
-  const lienSignature = devisId ? `${req.nextUrl.origin}/signer/${devisId}` : null;
+  if (!devisId) {
+    return NextResponse.json({ erreur: "Aucun devis fourni" }, { status: 400 });
+  }
+
+  const lienSignature = `${req.nextUrl.origin}/signer/${devisId}`;
 
   const resultat = await getArtisanConnecte(req.headers.get("authorization"));
   if ("erreur" in resultat) {
@@ -23,9 +27,19 @@ export async function POST(req: NextRequest) {
   }
   const { supabase, artisan: profil } = resultat;
 
-  const { data: devisRow } = devisId
-    ? await supabase.from("devis").select("numero_devis").eq("id", devisId).maybeSingle()
-    : { data: null };
+  const { data: devisRow } = await supabase
+    .from("devis")
+    .select("numero_devis, artisan_id")
+    .eq("id", devisId)
+    .maybeSingle();
+
+  if (!devisRow) {
+    return NextResponse.json({ erreur: "Devis introuvable" }, { status: 404 });
+  }
+
+  if (devisRow.artisan_id !== profil.id) {
+    return NextResponse.json({ erreur: "Ce devis ne t'appartient pas" }, { status: 403 });
+  }
 
   const tauxTva = profil?.taux_tva ?? 20;
   const totalHT = Number(prix) || 0;
