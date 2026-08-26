@@ -29,28 +29,33 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const totalTTC = (devis.total ?? 0) * (1 + tauxTva / 100);
   const montantCentimes = Math.round(totalTTC * 100);
 
-  const session = await stripe.checkout.sessions.create(
-    {
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            unit_amount: montantCentimes,
-            product_data: {
-              name: `Facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} — ${artisan.nom_entreprise || ""}`,
-              images: artisan.logo_url ? [artisan.logo_url] : undefined,
+  try {
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              unit_amount: montantCentimes,
+              product_data: {
+                name: `Facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} — ${artisan.nom_entreprise || ""}`,
+                images: artisan.logo_url ? [artisan.logo_url] : undefined,
+              },
             },
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      success_url: `${req.nextUrl.origin}/signer/${params.id}?paiement=succes&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.nextUrl.origin}/signer/${params.id}`,
-      metadata: { devis_id: params.id },
-    },
-    { stripeAccount: artisan.stripe_account_id }
-  );
+        ],
+        success_url: `${req.nextUrl.origin}/signer/${params.id}?paiement=succes&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.nextUrl.origin}/signer/${params.id}`,
+        metadata: { devis_id: params.id },
+      },
+      { stripeAccount: artisan.stripe_account_id }
+    );
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (e: any) {
+    console.error(`[payer-facture ${params.id}] creation de la session Stripe echouee :`, e?.message || e);
+    return NextResponse.json({ erreur: e?.message || "Erreur inconnue lors de la creation du paiement" }, { status: 500 });
+  }
 }

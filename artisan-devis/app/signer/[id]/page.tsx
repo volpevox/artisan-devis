@@ -78,16 +78,21 @@ function SignerContenu() {
     setEnCoursPaiement(true);
     setMessage("");
 
-    const res = await fetch(`/api/payer-facture/${devisId}`, { method: "POST" });
-    const data = await res.json();
+    try {
+      const res = await fetch(`/api/payer-facture/${devisId}`, { method: "POST" });
+      const data = await res.json();
 
-    if (data.erreur) {
-      setMessage("Erreur : " + data.erreur);
+      if (data.erreur || !data.url) {
+        setMessage("Erreur : " + (data.erreur || "Impossible de démarrer le paiement"));
+        setEnCoursPaiement(false);
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch {
+      setMessage("Erreur : impossible de contacter le serveur, réessaie.");
       setEnCoursPaiement(false);
-      return;
     }
-
-    window.location.href = data.url;
   }
 
   function position(e: React.PointerEvent<HTMLCanvasElement>) {
