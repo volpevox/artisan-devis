@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabaseServerClient";
 
-// Active un acces gratuit et permanent (sans passer par Stripe) pour un
-// artisan qui s'inscrit via le lien d'invitation. Le code secret est verifie
-// cote serveur uniquement -- jamais expose au navigateur -- pour qu'on ne
-// puisse pas se donner un acces gratuit en devinant/rejouant une requete.
+// Active un acces gratuit et permanent (sans passer par Stripe) pour les
+// personnes dont l'email figure dans la liste privee EMAILS_ACCES_GRATUIT
+// (amis, beta-testeurs choisis par Marley). L'email verifie est celui de la
+// session authentifiee cote serveur -- jamais un parametre transmis par le
+// client -- pour rester fiable meme quand l'app est relancee depuis l'ecran
+// d'accueil sur iOS (un code transmis via l'URL s'y perdait, voir l'ancienne
+// version de cette route et de app/connexion/page.tsx).
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
@@ -16,14 +19,17 @@ export async function POST(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user?.email) {
     return NextResponse.json({ erreur: "Session invalide ou expirée" }, { status: 401 });
   }
 
-  const { code } = await req.json();
+  const emailsAutorises = (process.env.EMAILS_ACCES_GRATUIT || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
 
-  if (!process.env.CODE_INVITATION_GRATUITE || code !== process.env.CODE_INVITATION_GRATUITE) {
-    return NextResponse.json({ erreur: "Code d'invitation invalide" }, { status: 403 });
+  if (!emailsAutorises.includes(user.email.toLowerCase())) {
+    return NextResponse.json({ ok: false });
   }
 
   const supabaseAdmin = createAdminSupabase();

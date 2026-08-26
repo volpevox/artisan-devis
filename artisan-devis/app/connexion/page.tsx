@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import type { FormEvent } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -13,30 +13,6 @@ function ConnexionContenu() {
   // clics inutiles a quelqu'un qui vient deja de decider de s'inscrire.
   const searchParams = useSearchParams();
   const modeInscriptionDirect = searchParams.get("mode") === "inscription";
-  const codeInvitationUrl = searchParams.get("invite");
-  const [codeInvitationStocke, setCodeInvitationStocke] = useState<string | null>(null);
-
-  // L'app installee sur l'ecran d'accueil se relance toujours sur "/"
-  // (start_url du manifest), en perdant le "?invite=CODE" de l'URL d'origine.
-  // On memorise donc le code des qu'on le voit dans l'URL (visite via Safari
-  // avant l'installation), pour pouvoir le retrouver ensuite meme sans le
-  // parametre d'URL. Ca ne fonctionne que si le stockage est partage entre
-  // Safari et l'app installee -- Apple a parfois change ce comportement selon
-  // les versions d'iOS, impossible a garantir sans tester sur un vrai iPhone.
-  useEffect(() => {
-    try {
-      if (codeInvitationUrl) {
-        localStorage.setItem("code_invitation_gratuite", codeInvitationUrl);
-      } else {
-        setCodeInvitationStocke(localStorage.getItem("code_invitation_gratuite"));
-      }
-    } catch {
-      // Stockage indisponible (navigation privee, etc.) : tant pis, on
-      // retombe sur le parcours payant normal.
-    }
-  }, [codeInvitationUrl]);
-
-  const codeInvitation = codeInvitationUrl || codeInvitationStocke;
 
   const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">(
     modeInscriptionDirect ? "inscription" : "connexion"
@@ -91,24 +67,24 @@ function ConnexionContenu() {
       }
 
       if (data.session) {
-        // Lien d'invitation (acces gratuit, sans Stripe) : le code est verifie
-        // cote serveur dans /api/activer-invite avant d'activer l'acces. On
-        // tente l'activation avant de rediriger, mais on redirige vers "/"
-        // dans tous les cas -- si le code est absent/invalide, useArtisan.ts
-        // renverra simplement vers /abonnement comme d'habitude.
-        if (codeInvitation) {
-          try {
-            await fetch("/api/activer-invite", {
-              method: "POST",
-              headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" },
-              body: JSON.stringify({ code: codeInvitation }),
-            });
-          } catch {
-            // Ignore : useArtisan.ts renverra vers /abonnement si l'activation a echoue.
-          }
-          try {
-            localStorage.removeItem("code_invitation_gratuite");
-          } catch {}
+        // Acces gratuit (sans Stripe) pour les emails explicitement autorises
+        // par Marley : /api/activer-invite verifie cote serveur l'email de la
+        // session qui vient d'etre creee contre la liste EMAILS_ACCES_GRATUIT.
+        // On ne passe plus par un code dans l'URL (?invite=) : un tel code se
+        // perdait quand l'app etait relancee depuis l'ecran d'accueil sur
+        // iOS (stockage isole entre Safari et l'app installee, y compris
+        // pour une valeur memorisee en localStorage avant l'installation).
+        // L'email, lui, est toujours disponible, peu importe le chemin pris.
+        let accesGratuit = false;
+        try {
+          const reponse = await fetch("/api/activer-invite", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${data.session.access_token}` },
+          });
+          const resultat = await reponse.json();
+          accesGratuit = Boolean(resultat.ok);
+        } catch {
+          // Ignore : useArtisan.ts renverra vers /abonnement si l'activation a echoue.
         }
 
         // Une vraie navigation (plutot qu'un changement de page en JS) est
@@ -117,9 +93,9 @@ function ConnexionContenu() {
         // se declenche pas de facon fiable avec un simple router.push.
         // Direction /abonnement (et non /profil) : la carte bancaire est
         // desormais obligatoire des l'inscription, useArtisan.ts y renverrait
-        // de toute facon tant qu'aucun abonnement Stripe n'existe -- sauf via
-        // un lien d'invitation, deja gere ci-dessus.
-        window.location.href = codeInvitation ? "/" : "/abonnement";
+        // de toute facon tant qu'aucun abonnement Stripe n'existe -- sauf pour
+        // un email a acces gratuit, deja gere ci-dessus.
+        window.location.href = accesGratuit ? "/" : "/abonnement";
       } else {
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);
