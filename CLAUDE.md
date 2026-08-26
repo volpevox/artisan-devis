@@ -52,9 +52,9 @@ La vision complète du parcours (dictée → devis → signature → facture →
 - Le remplissage automatique des mots de passe (et Face ID associé) ne fonctionne pas en mode app iPhone, seulement dans Safari classique — limitation connue d'iOS, mise de côté
 
 ## Reste à faire (dans cet ordre convenu avec Marley)
-1. **Nouvel hébergement o2switch** pour la landing page (compte séparé de rema3302/agencevolpe.fr, "domaine plus tard" à la commande pour ne pas re-toucher aux DNS Cloudflare).
-2. **Landing page WordPress** (volpevox.fr) — angle marketing central : "récupère tes soirées" (temps gagné), pas une liste de fonctionnalités — voir memoire `landing_page_positionnement_prix`. En cours.
-3. **Stripe en mode réel** — quand Marley est prêt à facturer/encaisser pour de vrai : vérification d'identité de la plateforme + remplacement des clés test par les clés live dans Vercel.
+1. ~~Nouvel hébergement o2switch~~ — FAIT (2026-08-25, compte séparé de rema3302/agencevolpe.fr).
+2. ~~Landing page WordPress (volpevox.fr)~~ — FAIT et EN LIGNE depuis le 2026-08-26. Angle marketing central : "récupère tes soirées" (temps gagné), pas une liste de fonctionnalités. `volpevox.fr` → WordPress (o2switch), `app.volpevox.fr` → l'appli Next.js (Vercel). Le contenu vit dans un bloc Gutenberg "HTML personnalisé" sur la page "Accueil" ; `landing-page/index.html` à la racine du dépôt est la copie de référence à modifier avant de recoller dans WordPress. Offre de lancement affichée : 45€/mois pendant 12 mois puis 79€/mois — pas encore répercutée côté Stripe (voir point 3).
+3. **Stripe en mode réel** — quand Marley est prêt à facturer/encaisser pour de vrai : vérification d'identité de la plateforme + remplacement des clés test par les clés live dans Vercel (STRIPE_SECRET_KEY, STRIPE_PRICE_ID, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET). Décider aussi comment gérer l'offre de lancement à 45€/12 mois côté Stripe (prix dédié avec bascule auto à 79€, ou gestion manuelle).
 4. **Petit ménage** — fichiers `node_modules/`, `package.json`, `package-lock.json` à la racine du dépôt (hors du dossier `artisan-devis/`), origine inconnue, à clarifier avec Marley avant suppression.
 5. **Performance / fluidité** — minification, cache — en tout dernier, une fois toutes les fonctionnalités en place.
 

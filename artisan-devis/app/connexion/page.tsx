@@ -12,6 +12,7 @@ function ConnexionContenu() {
   // clics inutiles a quelqu'un qui vient deja de decider de s'inscrire.
   const searchParams = useSearchParams();
   const modeInscriptionDirect = searchParams.get("mode") === "inscription";
+  const codeInvitation = searchParams.get("invite");
 
   const [mode, setMode] = useState<"connexion" | "inscription" | "oubli">(
     modeInscriptionDirect ? "inscription" : "connexion"
@@ -60,14 +61,32 @@ function ConnexionContenu() {
       }
 
       if (data.session) {
+        // Lien d'invitation (acces gratuit, sans Stripe) : le code est verifie
+        // cote serveur dans /api/activer-invite avant d'activer l'acces. On
+        // tente l'activation avant de rediriger, mais on redirige vers "/"
+        // dans tous les cas -- si le code est absent/invalide, useArtisan.ts
+        // renverra simplement vers /abonnement comme d'habitude.
+        if (codeInvitation) {
+          try {
+            await fetch("/api/activer-invite", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ code: codeInvitation }),
+            });
+          } catch {
+            // Ignore : useArtisan.ts renverra vers /abonnement si l'activation a echoue.
+          }
+        }
+
         // Une vraie navigation (plutot qu'un changement de page en JS) est
         // necessaire pour que Safari/Chrome proposent d'enregistrer le mot
         // de passe : leur heuristique de detection de connexion reussie ne
         // se declenche pas de facon fiable avec un simple router.push.
         // Direction /abonnement (et non /profil) : la carte bancaire est
         // desormais obligatoire des l'inscription, useArtisan.ts y renverrait
-        // de toute facon tant qu'aucun abonnement Stripe n'existe.
-        window.location.href = "/abonnement";
+        // de toute facon tant qu'aucun abonnement Stripe n'existe -- sauf via
+        // un lien d'invitation, deja gere ci-dessus.
+        window.location.href = codeInvitation ? "/" : "/abonnement";
       } else {
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);
