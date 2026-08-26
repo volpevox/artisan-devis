@@ -174,27 +174,22 @@ export default function Parametres() {
           <span className="hint" style={{ margin: 0 }}>Gérer mon abonnement VolpeVox</span>
         </Link>
 
-        {stripePaiementActif ? (
-          <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="tuile-carree">
-            <span className="tuile-carree-titre">Paiement en ligne</span>
-            <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-            </svg>
-            <span style={{ color: "var(--success)", fontWeight: 600, fontSize: 13 }}>✓ Activé — voir mon espace Stripe</span>
-          </a>
-        ) : (
-          <button type="button" className="tuile-carree" onClick={connecterPaiements} disabled={enCoursStripe}>
-            <span className="tuile-carree-titre">Paiement en ligne</span>
-            <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-            </svg>
-            <span className="hint" style={{ margin: 0 }}>
-              {stripeAccountId ? "Reprendre l'inscription Stripe" : "Connecter Stripe (sans commission)"}
-            </span>
-          </button>
-        )}
+        {
+          // Fonctionnalite temporairement mise en pause : la creation de
+          // comptes connectes Stripe en mode production est bloquee cote
+          // Stripe (profil de plateforme Connect a finir de leur cote),
+          // en attente d'une reponse du support Stripe. A remettre en place
+          // (voir version precedente dans l'historique git) une fois
+          // resolu.
+        }
+        <div className="tuile-carree" style={{ opacity: 0.5, cursor: "not-allowed" }} aria-disabled="true">
+          <span className="tuile-carree-titre">Paiement en ligne</span>
+          <svg className="tuile-carree-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
+          </svg>
+          <span className="hint" style={{ margin: 0 }}>À venir</span>
+        </div>
       </div>
 
       <Link href="/parametres/comment-ca-marche" className="card ccm-lien-carte">
