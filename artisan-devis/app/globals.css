@@ -1258,3 +1258,498 @@ textarea {
   height: 20px;
   flex: none;
 }
+
+/* Page "Comment ça marche" (/parametres/comment-ca-marche) : parcours en
+   timeline verticale, chaque etape avec une petite animation CSS illustrant
+   l'ecran reel (memes classes/keyframes que le reste de l'appli quand elles
+   existent deja : pulse-ring, mic-breathe, wave-bounce). */
+.ccm-intro {
+  margin: -4px 0 22px;
+}
+
+.ccm-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.ccm-etape {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 14px;
+}
+
+.ccm-numero-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ccm-numero {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  font-family: var(--font-poppins), sans-serif;
+}
+
+.ccm-ligne-verticale {
+  flex: 1 1 auto;
+  width: 2px;
+  min-height: 20px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.ccm-etape:last-child .ccm-ligne-verticale {
+  display: none;
+}
+
+.ccm-etape-corps {
+  padding-bottom: 26px;
+}
+
+.ccm-etape-titre {
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text);
+  margin: 3px 0 4px;
+}
+
+.ccm-etape-texte {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+
+.ccm-demo {
+  margin-top: 12px;
+  min-height: 76px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  position: relative;
+  padding: 10px 14px;
+}
+
+/* 1. Dictee vocale */
+.ccm-mic-mini {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.ccm-mic-mini svg {
+  width: 20px;
+  height: 20px;
+  color: var(--on-ink);
+  animation: mic-breathe 1.4s ease-in-out infinite;
+}
+
+.ccm-mic-mini::before,
+.ccm-mic-mini::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  opacity: 0.6;
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+.ccm-mic-mini::after {
+  border-color: #5eead4;
+  animation-delay: 0.5s;
+}
+
+.ccm-wave-mini {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+}
+
+.ccm-wave-mini span {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  height: 6px;
+  animation: wave-bounce 1s ease-in-out infinite;
+}
+
+/* 2. L'IA remplit le devis */
+.ccm-lignes {
+  width: 100%;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.ccm-ligne-texte {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ink);
+  opacity: 0.85;
+  animation: ccm-remplir 3s ease-in-out infinite;
+}
+
+@keyframes ccm-remplir {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  40% {
+    clip-path: inset(0 0 0 0);
+  }
+  85% {
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/* 3. Envoi par email */
+.ccm-enveloppe svg {
+  width: 34px;
+  height: 34px;
+  color: var(--ink);
+  animation: ccm-envoyer 2.6s ease-in-out infinite;
+}
+
+@keyframes ccm-envoyer {
+  0% {
+    transform: translateX(-26px);
+    opacity: 0;
+  }
+  15% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(26px);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 4. Signature sur le telephone */
+.ccm-telephone {
+  width: 60px;
+  height: 92px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  flex: none;
+}
+
+.ccm-telephone svg path {
+  animation: ccm-signer 2.8s ease-in-out infinite;
+}
+
+@keyframes ccm-signer {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+  }
+  85% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* 5. et 8. Relances automatiques */
+.ccm-cloche {
+  position: relative;
+}
+
+.ccm-cloche svg {
+  width: 30px;
+  height: 30px;
+  color: var(--ink);
+  transform-origin: 50% 10%;
+  animation: ccm-clochette 2.6s ease-in-out infinite;
+}
+
+@keyframes ccm-clochette {
+  0%,
+  45%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-12deg);
+  }
+  57% {
+    transform: rotate(10deg);
+  }
+  64% {
+    transform: rotate(-7deg);
+  }
+  71% {
+    transform: rotate(5deg);
+  }
+  78% {
+    transform: rotate(0deg);
+  }
+}
+
+.ccm-point-relance {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: ccm-point-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes ccm-point-pulse {
+  0%,
+  48% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  62% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  78%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 6. Devis -> facture */
+.ccm-transform {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ccm-mini-doc {
+  width: 48px;
+  height: 60px;
+  border-radius: 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--muted);
+  flex: none;
+}
+
+.ccm-mini-doc--facture {
+  border-color: var(--ink);
+  color: var(--ink);
+  animation: ccm-facture-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes ccm-facture-pulse {
+  0%,
+  65%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(221, 167, 66, 0);
+  }
+  80% {
+    box-shadow: 0 0 0 6px rgba(221, 167, 66, 0.16);
+  }
+}
+
+.ccm-fleche-icone {
+  width: 20px;
+  height: 20px;
+  color: var(--ink);
+  flex: none;
+  animation: ccm-fleche 1.4s ease-in-out infinite;
+}
+
+@keyframes ccm-fleche {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}
+
+/* 7. Paiement en ligne */
+.ccm-paiement {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ccm-euro {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  border: 1px solid var(--success);
+  color: var(--success);
+  font-weight: 800;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.ccm-check svg {
+  width: 30px;
+  height: 30px;
+  color: var(--success);
+}
+
+.ccm-check svg path {
+  animation: ccm-check-dessine 2.8s ease-in-out infinite;
+}
+
+.ccm-check svg circle {
+  animation: ccm-check-cercle 2.8s ease-in-out infinite;
+}
+
+@keyframes ccm-check-dessine {
+  0%,
+  15% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  50%,
+  85% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ccm-check-cercle {
+  0%,
+  15% {
+    opacity: 0;
+  }
+  25%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 9. Suivi centralise */
+.ccm-suivi {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ccm-suivi-pt {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  flex: none;
+  animation: ccm-suivi-remplir 3.2s ease-in-out infinite;
+}
+
+.ccm-suivi-trait {
+  width: 16px;
+  height: 2px;
+  background: var(--border);
+  flex: none;
+}
+
+@keyframes ccm-suivi-remplir {
+  0%,
+  6% {
+    background: var(--border);
+  }
+  16%,
+  88% {
+    background: var(--success);
+  }
+  98%,
+  100% {
+    background: var(--border);
+  }
+}
+
+.ccm-lien-carte {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ccm-lien-icone {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(221, 167, 66, 0.12);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ccm-lien-icone svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ccm-lien-chevron {
+  margin-left: auto;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}

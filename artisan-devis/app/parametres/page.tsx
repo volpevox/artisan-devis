@@ -197,6 +197,29 @@ export default function Parametres() {
         )}
       </div>
 
+      <Link href="/parametres/comment-ca-marche" className="card ccm-lien-carte">
+        <span className="ccm-lien-icone">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
+            <path
+              d="M9.5 9.3a2.5 2.5 0 1 1 3.3 2.4c-.7.3-1.3.9-1.3 1.8v.3"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="12" cy="16.8" r="1" fill="currentColor" />
+          </svg>
+        </span>
+        <span>
+          <span style={{ display: "block", fontWeight: 700, fontSize: 14.5, color: "var(--text)" }}>Comment ça marche</span>
+          <span className="hint" style={{ margin: 0 }}>Le parcours complet, de la dictée au paiement</span>
+        </span>
+        <svg className="ccm-lien-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+
       {message && <p className="message">{message}</p>}
 
       <div className="tuiles-carrees">
