@@ -82,6 +82,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           payeeLe: devis.payee_le ? new Date(devis.payee_le) : null,
           moyenPaiement: devis.moyen_paiement || null,
         }}
+        datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
       />
     );
 

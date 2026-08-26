@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   },
   clientNom: { fontFamily: "Fraunces", fontWeight: 600, fontSize: 15, color: ENCRE },
   clientAdresse: { fontSize: 9.5, color: MUTED, marginTop: 3 },
+  prestationDate: { fontSize: 9.5, color: MUTED, marginTop: 3, fontFamily: "JetBrains Mono" },
 
   tableHeader: {
     flexDirection: "row",
@@ -259,6 +260,7 @@ interface DevisPdfProps {
   type?: "devis" | "facture";
   numero?: number | null;
   paiement?: { payeeLe: Date | null; moyenPaiement: string | null } | null;
+  datePrestation?: Date | null;
 }
 
 export function DevisPDF({
@@ -274,6 +276,7 @@ export function DevisPDF({
   type = "devis",
   numero,
   paiement,
+  datePrestation,
 }: DevisPdfProps) {
   const totalHT = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
   const montantTva = (totalHT * tauxTva) / 100;
@@ -338,6 +341,9 @@ export function DevisPDF({
             <Text style={styles.clientLabel}>{motDocument} adressé{estFacture ? "e" : ""} à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
             {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
+            {estFacture && datePrestation ? (
+              <Text style={styles.prestationDate}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
+            ) : null}
           </View>
 
           <View style={styles.tableHeader}>

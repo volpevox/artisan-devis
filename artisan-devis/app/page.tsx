@@ -24,6 +24,10 @@ function ligneVide(): Ligne {
   return { description: "", prestation: "", quantite: "1", unite: "forfait", prixUnitaire: "", prixPropose: false };
 }
 
+function dateDuJour() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
@@ -32,6 +36,7 @@ export default function Home() {
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
+  const [datePrestation, setDatePrestation] = useState(dateDuJour());
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
@@ -214,7 +219,13 @@ export default function Home() {
     // comme facturee des sa creation -- pas d'etape "brouillon en attente de
     // signature" comme pour un devis, elle est juste prete a etre envoyee.
     const infosDocument = estFacture
-      ? { est_facture: true, numero_facture: numero, facture_creee_le: new Date().toISOString(), statut: "brouillon" }
+      ? {
+          est_facture: true,
+          numero_facture: numero,
+          facture_creee_le: new Date().toISOString(),
+          date_prestation: datePrestation,
+          statut: "brouillon",
+        }
       : { numero_devis: numero, statut: "brouillon" };
 
     const { data: devis, error: erreurDevis } = await supabase
@@ -278,7 +289,13 @@ export default function Home() {
     if (estFacture) {
       await supabase
         .from("devis")
-        .update({ client_nom: client, client_email: clientEmail.trim(), client_adresse: clientAdresse, total })
+        .update({
+          client_nom: client,
+          client_email: clientEmail.trim(),
+          client_adresse: clientAdresse,
+          total,
+          date_prestation: datePrestation,
+        })
         .eq("id", devisId);
 
       await supabase.from("lignes_devis").delete().eq("devis_id", devisId);
@@ -339,6 +356,7 @@ export default function Home() {
     setClient("");
     setClientEmail("");
     setClientAdresse("");
+    setDatePrestation(dateDuJour());
     setLignes([ligneVide()]);
     setDevisEnregistre(false);
     setEtape("voice");
@@ -503,6 +521,20 @@ export default function Home() {
           value={clientAdresse}
           onChange={(e) => setClientAdresse(e.target.value)}
         />
+        {typeDocument === "facture" && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>
+              Date de la prestation
+            </label>
+            <input
+              className="field"
+              type="date"
+              style={{ marginBottom: 0 }}
+              value={datePrestation}
+              onChange={(e) => setDatePrestation(e.target.value)}
+            />
+          </div>
+        )}
         {lignes.map((ligne, index) => {
           const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
           return (
