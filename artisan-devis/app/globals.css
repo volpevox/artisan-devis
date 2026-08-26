@@ -57,9 +57,13 @@ body {
 .app-viewport {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100svh;
-  height: 100dvh;
+  /* Pourcentage simple plutot que vh/svh/dvh : ces unites "hauteur d'ecran"
+     sont concues pour le probleme de la barre d'adresse qui apparait/
+     disparait dans Safari onglet -- en mode standalone (ajoute a l'ecran
+     d'accueil), ce probleme ne devrait meme pas exister, et ces unites ont
+     un historique d'implementation peu fiable sur iOS dans ce mode precis.
+     height:100% s'appuie sur html/body qui ont deja height:100% plus haut. */
+  height: 100%;
   background: var(--bg);
 }
 
