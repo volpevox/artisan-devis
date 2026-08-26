@@ -243,7 +243,7 @@ function SignerContenu() {
           </p>
         </div>
 
-        {devis.statut === "signe" ? (
+        {estFacture || devis.statut === "signe" ? (
           <div
             style={{
               background: "var(--success-bg)",
@@ -252,9 +252,11 @@ function SignerContenu() {
               marginTop: 8,
             }}
           >
-            <p style={{ margin: "0 0 10px", color: "var(--success)" }}>
-              ✓ {motDocument} signé{estFacture ? "e" : ""} le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
-            </p>
+            {devis.signe_le && (
+              <p style={{ margin: "0 0 10px", color: "var(--success)" }}>
+                ✓ {motDocument} signé{estFacture ? "e" : ""} le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
+              </p>
+            )}
             {devis.signature_url && (
               <img
                 src={devis.signature_url}
