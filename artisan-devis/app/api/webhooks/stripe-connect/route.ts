@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(corpsBrut, signature!, process.env.STRIPE_CONNECT_WEBHOOK_SECRET!);
-  } catch {
+  } catch (err: any) {
+    console.error("[webhook stripe-connect] signature invalide :", err?.message || err);
     return NextResponse.json({ erreur: "Signature Stripe invalide" }, { status: 400 });
   }
 
@@ -34,27 +35,35 @@ export async function POST(req: NextRequest) {
     if (devisId && session.payment_status === "paid") {
       const supabaseAdmin = createAdminSupabase();
 
-      const { data: devis } = await supabaseAdmin
+      const { data: devis, error: erreurLecture } = await supabaseAdmin
         .from("devis")
         .select("artisan_id, payee_le, client_nom, numero_facture")
         .eq("id", devisId)
         .maybeSingle();
 
-      // Deja marquee payee (le navigateur du client a eu le temps de le
-      // faire avant ce webhook) : rien a faire, evite une notification en
-      // double.
-      if (devis && !devis.payee_le) {
-        await supabaseAdmin
+      if (erreurLecture) {
+        console.error(`[webhook stripe-connect] lecture du devis ${devisId} echouee :`, erreurLecture.message);
+      } else if (!devis) {
+        console.error(`[webhook stripe-connect] devis ${devisId} introuvable (session ${session.id})`);
+      } else if (!devis.payee_le) {
+        const { error: erreurUpdate } = await supabaseAdmin
           .from("devis")
           .update({ payee_le: new Date().toISOString(), moyen_paiement: "Carte bancaire (en ligne)" })
           .eq("id", devisId);
 
-        await envoyerNotificationPush(devis.artisan_id, {
-          titre: "Facture payée !",
-          corps: `${devis.client_nom || "Un client"} a payé sa facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} en ligne.`,
-          url: "/factures",
-        });
+        if (erreurUpdate) {
+          console.error(`[webhook stripe-connect] mise a jour du devis ${devisId} echouee :`, erreurUpdate.message);
+        } else {
+          await envoyerNotificationPush(devis.artisan_id, {
+            titre: "Facture payée !",
+            corps: `${devis.client_nom || "Un client"} a payé sa facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} en ligne.`,
+            url: "/factures",
+          });
+        }
       }
+      // Sinon deja marquee payee (le navigateur du client a eu le temps de
+      // le faire avant ce webhook) : rien a faire, evite une notification
+      // en double.
     }
   }
 
