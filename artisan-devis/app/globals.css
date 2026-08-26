@@ -60,11 +60,6 @@ body {
   height: 100vh;
   height: 100svh;
   height: 100dvh;
-  /* Piste distincte des essais precedents (bases sur du JS, tous echoues --
-     voir CLAUDE.md) : technique CSS pure plus ancienne, specifique a
-     WebKit, qui calcule parfois la hauteur visible differemment de dvh en
-     mode "ajoute a l'ecran d'accueil". Non verifiee sur un vrai appareil. */
-  height: -webkit-fill-available;
   background: var(--bg);
 }
 
