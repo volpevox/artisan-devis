@@ -1033,6 +1033,10 @@ textarea {
   .bottom-nav-item.active {
     color: var(--ink);
   }
+
+  .bottom-nav-item.active svg {
+    color: #ffd60a;
+  }
 }
 
 .prose-legale h2 {
