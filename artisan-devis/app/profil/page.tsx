@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
+import { PropositionCommentCaMarche } from "@/components/PropositionCommentCaMarche";
 import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 
 export default function Profil() {
@@ -150,6 +151,7 @@ export default function Profil() {
   return (
     <main className="page-shell">
       <Topbar />
+      <PropositionCommentCaMarche />
 
       <h1 className="page-title">Mon profil</h1>
 

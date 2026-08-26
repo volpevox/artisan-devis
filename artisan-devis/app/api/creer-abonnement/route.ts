@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
     subscription_data: { trial_period_days: 14 },
     ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
-    success_url: `${req.nextUrl.origin}/abonnement/succes`,
+    success_url: `${req.nextUrl.origin}/profil?bienvenue=1`,
     cancel_url: `${req.nextUrl.origin}/abonnement`,
     metadata: { user_id: user.id },
   });

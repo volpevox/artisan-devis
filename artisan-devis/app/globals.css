@@ -1344,7 +1344,25 @@ textarea {
   padding: 10px 14px;
 }
 
-/* 1. Dictee vocale */
+/* 1. Profil (partage la mise en page flex de .ccm-paiement) */
+.ccm-profil-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(221, 167, 66, 0.12);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.ccm-profil-icone svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* 2. Dictee vocale */
 .ccm-mic-mini {
   position: relative;
   width: 40px;

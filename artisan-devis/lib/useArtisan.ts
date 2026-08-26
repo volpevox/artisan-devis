@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 // L'artisan garde acces a son profil (pour gerer/reactiver son abonnement,
 // ou completer les informations obligatoires) et a la page d'abonnement
 // elle-meme meme si l'acces au reste est bloque.
-const PAGES_TOUJOURS_ACCESSIBLES = ["/profil", "/abonnement"];
+const PAGES_TOUJOURS_ACCESSIBLES = ["/profil", "/abonnement", "/parametres/comment-ca-marche"];
 
 // Les memes champs que la validation de app/profil/page.tsx : tant qu'ils ne
 // sont pas tous remplis, l'artisan ne doit pas pouvoir utiliser l'outil (les

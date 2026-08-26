@@ -6,16 +6,57 @@ export default function CommentCaMarche() {
       <Topbar />
 
       <h1 className="page-title">Comment ça marche</h1>
+
       <p className="hint ccm-intro">
         Le parcours complet, de la dictée du chantier jusqu'au paiement de la facture. Chaque étape se fait en
         quelques secondes.
       </p>
 
       <div className="ccm-timeline">
-        {/* 1. Dictée vocale */}
+        {/* 1. Profil */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
             <span className="ccm-numero">1</span>
+            <span className="ccm-ligne-verticale" />
+          </div>
+          <div className="ccm-etape-corps">
+            <p className="ccm-etape-titre">Tu complètes ton profil (une seule fois)</p>
+            <p className="ccm-etape-texte">
+              Nom, adresse, SIRET, taux de TVA, logo... Ces informations apparaissent automatiquement sur tous tes
+              devis et factures. C'est la seule étape à faire avant de commencer — ensuite tu n'y retournes plus.
+            </p>
+            <div className="ccm-demo">
+              <div className="ccm-paiement" aria-hidden="true">
+                <span className="ccm-profil-icone">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+                    <circle cx="9" cy="11" r="2" stroke="currentColor" strokeWidth="1.6" />
+                    <path d="M13 10.5h5M13 13h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <span className="ccm-check">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.6" pathLength={1} style={{ strokeDasharray: 1 }} />
+                    <path
+                      d="M8 12.5 11 15.5 16 9"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pathLength={1}
+                      style={{ strokeDasharray: 1 }}
+                    />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Dictée vocale */}
+        <div className="ccm-etape">
+          <div className="ccm-numero-col">
+            <span className="ccm-numero">2</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -40,10 +81,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 2. IA structure le devis */}
+        {/* 3. IA structure le devis */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">2</span>
+            <span className="ccm-numero">3</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -62,10 +103,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 3. Vérification et envoi */}
+        {/* 4. Vérification et envoi */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">3</span>
+            <span className="ccm-numero">4</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -85,10 +126,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 4. Signature électronique */}
+        {/* 5. Signature électronique */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">4</span>
+            <span className="ccm-numero">5</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -115,10 +156,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 5. Relance devis */}
+        {/* 6. Relance devis */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">5</span>
+            <span className="ccm-numero">6</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -145,10 +186,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 6. Transformation en facture */}
+        {/* 7. Transformation en facture */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">6</span>
+            <span className="ccm-numero">7</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -169,10 +210,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 7. Paiement en ligne */}
+        {/* 8. Paiement en ligne */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">7</span>
+            <span className="ccm-numero">8</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -203,10 +244,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 8. Relance facture */}
+        {/* 9. Relance facture */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">8</span>
+            <span className="ccm-numero">9</span>
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
@@ -233,10 +274,10 @@ export default function CommentCaMarche() {
           </div>
         </div>
 
-        {/* 9. Suivi centralisé */}
+        {/* 10. Suivi centralisé */}
         <div className="ccm-etape">
           <div className="ccm-numero-col">
-            <span className="ccm-numero">9</span>
+            <span className="ccm-numero">10</span>
           </div>
           <div className="ccm-etape-corps">
             <p className="ccm-etape-titre">Tout est suivi au même endroit</p>
