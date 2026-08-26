@@ -136,7 +136,9 @@ export function CarteDocument({
       {confirmationSuppression && onSupprimer && (
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
           <span style={{ fontSize: 13, color: "var(--danger)", fontWeight: 600 }}>
-            Supprimer {type === "facture" ? "cette facture" : "ce devis"} définitivement ?
+            {type === "facture"
+              ? "Supprimer cette facture définitivement ? Une facture est une pièce comptable que la loi t'oblige à conserver (environ 10 ans) : ne la supprime que si elle n'aurait jamais dû être créée (erreur, doublon)."
+              : "Supprimer ce devis définitivement ?"}
           </span>
           <button
             className="btn-solid"
