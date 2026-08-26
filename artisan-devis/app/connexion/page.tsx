@@ -6,6 +6,31 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { SplashEcran } from "@/components/SplashEcran";
 
+function IconeOeil({ ouvert }: { ouvert: boolean }) {
+  return ouvert ? (
+    <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
+      <path
+        d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" width="20" height="20" aria-hidden="true">
+      <path
+        d="M3 3l18 18M10.6 5.2A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.5 6.7C3.8 8.5 2 12 2 12s3.6 7 10 7c1.4 0 2.7-.3 3.8-.8M9.5 9.6a3 3 0 0 0 4.2 4.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ConnexionContenu() {
   // Le bouton "Demarrer mon essai gratuit" de la landing page pointe vers
   // /connexion?mode=inscription : on saute directement au formulaire de
@@ -20,6 +45,8 @@ function ConnexionContenu() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
+  const [afficherMotDePasse, setAfficherMotDePasse] = useState(false);
+  const [afficherConfirmation, setAfficherConfirmation] = useState(false);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [afficherDemarrage, setAfficherDemarrage] = useState(!modeInscriptionDirect);
@@ -152,27 +179,49 @@ function ConnexionContenu() {
             onChange={(e) => setEmail(e.target.value)}
           />
           {mode !== "oubli" && (
-            <input
-              className="field"
-              type="password"
-              name="password"
-              autoComplete={mode === "inscription" ? "new-password" : "current-password"}
-              placeholder="Mot de passe"
-              value={motDePasse}
-              onChange={(e) => setMotDePasse(e.target.value)}
-            />
+            <div className="champ-mot-de-passe">
+              <input
+                className="field"
+                type={afficherMotDePasse ? "text" : "password"}
+                name="password"
+                autoComplete={mode === "inscription" ? "new-password" : "current-password"}
+                placeholder="Mot de passe"
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+              <button
+                type="button"
+                className="champ-oeil"
+                onClick={() => setAfficherMotDePasse((v) => !v)}
+                aria-label={afficherMotDePasse ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                <IconeOeil ouvert={afficherMotDePasse} />
+              </button>
+            </div>
           )}
 
           {mode === "inscription" && (
-            <input
-              className="field"
-              type="password"
-              name="confirmation-password"
-              autoComplete="new-password"
-              placeholder="Confirmer le mot de passe"
-              value={confirmationMotDePasse}
-              onChange={(e) => setConfirmationMotDePasse(e.target.value)}
-            />
+            <div className="champ-mot-de-passe">
+              <input
+                className="field"
+                type={afficherConfirmation ? "text" : "password"}
+                name="confirmation-password"
+                autoComplete="new-password"
+                placeholder="Confirmer le mot de passe"
+                value={confirmationMotDePasse}
+                onChange={(e) => setConfirmationMotDePasse(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+              <button
+                type="button"
+                className="champ-oeil"
+                onClick={() => setAfficherConfirmation((v) => !v)}
+                aria-label={afficherConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                <IconeOeil ouvert={afficherConfirmation} />
+              </button>
+            </div>
           )}
 
           {mode === "inscription" && (

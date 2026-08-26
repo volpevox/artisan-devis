@@ -428,6 +428,31 @@ h1.page-title {
   margin-bottom: 8px;
 }
 
+.champ-mot-de-passe {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.champ-mot-de-passe .field {
+  padding-right: 40px;
+}
+
+.champ-oeil {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
 .field-row .field {
   margin-bottom: 0;
   width: auto;
