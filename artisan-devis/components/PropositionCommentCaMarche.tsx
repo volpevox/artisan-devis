@@ -32,7 +32,7 @@ export function PropositionCommentCaMarche() {
         </svg>
         <p className="notif-propose-titre">Bienvenue chez VolpeVox 🎉</p>
         <p className="notif-propose-texte">
-          Ton abonnement est actif. En résumé : tu dictes ton chantier, l&apos;IA remplit le devis, ton client signe
+          Ton abonnement est actif. En résumé : tu dictes ta prestation, l&apos;IA remplit le devis, ton client signe
           sur son téléphone, tu passes en facture et il paie en ligne — avec des relances automatiques à chaque
           étape. Commence par compléter ton profil ci-dessous : ces infos apparaissent sur tous tes documents.
         </p>

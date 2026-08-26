@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 
 export default function CommentCaMarche() {
@@ -8,7 +9,7 @@ export default function CommentCaMarche() {
       <h1 className="page-title">Comment ça marche</h1>
 
       <p className="hint ccm-intro">
-        Le parcours complet, de la dictée du chantier jusqu'au paiement de la facture. Chaque étape se fait en
+        Le parcours complet, de la dictée de la prestation jusqu'au paiement de la facture. Chaque étape se fait en
         quelques secondes.
       </p>
 
@@ -60,7 +61,7 @@ export default function CommentCaMarche() {
             <span className="ccm-ligne-verticale" />
           </div>
           <div className="ccm-etape-corps">
-            <p className="ccm-etape-titre">Tu dictes le chantier</p>
+            <p className="ccm-etape-titre">Tu dictes la prestation</p>
             <p className="ccm-etape-texte">
               Appuie sur le micro et raconte à voix haute : le client, ce que tu vas faire, ton prix. Pas besoin de
               taper quoi que ce soit.
@@ -195,7 +196,7 @@ export default function CommentCaMarche() {
           <div className="ccm-etape-corps">
             <p className="ccm-etape-titre">Le devis devient une facture</p>
             <p className="ccm-etape-texte">
-              Une fois le chantier fait, transforme le devis en facture en un clic — numérotée automatiquement. Tu
+              Une fois la prestation terminée, transforme le devis en facture en un clic — numérotée automatiquement. Tu
               peux aussi dicter une facture directement si tout a été convenu à l'oral avec le client.
             </p>
             <div className="ccm-demo">
@@ -219,9 +220,15 @@ export default function CommentCaMarche() {
           <div className="ccm-etape-corps">
             <p className="ccm-etape-titre">Le client paie en ligne</p>
             <p className="ccm-etape-texte">
-              La facture part par email avec un bouton de paiement. Le client paie par carte, l'argent arrive
-              directement sur ton compte — sans commission VolpeVox.
+              Connecte une seule fois ton compte Stripe (Paramètres → Paiement en ligne) : à partir de là, chaque
+              facture envoyée contient un bouton de paiement, le client paie par carte, et l'argent arrive
+              directement sur ton compte — sans commission VolpeVox. Si Stripe n'est pas encore configuré, pas de
+              souci : choisis simplement un autre moyen de paiement (virement, chèque, espèces) en créant la
+              facture, le client paiera de cette façon-là.
             </p>
+            <div className="link-row">
+              <Link href="/parametres">Configurer Stripe dans Paramètres →</Link>
+            </div>
             <div className="ccm-demo">
               <div className="ccm-paiement" aria-hidden="true">
                 <span className="ccm-euro">€</span>
