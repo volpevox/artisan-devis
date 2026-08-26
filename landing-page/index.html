@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>VolpeVox — Récupère tes soirées</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Dicte ta prestation à voix haute, VolpeVox transforme ça en devis, en facture, en relance et en encaissement. Essai gratuit 14 jours.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1b2e;
+    --bg-soft:#0c1626;
+    --card:#172542;
+    --card-border:#2a3a56;
+    --gold:#e3a94a;
+    --gold-dark:#c9902f;
+    --cream:#f5f1e6;
+    --muted:#9aa5b5;
+    --muted-2:#7b8494;
+    --green:#3fae72;
+    --maxw:100%;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  header, main#top, footer{max-width:none !important;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.is-visible{opacity:1;transform:none;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;margin:0;line-height:1.15;}
+  .eyebrow{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:16px;
+  }
+  .eyebrow .bars{display:inline-flex;align-items:flex-end;gap:2px;height:12px;}
+  .eyebrow .bars span{width:2px;background:var(--gold);display:block;transform-origin:bottom;animation:barPulse .9s ease-in-out infinite;}
+  .eyebrow .bars span:nth-child(1){height:40%;animation-delay:0s;}
+  .eyebrow .bars span:nth-child(2){height:100%;animation-delay:.15s;}
+  .eyebrow .bars span:nth-child(3){height:65%;animation-delay:.3s;}
+  @keyframes barPulse{
+    0%,100%{transform:scaleY(.55);}
+    50%{transform:scaleY(1);}
+  }
+  .btn{
+    display:inline-block;
+    background:var(--gold);
+    color:#1a1305;
+    font-weight:700;
+    font-size:15px;
+    padding:14px 28px;
+    border-radius:8px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .btn:hover{background:var(--gold-dark);transform:translateY(-1px);}
+  .btn-sm{padding:10px 20px;font-size:14px;}
+  .fine-print{color:var(--muted-2);font-size:13px;margin-top:14px;}
+
+  /* header */
+  header{border-bottom:1px solid var(--card-border);}
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px;max-width:var(--maxw);margin:0 auto;
+  }
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+  .brand img{width:34px;height:34px;object-fit:contain;animation:logoGlow 4s ease-in-out infinite;}
+  @keyframes logoGlow{
+    0%,100%{filter:drop-shadow(0 0 0 rgba(227,169,74,0));}
+    50%{filter:drop-shadow(0 0 5px rgba(227,169,74,.7));}
+  }
+  .brand span{font-family:'Inter',sans-serif;font-weight:700;font-size:19px;}
+  .brand .vox{color:var(--gold);}
+
+  /* hero */
+  .hero{padding:72px 0 88px;}
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:48px;align-items:center;}
+  .hero-grid > div{animation:fadeUp .8s ease both;}
+  .hero-grid > div:nth-child(2){animation-delay:.15s;}
+  .hero h1{font-size:44px;}
+  .hero h1 .gold{color:var(--gold);}
+  .hero p.lead{color:var(--muted);font-size:17px;margin:22px 0 28px;max-width:46ch;}
+  .mock-card{
+    position:relative;background:var(--card);border:1px solid var(--card-border);
+    border-radius:16px;padding:32px 24px;text-align:center;max-width:360px;margin:0 auto;
+    animation:breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(227,169,74,0);}
+    50%{transform:scale(1.015);box-shadow:0 0 24px rgba(227,169,74,.18);}
+  }
+  .mock-card .who{color:var(--muted);font-size:14px;margin-bottom:18px;}
+  .mock-card .avatar{width:76px;height:76px;object-fit:contain;margin:0 auto 14px;position:relative;z-index:1;}
+  .mock-card .avatar-ring{
+    position:absolute;top:50px;left:50%;width:96px;height:96px;margin-left:-48px;
+    border-radius:50%;border:1px solid rgba(227,169,74,.4);
+    animation:ringPulse 4s ease-in-out infinite;
+  }
+  @keyframes ringPulse{
+    0%,100%{transform:scale(1);opacity:.5;}
+    50%{transform:scale(1.12);opacity:.9;}
+  }
+  .mock-card .bubble{
+    background:var(--bg-soft);border:1px solid var(--card-border);border-radius:12px;
+    padding:14px 16px;font-size:14px;color:var(--cream);font-style:italic;margin-top:18px;
+  }
+  .float-tag{
+    position:relative;margin:-20px auto 0;max-width:280px;background:var(--bg);
+    border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;text-align:left;
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+    transform:rotate(-3deg);
+    transition:transform .25s ease;
+  }
+  .float-tag:hover{transform:rotate(0deg);}
+  .float-tag .badge{
+    display:inline-flex;align-items:center;gap:6px;background:rgba(63,174,114,.15);
+    color:var(--green);font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;margin-bottom:8px;
+  }
+  .float-tag .label{color:var(--muted);font-size:13px;}
+  .float-tag .amount{font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin-top:2px;}
+
+  /* generic section */
+  section{padding:44px 0;}
+  section.alt{background:var(--bg-soft);}
+  section:not(:first-of-type){position:relative;}
+  section:not(:first-of-type)::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:120px;
+    height:1px;
+    background:var(--card-border);
+  }
+  .section-head{max-width:640px;margin-bottom:48px;}
+  .section-head h2{font-size:34px;margin-bottom:14px;}
+  .section-head p{color:var(--muted);font-size:16px;}
+  .section-head.center-head{max-width:none;}
+  .section-head.center-head h2,
+  .section-head.center-head p{max-width:640px;margin-left:auto;margin-right:auto;text-align:center;}
+
+  /* constat cards */
+  .cards3{display:grid;grid-template-columns:1fr;gap:20px;}
+  .card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:28px;transition:transform .2s ease, border-color .2s ease;}
+  .card:hover{transform:translateY(-4px);border-color:var(--gold);}
+  .card .icon{
+    width:44px;height:44px;border-radius:50%;border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--gold);
+  }
+  .card h3{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;margin-bottom:10px;}
+  .card p{color:var(--muted);font-size:14.5px;margin:0;}
+
+  /* steps : timeline verticale */
+  .steps{display:block;position:relative;max-width:640px;margin:0 auto;}
+  .steps::before{
+    content:"";
+    position:absolute;
+    left:23px;
+    top:24px;
+    bottom:24px;
+    width:2px;
+    background:var(--card-border);
+  }
+  .step{position:relative;padding-left:68px;margin-bottom:36px;}
+  .step:last-child{margin-bottom:0;}
+  .step .num,.step .rule{display:none;}
+  .step .icon{
+    position:absolute;
+    left:0;
+    top:0;
+    width:48px;height:48px;
+    margin-bottom:0;
+    border-radius:50%;
+    background:var(--card);
+    border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gold);
+    transform:scale(.6);
+    opacity:0;
+    transition:transform .5s ease .15s, opacity .5s ease .15s;
+  }
+  .step.is-visible .icon{transform:scale(1);opacity:1;}
+  .step:nth-child(1){transition-delay:0s;}
+  .step:nth-child(2){transition-delay:.15s;}
+  .step:nth-child(3){transition-delay:.3s;}
+  .step h3{font-family:'Inter',sans-serif;font-size:19px;font-weight:700;margin-bottom:10px;}
+  .step p{color:var(--muted);font-size:14.5px;margin:0;}
+
+  /* result */
+  .result{text-align:center;}
+  .result .eyebrow{justify-content:center;}
+  .result .stat{font-family:'Fraunces',serif;font-weight:600;color:var(--gold);font-size:96px;line-height:1;display:inline-block;animation:statPulse 3.5s ease-in-out infinite;}
+  @keyframes statPulse{
+    0%,100%{transform:scale(1);text-shadow:0 0 0 rgba(227,169,74,0);}
+    50%{transform:scale(1.04);text-shadow:0 0 30px rgba(227,169,74,.45);}
+  }
+  .result .stat-label{font-weight:700;font-size:19px;margin-top:8px;}
+  .result p{color:var(--muted);max-width:52ch;margin:20px auto 0;}
+
+  /* pricing */
+  .price-wrap{display:flex;justify-content:center;}
+  .price-card{
+    position:relative;overflow:hidden;background:var(--card);border:1px solid var(--card-border);
+    border-radius:18px;padding:40px 32px;max-width:420px;width:100%;text-align:center;
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .price-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.35);}
+  .ribbon{
+    position:absolute;top:18px;right:-42px;background:var(--gold);color:#1a1305;
+    font-size:11px;font-weight:800;letter-spacing:.08em;padding:5px 46px;transform:rotate(45deg);
+  }
+  .price-card .eyebrow{justify-content:center;}
+  .price-card .price{font-family:'Fraunces',serif;font-weight:600;color:var(--gold);font-size:48px;}
+  .price-card .price .per{font-family:'Inter',sans-serif;color:var(--muted);font-size:15px;font-weight:400;}
+  .price-card .highlight{color:var(--gold);font-weight:700;font-size:14px;margin-top:6px;}
+  .price-card .trial{color:var(--muted);font-size:14px;margin-top:4px;margin-bottom:28px;}
+  .price-list{list-style:none;padding:0;margin:0 0 28px;text-align:left;}
+  .price-list li{display:flex;gap:10px;padding:8px 0;font-size:14.5px;color:var(--cream);}
+  .price-list li svg{flex-shrink:0;margin-top:2px;color:var(--green);}
+  .price-card .btn{width:100%;}
+
+  /* faq */
+  .faq{max-width:720px;margin:0 auto;}
+  .faq-item{border-bottom:1px solid var(--card-border);padding:22px 0;}
+  .faq-item h3{font-family:'Inter',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;}
+  .faq-item p{color:var(--muted);font-size:14.5px;margin:0;}
+
+  /* final cta */
+  .final-cta{text-align:center;}
+  .final-cta h2{font-size:36px;margin-bottom:28px;}
+
+  /* footer */
+  footer{border-top:1px solid var(--card-border);padding:28px 0;}
+  .foot-wrap{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;}
+  .foot-brand{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;}
+  .foot-brand img{width:20px;height:20px;object-fit:contain;}
+  .foot-links{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
+  .foot-links a{color:var(--muted);font-size:14px;text-decoration:none;}
+  .foot-links a:hover{color:var(--cream);}
+
+  @media (min-width:860px){
+    .hero-grid{grid-template-columns:1.1fr .9fr;}
+    .hero h1{font-size:56px;}
+    .cards3{grid-template-columns:repeat(3,1fr);}
+    .result .stat{font-size:120px;}
+    .foot-wrap{flex-direction:row;justify-content:space-between;text-align:left;}
+  }
+
+  @media (max-width:859px){
+    .nav{justify-content:center;padding:10px 24px;}
+    .nav .btn-sm{display:none;}
+    .brand{gap:4px;}
+    .brand img{width:56px;height:56px;}
+    .brand span{font-size:23px;}
+    .hero{padding:28px 0 32px;}
+
+    /* offre de lancement : moins d'espace vide */
+    .price-card{padding:22px 20px;}
+    .price-card .eyebrow{margin-bottom:8px;}
+    .price-card .price{line-height:1.1;}
+    .price-card .price .per{display:block;margin-top:2px;font-size:13px;}
+    .price-card .highlight{margin-top:4px;}
+    .price-card .trial{margin-top:2px;margin-bottom:14px;}
+    .price-list{margin:0 0 14px;}
+    .price-list li{padding:4px 0;}
+    .price-card .fine-print{margin-top:10px;font-size:12px;}
+
+    /* bas de page : moins d'espace entre le CTA final et le footer */
+    section.final-cta{padding-bottom:20px;}
+    footer{padding-top:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="brand" href="#top">
+      <img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="Logo VolpeVox">
+      <span>Volpe<span class="vox">Vox</span></span>
+    </a>
+    <a class="btn btn-sm" href="https://app.volpevox.fr/connexion?mode=inscription">Essai gratuit 14 jours</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">
+          <span class="bars"><span></span><span></span><span></span></span>
+          Pensé pour les artisans
+        </div>
+        <h1>Récupère tes<br><span class="gold">soirées</span>.</h1>
+        <p class="lead">Dicte ta prestation à voix haute, VolpeVox transforme ça en devis, en facture, en relance et en encaissement. Le soir, tu rentres chez toi la paperasse déjà faite.</p>
+        <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Démarrer mon essai gratuit</a>
+        <div class="fine-print">Carte bancaire requise · aucun prélèvement avant la fin des 14 jours</div>
+      </div>
+      <div>
+        <div class="mock-card">
+          <div class="who">Bonjour Marc</div>
+          <div class="avatar-ring"></div>
+          <img class="avatar" src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="">
+          <div class="eyebrow" style="justify-content:center;margin-bottom:0;">
+            <span class="bars"><span></span><span></span><span></span></span>
+          </div>
+          <div class="bubble">« Peinture cuisine, douze mètres carrés, quatre cents euros »</div>
+        </div>
+        <div class="float-tag">
+          <div class="badge">✓ Prêt à envoyer</div>
+          <div class="label">Devis — Peinture cuisine</div>
+          <div class="amount">400,00&nbsp;€</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow">Le constat</div>
+        <h2>Le soir, tu devrais être avec les tiens.</h2>
+        <p>Pas devant l'ordinateur à retaper le devis de la prestation de l'après-midi. Pas à chercher le prix que tu avais fait au client d'avant. Pas à courir après une facture impayée depuis trois semaines.</p>
+      </div>
+      <div class="cards3">
+        <div class="card reveal">
+          <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </div>
+          <h3>Des devis refaits à la main</h3>
+          <p>Le même texte retapé prestation après prestation, avec le risque d'oublier une ligne ou de se tromper de prix.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+          </div>
+          <h3>Des relances qu'on oublie</h3>
+          <p>Le devis envoyé il y a dix jours, jamais relancé, jamais signé. Le client qui a fini par appeler quelqu'un d'autre.</p>
+        </div>
+        <div class="card reveal">
+          <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h3>Des paiements qui traînent</h3>
+          <p>Des semaines à attendre un virement, sans jamais savoir si c'est oublié, contesté, ou juste en retard.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head center-head reveal">
+        <div class="eyebrow">Comment ça marche</div>
+        <h2>Trois étapes, pas plus.</h2>
+        <p>Tout se passe sur le terrain, depuis ton téléphone.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="num">01</div>
+          <div class="rule"></div>
+          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+          <h3>Tu dictes</h3>
+          <p>Tu décris la prestation et le prix, à voix haute, comme tu le ferais à un collègue. Pas besoin de taper.</p>
+        </div>
+        <div class="step reveal">
+          <div class="num">02</div>
+          <div class="rule"></div>
+          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div>
+          <h3>VolpeVox rédige</h3>
+          <p>Le devis est rempli automatiquement, avec les bons prix — il apprend de tes prestations précédentes.</p>
+        </div>
+        <div class="step reveal">
+          <div class="num">03</div>
+          <div class="rule"></div>
+          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+          <h3>Le client signe, tu es payé</h3>
+          <p>Signature électronique sur son téléphone, facture générée en un clic, paiement en ligne sans commission.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt result">
+    <div class="wrap reveal">
+      <div class="eyebrow">Le résultat</div>
+      <div class="stat">2 à 4h</div>
+      <div class="stat-label">récupérées chaque jour</div>
+      <p>Le temps que tu passais sur la paperasse, le soir ou le week-end. Rendu à ta famille, à tes clients, à toi.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap price-wrap">
+      <div class="price-card reveal">
+        <div class="ribbon">Découverte</div>
+        <div class="eyebrow">Offre de lancement</div>
+        <div class="price">45&nbsp;€<span class="per"> / mois pendant 12 mois</span></div>
+        <div class="highlight">Places limitées — puis 79&nbsp;€/mois</div>
+        <div class="trial">Essai gratuit de 14 jours</div>
+        <ul class="price-list">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Devis et factures dictés à la voix, illimités</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Signature électronique sur le téléphone du client</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Relances automatiques (devis, factures impayées)</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Paiement en ligne, sans commission VolpeVox</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Carnet de prix qui apprend de tes devis précédents</li>
+        </ul>
+        <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Démarrer mon essai gratuit</a>
+        <div class="fine-print">Carte bancaire requise à l'inscription. Aucun prélèvement avant la fin de l'essai. Résiliable à tout moment.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap faq">
+      <h2 style="text-align:center;font-size:32px;margin-bottom:40px;">Questions fréquentes</h2>
+      <div class="faq-item reveal">
+        <h3>Je ne suis pas doué avec les outils numériques, c'est compliqué ?</h3>
+        <p>Non. Si tu sais envoyer un message vocal, tu sais utiliser VolpeVox.</p>
+      </div>
+      <div class="faq-item reveal">
+        <h3>Mes données et celles de mes clients sont en sécurité ?</h3>
+        <p>Oui. Tes données sont hébergées en Europe et restent strictement confidentielles, réservées à ton usage.</p>
+      </div>
+      <div class="faq-item reveal">
+        <h3>Je peux arrêter quand je veux ?</h3>
+        <p>Oui, sans engagement. Tu résilies quand tu veux, en un message.</p>
+      </div>
+      <div class="faq-item reveal">
+        <h3>Et si ça ne me convient pas ?</h3>
+        <p>Tu ne payes rien avant la fin des 14 jours d'essai, et tu peux arrêter avant si l'outil ne te correspond pas.</p>
+      </div>
+      <div class="faq-item reveal" style="border-bottom:none;">
+        <h3>Je peux facturer sans avoir fait de devis avant ?</h3>
+        <p>Oui. Si tu es déjà d'accord avec ton client sur le prix, dicte directement la facture — pas besoin de repasser par un devis ni une signature.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <div class="wrap reveal">
+      <h2>Prêt à récupérer tes soirées ?</h2>
+      <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Démarrer mon essai gratuit</a>
+      <div class="fine-print">Essai 14 jours · carte bancaire requise · aucun prélèvement avant la fin de l'essai</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-wrap">
+    <div class="foot-brand">
+      <img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="">
+      © 2026 VolpeVox
+    </div>
+    <div class="foot-links">
+      <a href="https://app.volpevox.fr/mentions-legales">Mentions légales</a>
+      <a href="https://app.volpevox.fr/cgv">CGV</a>
+      <a href="https://app.volpevox.fr/cgu">CGU</a>
+      <a href="https://app.volpevox.fr/confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<img src="reveal-init-trigger" alt="" style="display:none" onerror="(function(){function i(){var t=document.querySelectorAll('.reveal');if(!t.length)return;if(!('IntersectionObserver' in window)){t.forEach(function(e){e.classList.add('is-visible')});return}var o=new IntersectionObserver(function(a){a.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-visible');o.unobserve(e.target)}})},{threshold:.15,rootMargin:'0px 0px -40px 0px'});t.forEach(function(e){o.observe(e)})}'complete'===document.readyState?i():window.addEventListener('load',i)})()">
+
+<script>
+(function(){
+  function init(){
+    var items = document.querySelectorAll('.reveal');
+    if(!items.length) return;
+    if(!('IntersectionObserver' in window)){
+      items.forEach(function(el){ el.classList.add('is-visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function(el){ io.observe(el); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
