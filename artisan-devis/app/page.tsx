@@ -37,18 +37,9 @@ function ligneVide(): Ligne {
   return { description: "", prestation: "", quantite: "1", unite: "forfait", prixUnitaire: "", prixPropose: false };
 }
 
-function dateDuJour() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 // La base attend une date ISO (AAAA-MM-JJ), mais on affiche/saisit au format
-// francais JJ/MM/AAAA -- ces deux fonctions font la conversion dans les deux
-// sens.
-function isoVersAffichage(iso: string) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
-}
-
+// francais JJ/MM/AAAA -- cette fonction fait la conversion des chiffres tapes
+// vers l'affichage avec les "/".
 function chiffresVersAffichage(chiffres: string) {
   if (chiffres.length > 4) return `${chiffres.slice(0, 2)}/${chiffres.slice(2, 4)}/${chiffres.slice(4)}`;
   if (chiffres.length > 2) return `${chiffres.slice(0, 2)}/${chiffres.slice(2)}`;
@@ -63,8 +54,8 @@ export default function Home() {
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
-  const [datePrestation, setDatePrestation] = useState(dateDuJour());
-  const [dateAffichage, setDateAffichage] = useState(isoVersAffichage(dateDuJour()));
+  const [datePrestation, setDatePrestation] = useState("");
+  const [dateAffichage, setDateAffichage] = useState("");
   const [modePaiement, setModePaiement] = useState(MODES_PAIEMENT_FACTURE[1].valeur);
   const [paiementEnLigneDisponible, setPaiementEnLigneDisponible] = useState(false);
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
@@ -254,7 +245,7 @@ export default function Home() {
           est_facture: true,
           numero_facture: numero,
           facture_creee_le: new Date().toISOString(),
-          date_prestation: datePrestation,
+          date_prestation: datePrestation || null,
           moyen_paiement: modePaiement,
           statut: "brouillon",
         }
@@ -326,7 +317,7 @@ export default function Home() {
           client_email: clientEmail.trim(),
           client_adresse: clientAdresse,
           total,
-          date_prestation: datePrestation,
+          date_prestation: datePrestation || null,
           moyen_paiement: modePaiement,
         })
         .eq("id", devisId);
@@ -389,8 +380,8 @@ export default function Home() {
     setClient("");
     setClientEmail("");
     setClientAdresse("");
-    setDatePrestation(dateDuJour());
-    setDateAffichage(isoVersAffichage(dateDuJour()));
+    setDatePrestation("");
+    setDateAffichage("");
     setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
     setLignes([ligneVide()]);
     setDevisEnregistre(false);
