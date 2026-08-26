@@ -57,13 +57,9 @@ body {
 .app-viewport {
   display: flex;
   flex-direction: column;
-  /* Pourcentage simple plutot que vh/svh/dvh : ces unites "hauteur d'ecran"
-     sont concues pour le probleme de la barre d'adresse qui apparait/
-     disparait dans Safari onglet -- en mode standalone (ajoute a l'ecran
-     d'accueil), ce probleme ne devrait meme pas exister, et ces unites ont
-     un historique d'implementation peu fiable sur iOS dans ce mode precis.
-     height:100% s'appuie sur html/body qui ont deja height:100% plus haut. */
-  height: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
   background: var(--bg);
 }
 
@@ -1041,14 +1037,7 @@ textarea {
     flex-shrink: 0;
     background: var(--card-bg);
     border-top: 1px solid var(--border);
-    /* max(...) plutot que calc(...) : sur iPhone en mode "ajoute a l'ecran
-       d'accueil", env(safe-area-inset-bottom) peut valoir 0 au tout premier
-       affichage (avant que l'OS ne transmette la vraie valeur au WebView),
-       ce qui rend le menu trop fin avec un espace visible en dessous --
-       jusqu'a un evenement qui force un nouveau calcul de mise en page
-       (un vrai geste de defilement). max() garantit un minimum correct des
-       le depart, sans dependre du moment ou la vraie valeur arrive. */
-    padding: 6px 4px max(20px, calc(6px + env(safe-area-inset-bottom)));
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   }
 
   .bottom-nav-item {
