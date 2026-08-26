@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 
 // Affichee juste apres un premier abonnement reussi : Stripe redirige vers
@@ -16,7 +17,15 @@ export function PropositionCommentCaMarche() {
 
   if (!visible) return null;
 
-  return (
+  // Rendu via un portail directement dans <body> : le popup est en
+  // "position: fixed", qui devrait normalement s'afficher au-dessus de tout
+  // (y compris le menu du bas, lui en flux normal sans z-index), mais un
+  // artisan a constate le bouton passer visuellement sous le menu sur son
+  // iPhone. Le portail sort le popup de toute la hierarchie de la page (et
+  // donc de tout contexte d'empilement herite d'un ancetre) pour eviter ce
+  // genre de souci de superposition, sans avoir a en identifier la cause
+  // exacte cote Safari.
+  return createPortal(
     <div className="notif-propose-fond">
       <div className="notif-propose-feuille">
         <svg className="notif-propose-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -45,6 +54,7 @@ export function PropositionCommentCaMarche() {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

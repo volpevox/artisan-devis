@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import { notificationsPossibles, abonnementActuel, activerNotifications } from "@/lib/pushClient";
@@ -67,7 +68,10 @@ export function PropositionNotifications({ session, artisanId }: PropositionNoti
 
   if (!visible) return null;
 
-  return (
+  // Portail directement dans <body>, voir PropositionCommentCaMarche.tsx :
+  // meme structure de popup, meme risque que le bouton se retrouve
+  // visuellement sous le menu du bas sur iPhone.
+  return createPortal(
     <div className="notif-propose-fond">
       <div className="notif-propose-feuille">
         <svg className="notif-propose-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -94,6 +98,7 @@ export function PropositionNotifications({ session, artisanId }: PropositionNoti
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
