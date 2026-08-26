@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { IconeOeil } from "@/components/IconeOeil";
 
 export default function ChangerMotDePasse() {
   const { session, loading: chargementSession } = useArtisanSession();
@@ -11,6 +12,9 @@ export default function ChangerMotDePasse() {
   const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
   const [message, setMessage] = useState("");
   const [enCours, setEnCours] = useState(false);
+  const [afficherAncien, setAfficherAncien] = useState(false);
+  const [afficherNouveau, setAfficherNouveau] = useState(false);
+  const [afficherConfirmation, setAfficherConfirmation] = useState(false);
 
   async function valider() {
     setMessage("");
@@ -80,36 +84,66 @@ export default function ChangerMotDePasse() {
       <div className="card">
         <label className="field-label">
           Mot de passe actuel
-          <input
-            className="field"
-            style={{ marginTop: 6 }}
-            type="password"
-            autoComplete="current-password"
-            value={ancienMotDePasse}
-            onChange={(e) => setAncienMotDePasse(e.target.value)}
-          />
+          <div className="champ-mot-de-passe" style={{ marginTop: 6 }}>
+            <input
+              className="field"
+              style={{ marginBottom: 0 }}
+              type={afficherAncien ? "text" : "password"}
+              autoComplete="current-password"
+              value={ancienMotDePasse}
+              onChange={(e) => setAncienMotDePasse(e.target.value)}
+            />
+            <button
+              type="button"
+              className="champ-oeil"
+              onClick={() => setAfficherAncien((v) => !v)}
+              aria-label={afficherAncien ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            >
+              <IconeOeil ouvert={afficherAncien} />
+            </button>
+          </div>
         </label>
         <label className="field-label">
           Nouveau mot de passe
-          <input
-            className="field"
-            style={{ marginTop: 6 }}
-            type="password"
-            autoComplete="new-password"
-            value={nouveauMotDePasse}
-            onChange={(e) => setNouveauMotDePasse(e.target.value)}
-          />
+          <div className="champ-mot-de-passe" style={{ marginTop: 6 }}>
+            <input
+              className="field"
+              style={{ marginBottom: 0 }}
+              type={afficherNouveau ? "text" : "password"}
+              autoComplete="new-password"
+              value={nouveauMotDePasse}
+              onChange={(e) => setNouveauMotDePasse(e.target.value)}
+            />
+            <button
+              type="button"
+              className="champ-oeil"
+              onClick={() => setAfficherNouveau((v) => !v)}
+              aria-label={afficherNouveau ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            >
+              <IconeOeil ouvert={afficherNouveau} />
+            </button>
+          </div>
         </label>
         <label className="field-label">
           Confirme le nouveau mot de passe
-          <input
-            className="field"
-            style={{ marginTop: 6 }}
-            type="password"
-            autoComplete="new-password"
-            value={confirmationMotDePasse}
-            onChange={(e) => setConfirmationMotDePasse(e.target.value)}
-          />
+          <div className="champ-mot-de-passe" style={{ marginTop: 6 }}>
+            <input
+              className="field"
+              style={{ marginBottom: 0 }}
+              type={afficherConfirmation ? "text" : "password"}
+              autoComplete="new-password"
+              value={confirmationMotDePasse}
+              onChange={(e) => setConfirmationMotDePasse(e.target.value)}
+            />
+            <button
+              type="button"
+              className="champ-oeil"
+              onClick={() => setAfficherConfirmation((v) => !v)}
+              aria-label={afficherConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            >
+              <IconeOeil ouvert={afficherConfirmation} />
+            </button>
+          </div>
         </label>
 
         <button className="btn btn-primary" onClick={valider} disabled={enCours}>

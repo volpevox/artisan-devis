@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { IconeOeil } from "@/components/IconeOeil";
 
 export default function ReinitialiserMotDePasse() {
   const router = useRouter();
@@ -12,6 +13,8 @@ export default function ReinitialiserMotDePasse() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [reussi, setReussi] = useState(false);
+  const [afficherMotDePasse, setAfficherMotDePasse] = useState(false);
+  const [afficherConfirmation, setAfficherConfirmation] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -62,24 +65,46 @@ export default function ReinitialiserMotDePasse() {
 
         {pret && !reussi && (
           <form onSubmit={valider} autoComplete="on">
-            <input
-              className="field"
-              type="password"
-              name="new-password"
-              autoComplete="new-password"
-              placeholder="Nouveau mot de passe"
-              value={motDePasse}
-              onChange={(e) => setMotDePasse(e.target.value)}
-            />
-            <input
-              className="field"
-              type="password"
-              name="confirm-password"
-              autoComplete="new-password"
-              placeholder="Confirme le mot de passe"
-              value={confirmation}
-              onChange={(e) => setConfirmation(e.target.value)}
-            />
+            <div className="champ-mot-de-passe">
+              <input
+                className="field"
+                type={afficherMotDePasse ? "text" : "password"}
+                name="new-password"
+                autoComplete="new-password"
+                placeholder="Nouveau mot de passe"
+                value={motDePasse}
+                onChange={(e) => setMotDePasse(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+              <button
+                type="button"
+                className="champ-oeil"
+                onClick={() => setAfficherMotDePasse((v) => !v)}
+                aria-label={afficherMotDePasse ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                <IconeOeil ouvert={afficherMotDePasse} />
+              </button>
+            </div>
+            <div className="champ-mot-de-passe">
+              <input
+                className="field"
+                type={afficherConfirmation ? "text" : "password"}
+                name="confirm-password"
+                autoComplete="new-password"
+                placeholder="Confirme le mot de passe"
+                value={confirmation}
+                onChange={(e) => setConfirmation(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+              <button
+                type="button"
+                className="champ-oeil"
+                onClick={() => setAfficherConfirmation((v) => !v)}
+                aria-label={afficherConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                <IconeOeil ouvert={afficherConfirmation} />
+              </button>
+            </div>
 
             <button type="submit" className="btn btn-primary" disabled={chargement} style={{ width: "100%" }}>
               Valider
