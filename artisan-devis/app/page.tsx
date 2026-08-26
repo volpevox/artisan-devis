@@ -541,14 +541,14 @@ export default function Home() {
           onChange={(e) => setClientAdresse(e.target.value)}
         />
         {typeDocument === "facture" && (
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 16, overflow: "hidden" }}>
             <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>
               Date de la prestation
             </label>
             <input
               className="field"
               type="date"
-              style={{ marginBottom: 0 }}
+              style={{ marginBottom: 0, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}
               value={datePrestation}
               onChange={(e) => setDatePrestation(e.target.value)}
             />
