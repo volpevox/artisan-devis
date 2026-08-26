@@ -87,7 +87,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     );
 
     const lienSuivi = `${req.nextUrl.origin}/signer/${params.id}`;
-    const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif);
+    // Le mode de paiement choisi a la creation de la facture (moyen_paiement)
+    // prime : si l'artisan a choisi un moyen manuel (especes, cheque...), le
+    // bouton "Payer en ligne" ne doit pas apparaitre meme si le paiement en
+    // ligne est actif chez lui. Un moyen_paiement absent (factures issues de
+    // l'ancienne transformation devis -> facture en un clic, qui ne demande
+    // pas ce choix) garde le comportement d'origine : bouton affiche des que
+    // le paiement en ligne est actif chez l'artisan.
+    const modeChoisiExcluLigne = devis.moyen_paiement && devis.moyen_paiement !== "Carte bancaire (en ligne)";
+    const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif) && !modeChoisiExcluLigne;
 
     const { error: erreurResend } = await resend.emails.send({
       from: "VolpeVox <devis@volpevox.fr>",

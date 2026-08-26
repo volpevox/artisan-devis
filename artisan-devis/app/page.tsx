@@ -11,6 +11,19 @@ const AMPLITUDES_ONDE = [
   0.7, 0.3,
 ];
 
+// La valeur "Carte bancaire (en ligne)" doit rester identique a celle
+// ecrite par /api/confirmer-paiement-facture lors d'un vrai paiement en
+// ligne : c'est ce qui permet, cote /api/facture/[id], de savoir si le
+// moyen de paiement choisi ici correspond au paiement en ligne (et donc
+// d'afficher ou non le bouton "Payer en ligne" dans l'email).
+const MODES_PAIEMENT_FACTURE = [
+  { valeur: "Carte bancaire (en ligne)", libelle: "Paiement en ligne", enLigne: true },
+  { valeur: "Virement bancaire", libelle: "Virement bancaire" },
+  { valeur: "Chèque", libelle: "Chèque" },
+  { valeur: "Espèces", libelle: "Espèces" },
+  { valeur: "Carte bancaire", libelle: "Carte bancaire (en personne)" },
+];
+
 interface Ligne {
   description: string;
   prestation: string;
@@ -37,6 +50,8 @@ export default function Home() {
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
   const [datePrestation, setDatePrestation] = useState(dateDuJour());
+  const [modePaiement, setModePaiement] = useState(MODES_PAIEMENT_FACTURE[1].valeur);
+  const [paiementEnLigneDisponible, setPaiementEnLigneDisponible] = useState(false);
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
@@ -65,11 +80,12 @@ export default function Home() {
     if (!artisanId) return;
     supabase
       .from("artisans")
-      .select("nom_entreprise")
+      .select("nom_entreprise, stripe_paiement_actif")
       .eq("id", artisanId)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.nom_entreprise) setNomEntreprise(data.nom_entreprise);
+        setPaiementEnLigneDisponible(Boolean(data?.stripe_paiement_actif));
       });
   }, [artisanId]);
 
@@ -224,6 +240,7 @@ export default function Home() {
           numero_facture: numero,
           facture_creee_le: new Date().toISOString(),
           date_prestation: datePrestation,
+          moyen_paiement: modePaiement,
           statut: "brouillon",
         }
       : { numero_devis: numero, statut: "brouillon" };
@@ -295,6 +312,7 @@ export default function Home() {
           client_adresse: clientAdresse,
           total,
           date_prestation: datePrestation,
+          moyen_paiement: modePaiement,
         })
         .eq("id", devisId);
 
@@ -357,6 +375,7 @@ export default function Home() {
     setClientEmail("");
     setClientAdresse("");
     setDatePrestation(dateDuJour());
+    setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
     setLignes([ligneVide()]);
     setDevisEnregistre(false);
     setEtape("voice");
@@ -533,6 +552,30 @@ export default function Home() {
               value={datePrestation}
               onChange={(e) => setDatePrestation(e.target.value)}
             />
+          </div>
+        )}
+        {typeDocument === "facture" && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>
+              Mode de paiement
+            </label>
+            <select
+              className="field"
+              style={{ marginBottom: 0 }}
+              value={modePaiement}
+              onChange={(e) => setModePaiement(e.target.value)}
+            >
+              {MODES_PAIEMENT_FACTURE.filter((m) => !m.enLigne || paiementEnLigneDisponible).map((m) => (
+                <option key={m.valeur} value={m.valeur}>
+                  {m.libelle}
+                </option>
+              ))}
+            </select>
+            {modePaiement === MODES_PAIEMENT_FACTURE[0].valeur && (
+              <p className="hint" style={{ margin: "6px 0 0" }}>
+                Le mail contiendra un bouton "Payer en ligne".
+              </p>
+            )}
           </div>
         )}
         {lignes.map((ligne, index) => {

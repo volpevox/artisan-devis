@@ -139,6 +139,13 @@ const styles = StyleSheet.create({
   },
   totalTTCValeur: { fontFamily: "Fraunces", fontWeight: 800, fontSize: 19, color: ENCRE },
 
+  modePaiementPrevu: {
+    fontSize: 9.5,
+    color: MUTED_DOUX,
+    marginTop: 12,
+    textAlign: "center",
+  },
+
   acquitteeBadge: {
     fontSize: 9.5,
     fontWeight: 700,
@@ -387,6 +394,8 @@ export function DevisPDF({
               Facture acquittée le {formaterDate(paiement.payeeLe)}
               {paiement.moyenPaiement ? ` par ${paiement.moyenPaiement}` : ""}
             </Text>
+          ) : estFacture && paiement?.moyenPaiement ? (
+            <Text style={styles.modePaiementPrevu}>Mode de paiement : {paiement.moyenPaiement}</Text>
           ) : null}
 
           {entreprise.conditionsPaiement ? (

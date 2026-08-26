@@ -198,6 +198,12 @@ function SignerContenu() {
   const estFacture = Boolean(devis.est_facture);
   const motDocument = estFacture ? "Facture" : "Devis";
   const numero = estFacture ? devis.numero_facture : devis.numero_devis;
+  // Meme logique que /api/facture/[id] : le mode de paiement choisi a la
+  // creation de la facture prime sur le simple fait que l'artisan ait active
+  // le paiement en ligne -- sinon le bouton reapparaitrait ici meme quand le
+  // mail n'en contenait pas (ex: si quelqu'un revient sur ce lien).
+  const modeChoisiExcluLigne = devis.moyen_paiement && devis.moyen_paiement !== "Carte bancaire (en ligne)";
+  const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif) && !modeChoisiExcluLigne;
 
   return (
     <main className="page-shell">
@@ -280,7 +286,7 @@ function SignerContenu() {
                   <p style={{ margin: 0, color: "var(--success)" }}>
                     ✓ Payée le {new Date(devis.payee_le).toLocaleDateString("fr-FR")}
                   </p>
-                ) : profil?.stripe_paiement_actif ? (
+                ) : paiementEnLigneActif ? (
                   <button className="btn btn-primary" onClick={payer} disabled={enCoursPaiement}>
                     Payer {totalTTC.toFixed(2)} € en ligne
                   </button>
