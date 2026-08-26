@@ -71,6 +71,24 @@ export default function MesDevis() {
     setMessages((m) => ({ ...m, [id]: "Devis transformé en facture ! Retrouve-le dans l'onglet Factures." }));
   }
 
+  async function supprimer(id: string) {
+    setEnCours(id);
+
+    // Pas de suppression en cascade cote base : on retire d'abord les
+    // lignes, avant la ligne "devis" elle-meme.
+    await supabase.from("lignes_devis").delete().eq("devis_id", id);
+    const { error } = await supabase.from("devis").delete().eq("id", id);
+
+    setEnCours("");
+
+    if (error) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + error.message }));
+      return;
+    }
+
+    setDevis((liste) => liste.filter((d) => d.id !== id));
+  }
+
   return (
     <main className="page-shell page-shell--large">
       <Topbar />
@@ -90,6 +108,7 @@ export default function MesDevis() {
           enCours={enCours}
           message={messages[d.id]}
           onTransformerEnFacture={transformerEnFacture}
+          onSupprimer={supprimer}
         />
       ))}
     </main>

@@ -46,6 +46,8 @@ La vision complète du parcours (dictée → devis → signature → facture →
 - Domaine `volpevox.fr` sur Cloudflare, DNS Resend (DKIM/SPF/MX/DMARC) configurés
 - Pages légales rédigées (mentions légales, CGU, CGV, confidentialité/cookies) — reste la validation par une personne assermentée avant la mise en prod réelle
 - Phase de test complète effectuée par Marley (dictée, devis, facture, signature, abonnement avec carte test, 2 paiements en ligne test) — aucun problème rencontré
+- Dictée directe d'une facture (sans passer par un devis signé, pour les prestations convenues à l'oral avec le client) : interrupteur "Devis / Facture" sur la page de dictée (`app/page.tsx`), la facture dictée directement reprend la même route d'envoi que la conversion devis→facture (`/api/facture/[id]`)
+- Suppression d'un devis ou d'une facture (bouton "Supprimer" avec confirmation avant suppression définitive) sur les cartes devis/factures (`components/CarteDocument.tsx`) — nécessite `supabase/suppression-documents.sql` (policies RLS delete, absentes par défaut)
 
 ## Bugs connus, mis de côté (faible priorité)
 - En mode "ajouté à l'écran d'accueil" sur iPhone, le menu du bas flotte au tout premier chargement et se recolle après un défilement manuel — plusieurs correctifs tentés sans succès total, mis de côté par Marley

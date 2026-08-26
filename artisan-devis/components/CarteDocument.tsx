@@ -10,6 +10,7 @@ interface CarteDocumentProps {
   onEnvoyerFacture?: (id: string) => void;
   onMarquerPayee?: (id: string, moyenPaiement: string) => void;
   onAnnulerPaiement?: (id: string) => void;
+  onSupprimer?: (id: string) => void;
 }
 
 const MOYENS_PAIEMENT = ["Carte bancaire", "Virement bancaire", "Chèque", "Espèces"];
@@ -29,9 +30,11 @@ export function CarteDocument({
   onEnvoyerFacture,
   onMarquerPayee,
   onAnnulerPaiement,
+  onSupprimer,
 }: CarteDocumentProps) {
   const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
   const [lienCopie, setLienCopie] = useState(false);
+  const [confirmationSuppression, setConfirmationSuppression] = useState(false);
   const b = badge(d.statut);
   const numero = type === "facture" ? d.numero_facture : d.numero_devis;
   const titre = type === "facture" ? "Facture" : "Devis";
@@ -119,7 +122,35 @@ export function CarteDocument({
             {d.facture_envoyee_le ? "Renvoyer la facture" : "Envoyer la facture par email"}
           </button>
         )}
+        {onSupprimer && !confirmationSuppression && (
+          <button
+            className="btn-ghost btn-danger"
+            onClick={() => setConfirmationSuppression(true)}
+            disabled={enCours === d.id}
+          >
+            Supprimer
+          </button>
+        )}
       </div>
+
+      {confirmationSuppression && onSupprimer && (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
+          <span style={{ fontSize: 13, color: "var(--danger)", fontWeight: 600 }}>
+            Supprimer {type === "facture" ? "cette facture" : "ce devis"} définitivement ?
+          </span>
+          <button
+            className="btn-solid"
+            style={{ background: "var(--danger)" }}
+            onClick={() => onSupprimer(d.id)}
+            disabled={enCours === d.id}
+          >
+            {enCours === d.id ? "Suppression..." : "Oui, supprimer"}
+          </button>
+          <button className="btn-ghost" onClick={() => setConfirmationSuppression(false)} disabled={enCours === d.id}>
+            Annuler
+          </button>
+        </div>
+      )}
 
       {type === "facture" && !d.payee_le && onMarquerPayee && (
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>

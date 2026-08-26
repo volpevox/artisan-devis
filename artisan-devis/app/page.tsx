@@ -27,6 +27,7 @@ function ligneVide(): Ligne {
 export default function Home() {
   const { session, artisanId, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
+  const [typeDocument, setTypeDocument] = useState<"devis" | "facture">("devis");
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -136,10 +137,11 @@ export default function Home() {
       }
 
       const auMoinsUnPrixPropose = lignesRecues.some((l: any) => l.prixPropose);
+      const nomDocument = typeDocument === "facture" ? "Facture" : "Devis";
       setMessage(
         auMoinsUnPrixPropose
-          ? "Devis rempli automatiquement. Certains prix sont proposés d'après tes anciens devis, vérifie avant d'enregistrer."
-          : "Devis rempli automatiquement, vérifie avant d'enregistrer."
+          ? `${nomDocument} rempli automatiquement. Certains prix sont proposés d'après tes anciens devis, vérifie avant d'enregistrer.`
+          : `${nomDocument} rempli automatiquement, vérifie avant d'enregistrer.`
       );
       setEtape("form");
     };
@@ -193,28 +195,37 @@ export default function Home() {
   }
 
   async function envoyer() {
+    const estFacture = typeDocument === "facture";
     setMessage("Enregistrement...");
     setLienSignature("");
 
-    const { data: numeroDevis, error: erreurNumero } = await supabase.rpc("numero_devis_suivant", {
-      p_artisan_id: artisanId,
-    });
+    const { data: numero, error: erreurNumero } = await supabase.rpc(
+      estFacture ? "numero_facture_suivant" : "numero_devis_suivant",
+      { p_artisan_id: artisanId }
+    );
 
     if (erreurNumero) {
       setMessage("Erreur de numérotation : " + erreurNumero.message);
       return;
     }
 
+    // Une facture dictee directement (sans devis ni signature prealable, pour
+    // les prestations convenues a l'oral avec le client) est deja consideree
+    // comme facturee des sa creation -- pas d'etape "brouillon en attente de
+    // signature" comme pour un devis, elle est juste prete a etre envoyee.
+    const infosDocument = estFacture
+      ? { est_facture: true, numero_facture: numero, facture_creee_le: new Date().toISOString(), statut: "brouillon" }
+      : { numero_devis: numero, statut: "brouillon" };
+
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
       .insert({
         artisan_id: artisanId,
-        numero_devis: numeroDevis,
         client_nom: client,
         client_email: clientEmail.trim(),
         client_adresse: clientAdresse,
         total,
-        statut: "brouillon",
+        ...infosDocument,
       })
       .select()
       .single();
@@ -246,33 +257,69 @@ export default function Home() {
     }
 
     setDevisId(devis.id);
-    setMessage("Devis enregistré ! Tu peux maintenant l'envoyer au client.");
+    setMessage(
+      estFacture ? "Facture enregistrée ! Tu peux maintenant l'envoyer au client." : "Devis enregistré ! Tu peux maintenant l'envoyer au client."
+    );
     setDevisEnregistre(true);
   }
 
   async function envoyerAuClient() {
-    setMessage("Envoi de l'email en cours...");
+    const estFacture = typeDocument === "facture";
+    setMessage(estFacture ? "Envoi de la facture en cours..." : "Envoi de l'email en cours...");
 
-    const res = await fetch("/api/envoyer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.access_token}`,
-      },
-      body: JSON.stringify({
-        clientEmail: clientEmail.trim(),
-        clientNom: client,
-        clientAdresse,
-        lignes: lignes.map((l) => ({
+    // Une facture reutilise directement la route qui sert deja a (re)envoyer
+    // une facture transformee depuis un devis (app/api/facture/[id]) : elle
+    // relit tout depuis la ligne "devis"/"lignes_devis" en base plutot que
+    // depuis la requete -- contrairement a /api/envoyer (devis) qui recoit
+    // les infos client et les lignes directement dans son corps. On
+    // resynchronise donc d'abord la base avec l'etat courant du formulaire,
+    // pour qu'une modification faite juste avant l'envoi (ex: email corrige)
+    // soit bien prise en compte.
+    if (estFacture) {
+      await supabase
+        .from("devis")
+        .update({ client_nom: client, client_email: clientEmail.trim(), client_adresse: clientAdresse, total })
+        .eq("id", devisId);
+
+      await supabase.from("lignes_devis").delete().eq("devis_id", devisId);
+      await supabase.from("lignes_devis").insert(
+        lignes.map((l, index) => ({
+          devis_id: devisId,
+          ordre: index,
           description: l.description,
           quantite: Number(l.quantite),
           unite: l.unite,
-          prixUnitaire: Number(l.prixUnitaire),
-        })),
-        prix: total,
-        devisId,
-      }),
-    });
+          prix_unitaire: Number(l.prixUnitaire),
+          total_ligne: (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0),
+        }))
+      );
+    }
+
+    const res = estFacture
+      ? await fetch(`/api/facture/${devisId}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        })
+      : await fetch("/api/envoyer", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            clientEmail: clientEmail.trim(),
+            clientNom: client,
+            clientAdresse,
+            lignes: lignes.map((l) => ({
+              description: l.description,
+              quantite: Number(l.quantite),
+              unite: l.unite,
+              prixUnitaire: Number(l.prixUnitaire),
+            })),
+            prix: total,
+            devisId,
+          }),
+        });
     const data = await res.json();
 
     if (data.erreur) {
@@ -280,13 +327,15 @@ export default function Home() {
       return;
     }
 
-    await supabase
-      .from("devis")
-      .update({ statut: "envoye", envoye_le: new Date().toISOString() })
-      .eq("id", devisId);
+    if (!estFacture) {
+      await supabase
+        .from("devis")
+        .update({ statut: "envoye", envoye_le: new Date().toISOString() })
+        .eq("id", devisId);
+    }
 
     setLienSignature(`${window.location.origin}/signer/${devisId}`);
-    setMessage("Devis envoyé au client !");
+    setMessage(estFacture ? "Facture envoyée au client !" : "Devis envoyé au client !");
     setClient("");
     setClientEmail("");
     setClientAdresse("");
@@ -323,6 +372,34 @@ export default function Home() {
     </svg>
   );
 
+  // Choix devis/facture, visible tant que rien n'est encore enregistre en
+  // base : une fois la ligne creee (devisEnregistre), le type ne doit plus
+  // bouger puisque la numerotation a deja ete attribuee en consequence.
+  const toggleTypeDocument = (
+    <div className="type-toggle" role="tablist" aria-label="Type de document">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={typeDocument === "devis"}
+        className={typeDocument === "devis" ? "actif" : ""}
+        onClick={() => setTypeDocument("devis")}
+        disabled={devisEnregistre}
+      >
+        Devis
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={typeDocument === "facture"}
+        className={typeDocument === "facture" ? "actif" : ""}
+        onClick={() => setTypeDocument("facture")}
+        disabled={devisEnregistre}
+      >
+        Facture
+      </button>
+    </div>
+  );
+
   if (etape === "voice") {
     return (
       <main className="page-shell">
@@ -335,12 +412,17 @@ export default function Home() {
               <span className="voice-greeting-hand">Bonjour</span>
               {nomEntreprise ? ` ${nomEntreprise}` : ""} !
             </p>
+            {toggleTypeDocument}
           </div>
 
           <div className="voice-middle">
             <div className="mic-wrap mic-wrap--hero">
               <span className="mic-label">
-                {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Appuyez et décrivez votre prestation"}
+                {enregistrement
+                  ? "Je vous écoute, appuyez pour arrêter"
+                  : typeDocument === "facture"
+                    ? "Appuyez et décrivez la prestation déjà réalisée"
+                    : "Appuyez et décrivez votre prestation"}
               </span>
 
               <button
@@ -362,14 +444,14 @@ export default function Home() {
           </div>
 
           <button className="voice-skip" onClick={() => setEtape("form")}>
-            Remplir le devis manuellement
+            {typeDocument === "facture" ? "Remplir la facture manuellement" : "Remplir le devis manuellement"}
           </button>
         </div>
 
         {lienSignature && (
           <div className="card">
             <p className="hint" style={{ margin: "0 0 6px" }}>
-              Lien de signature (déjà inclus dans l'email) :
+              {typeDocument === "facture" ? "Lien de suivi (déjà inclus dans l'email) :" : "Lien de signature (déjà inclus dans l'email) :"}
             </p>
             <a href={lienSignature} style={{ fontSize: 13, wordBreak: "break-all" }}>
               {lienSignature}
@@ -384,9 +466,11 @@ export default function Home() {
     <main className="page-shell">
       <Topbar forcerRetour onRetour={() => setEtape("voice")} />
 
-      <h1 className="page-title">Nouveau devis</h1>
+      <h1 className="page-title">{typeDocument === "facture" ? "Nouvelle facture" : "Nouveau devis"}</h1>
 
       <div className="card">
+        {!devisEnregistre && toggleTypeDocument}
+
         <div className="mic-wrap">
           <button
             className={`mic-button${enregistrement ? " recording" : ""}`}
@@ -488,11 +572,13 @@ export default function Home() {
           + Ajouter une ligne
         </button>
 
-        <p className="total-line">Total HT : {total.toFixed(2)} € (TVA ajoutée sur le devis final)</p>
+        <p className="total-line">
+          Total HT : {total.toFixed(2)} € (TVA ajoutée sur {typeDocument === "facture" ? "la facture finale" : "le devis final"})
+        </p>
 
         {!devisEnregistre ? (
           <button className="btn btn-primary" onClick={envoyer}>
-            Enregistrer le devis
+            {typeDocument === "facture" ? "Enregistrer la facture" : "Enregistrer le devis"}
           </button>
         ) : (
           <button className="btn btn-success" onClick={envoyerAuClient}>
@@ -506,7 +592,7 @@ export default function Home() {
       {lienSignature && (
         <div className="card">
           <p className="hint" style={{ margin: "0 0 6px" }}>
-            Lien de signature (déjà inclus dans l'email) :
+            {typeDocument === "facture" ? "Lien de suivi (déjà inclus dans l'email) :" : "Lien de signature (déjà inclus dans l'email) :"}
           </p>
           <a href={lienSignature} target="_blank" rel="noreferrer" style={{ fontSize: 13, wordBreak: "break-all" }}>
             {lienSignature}

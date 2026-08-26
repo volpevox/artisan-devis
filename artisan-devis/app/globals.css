@@ -565,6 +565,46 @@ textarea {
   background: rgba(147, 160, 179, 0.14);
 }
 
+.type-toggle {
+  display: flex;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.type-toggle button {
+  flex: 1 1 0%;
+  min-width: 92px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13.5px;
+  font-family: inherit;
+  padding: 9px 0;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.type-toggle button.actif {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-danger:hover {
+  background: var(--danger);
+  color: var(--on-ink);
+}
+
 .link-row {
   display: flex;
   gap: 14px;
