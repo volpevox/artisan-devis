@@ -20,6 +20,7 @@ function ConnexionContenu() {
   );
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
+  const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [afficherDemarrage, setAfficherDemarrage] = useState(!modeInscriptionDirect);
@@ -28,6 +29,11 @@ function ConnexionContenu() {
   async function valider(e: FormEvent) {
     e.preventDefault();
     setMessage("");
+
+    if (mode === "inscription" && motDePasse !== confirmationMotDePasse) {
+      setMessage("Les deux mots de passe ne sont pas identiques.");
+      return;
+    }
 
     if (mode === "inscription" && !conditionsAcceptees) {
       setMessage("Merci d'accepter les conditions d'utilisation et la politique de confidentialité pour continuer.");
@@ -146,6 +152,18 @@ function ConnexionContenu() {
               placeholder="Mot de passe"
               value={motDePasse}
               onChange={(e) => setMotDePasse(e.target.value)}
+            />
+          )}
+
+          {mode === "inscription" && (
+            <input
+              className="field"
+              type="password"
+              name="confirmation-password"
+              autoComplete="new-password"
+              placeholder="Confirmer le mot de passe"
+              value={confirmationMotDePasse}
+              onChange={(e) => setConfirmationMotDePasse(e.target.value)}
             />
           )}
 
