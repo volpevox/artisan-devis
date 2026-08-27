@@ -1142,6 +1142,22 @@ textarea {
   margin-bottom: 12px;
 }
 
+/* Badge "cadeau" de la variante acces gratuit (bienvenue=gratuit) */
+.notif-propose-cadeau {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(221, 167, 66, 0.14);
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .notif-propose-titre {
   font-family: var(--font-poppins), sans-serif;
   font-weight: 700;
