@@ -50,15 +50,19 @@ body {
    viewport. Seul le contenu (.app-scroll) defile ; le menu reste immobile. */
 html,
 body {
-  height: 100%;
+  height: 100vh;
 }
 
 .app-viewport {
   display: flex;
   flex-direction: column;
+  /* height: 100vh uniquement (pas 100dvh/100svh) : en PWA iOS plein ecran
+     (viewport-fit=cover + black-translucent), 100dvh renvoie une valeur
+     fausse au tout premier lancement et ne se corrige qu'apres un changement
+     de geometrie (rotation ou defilement) -- c'est ce qui faisait flotter le
+     menu du bas au demarrage. 100vh est fiable des le cold start car en mode
+     standalone il n'y a pas de barre d'outils qui varie. */
   height: 100vh;
-  height: 100svh;
-  height: 100dvh;
   background: var(--bg);
 }
 
