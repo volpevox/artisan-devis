@@ -9,6 +9,11 @@ import { supabase } from "@/lib/supabaseClient";
 // elle-meme meme si l'acces au reste est bloque.
 const PAGES_TOUJOURS_ACCESSIBLES = ["/profil", "/abonnement", "/parametres/comment-ca-marche"];
 
+// Une seule verification d'acces gratuit par chargement de page : le hook est
+// monte par plusieurs composants a la fois (Topbar + la page), et une vraie
+// navigation (window.location) reinitialise ce module de toute facon.
+let verificationAccesGratuitFaite = false;
+
 // Les memes champs que la validation de app/profil/page.tsx : tant qu'ils ne
 // sont pas tous remplis, l'artisan ne doit pas pouvoir utiliser l'outil (les
 // devis/factures generes seraient incomplets). taux_tva peut valoir 0
@@ -59,6 +64,22 @@ export function useArtisanSession() {
       }
 
       if (actif) setSession(sessionActuelle);
+
+      // Synchronise l'acces gratuit (accorde si l'email est dans la liste
+      // acces_gratuit_emails, revoque s'il n'y est plus) AVANT de lire le
+      // profil ci-dessous, pour que abonnement_actif soit a jour. Sans
+      // importance si ca echoue : on lit quand meme le profil ensuite.
+      if (!verificationAccesGratuitFaite) {
+        verificationAccesGratuitFaite = true;
+        try {
+          await fetch("/api/activer-invite", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${sessionActuelle.access_token}` },
+          });
+        } catch {
+          // ignore : la lecture du profil ci-dessous reste la source de verite
+        }
+      }
 
       const { data: profil } = await supabase
         .from("artisans")

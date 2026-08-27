@@ -16,10 +16,13 @@ import { createServerSupabase, createAdminSupabase } from "@/lib/supabaseServerC
 // pendant la transition -- une fois tous les emails repris dans la table,
 // elle peut etre supprimee de Vercel.
 //
-// Cette route ne fait qu'ACCORDER l'acces (abonnement_actif = true), jamais
-// le retirer : retirer un email de la table ne revoque donc pas un acces
-// deja accorde (le faire a la main dans Supabase si besoin -- snippet en bas
-// du fichier SQL).
+// Cette route ACCORDE l'acces (abonnement_actif = true) si l'email est dans
+// la liste, et le RETIRE si l'email n'y est plus -- mais uniquement pour un
+// compte issu de l'acces gratuit (ligne artisans sans stripe_subscription_id).
+// Un vrai client Stripe (abonnement paye ou en essai) n'est jamais touche.
+// Appelee a l'inscription (app/connexion) ET a chaque ouverture de l'appli
+// (lib/useArtisan) : retirer un email de la table revoque donc l'acces a la
+// prochaine ouverture, et l'artisan tombe sur la page /abonnement.
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
@@ -56,21 +59,34 @@ export async function POST(req: NextRequest) {
 
   const autorise = Boolean(ligneAcces) || emailsVercel.includes(emailUtilisateur);
 
-  if (!autorise) {
-    return NextResponse.json({ ok: false });
-  }
-
   const { data: artisanExistant } = await supabaseAdmin
     .from("artisans")
-    .select("id")
+    .select("id, abonnement_actif, stripe_subscription_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (artisanExistant) {
-    await supabaseAdmin.from("artisans").update({ abonnement_actif: true }).eq("id", artisanExistant.id);
-  } else {
-    await supabaseAdmin.from("artisans").insert({ user_id: user.id, abonnement_actif: true });
+  if (autorise) {
+    if (artisanExistant) {
+      if (!artisanExistant.abonnement_actif) {
+        await supabaseAdmin.from("artisans").update({ abonnement_actif: true }).eq("id", artisanExistant.id);
+      }
+    } else {
+      await supabaseAdmin.from("artisans").insert({ user_id: user.id, abonnement_actif: true });
+    }
+    return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ ok: true });
+  // Email plus dans la liste : on revoque, mais SEULEMENT si ce compte vient
+  // de l'acces gratuit (ligne artisans existante, sans abonnement Stripe) et
+  // qu'il est encore marque actif. Un client Stripe (stripe_subscription_id
+  // renseigne) ou un simple visiteur sans ligne artisans ne sont pas touches.
+  if (
+    artisanExistant &&
+    artisanExistant.abonnement_actif &&
+    !artisanExistant.stripe_subscription_id
+  ) {
+    await supabaseAdmin.from("artisans").update({ abonnement_actif: false }).eq("id", artisanExistant.id);
+  }
+
+  return NextResponse.json({ ok: false });
 }

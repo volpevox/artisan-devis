@@ -91,11 +91,30 @@ export default function Abonnement() {
 
   const offreDecouverte = !stripeSubscriptionId;
 
+  // Ligne artisans presente (artisanId), sans abonnement Stripe et plus
+  // active : c'etait un acces gratuit ("mois offert") qui a ete retire.
+  const moisOffertTermine = Boolean(artisanId) && !abonnementActif && !stripeSubscriptionId;
+
   return (
     <main className="page-shell">
       <Topbar />
 
       <h1 className="page-title">Mon abonnement</h1>
+
+      {moisOffertTermine && (
+        <div className="abo-essai-termine">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M12 7v5.2l3.2 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div>
+            <p className="abo-essai-termine-titre">Ton mois offert est terminé</p>
+            <p className="abo-essai-termine-texte">
+              Abonne-toi pour continuer à créer tes devis et factures à la voix. Tes documents restent accessibles.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="abo-carte">
         {offreDecouverte && <span className="abo-ruban">Découverte</span>}
@@ -156,7 +175,13 @@ export default function Abonnement() {
             </div>
 
             <button className="btn btn-primary abo-cta" onClick={sAbonner} disabled={enCours}>
-              {enCours ? "Un instant..." : stripeSubscriptionId ? "Réactiver mon abonnement" : "Démarrer mon essai gratuit"}
+              {enCours
+                ? "Un instant..."
+                : stripeSubscriptionId
+                  ? "Réactiver mon abonnement"
+                  : moisOffertTermine
+                    ? "M'abonner"
+                    : "Démarrer mon essai gratuit"}
             </button>
           </>
         )}

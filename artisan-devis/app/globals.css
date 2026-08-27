@@ -1183,6 +1183,40 @@ textarea {
   width: 100%;
 }
 
+.abo-essai-termine {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.abo-essai-termine svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  margin-top: 1px;
+  color: var(--warning);
+}
+
+.abo-essai-termine-titre {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text);
+  margin: 0 0 3px;
+}
+
+.abo-essai-termine-texte {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+
 .abo-carte {
   position: relative;
   background: linear-gradient(165deg, var(--card-bg) 0%, #171d27 100%);
