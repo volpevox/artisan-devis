@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
   for (const personne of aInviter || []) {
     if (!personne.email) continue;
     try {
-      await envoyerInvitationAccesGratuit(personne, origin);
+      await envoyerInvitationAccesGratuit(personne);
       await supabase
         .from("acces_gratuit_emails")
         .update({ invite_le: new Date().toISOString() })
@@ -106,7 +106,6 @@ export async function GET(req: NextRequest) {
 // L'adresse de reponse est celle de Marley pour qu'il recoive les questions.
 async function envoyerInvitationAccesGratuit(
   personne: { email: string; prenom: string | null },
-  origin: string,
 ) {
   const bonjour = personne.prenom ? `Bonjour ${personne.prenom},` : "Bonjour,";
 
@@ -123,7 +122,7 @@ async function envoyerInvitationAccesGratuit(
         <p>Pour commencer, crée ton compte avec <strong>cette adresse email</strong> (${personne.email}) : l'accès gratuit s'activera tout seul.</p>
         <p>Une question ? Réponds simplement à ce mail.</p>
       `,
-      boutonUrl: `${origin}/connexion?mode=inscription`,
+      boutonUrl: "https://app.volpevox.fr/connexion?mode=inscription",
       boutonTexte: "Créer mon compte",
     }),
   });
