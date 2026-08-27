@@ -1,7 +1,6 @@
 import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
-import { DebugOverlay } from "@/components/DebugOverlay";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -60,19 +59,6 @@ export default function RootLayout({
       className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable} ${roboto.variable}`}
     >
       <body>
-        {/* window.innerHeight / dvh peuvent inclure en trop la zone de
-            securite du haut sur iOS en mode standalone (confirme par
-            mesures le 27/08/2026 : ecart exact = env(safe-area-inset-top)).
-            document.documentElement.clientHeight reste correct dans les deux
-            cas -- on l'utilise ici comme source fiable pour --app-height,
-            au lieu de compter uniquement sur dvh. Script inline (avant le
-            reste du body) pour eviter un flash avec la mauvaise hauteur. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){function m(){document.documentElement.style.setProperty("--app-height",document.documentElement.clientHeight+"px")}m();window.addEventListener("resize",m);window.addEventListener("orientationchange",m);})();`,
-          }}
-        />
-        <DebugOverlay />
         <div className="app-viewport">
           <div className="app-scroll">{children}</div>
           <BottomNav />
