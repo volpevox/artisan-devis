@@ -120,7 +120,7 @@ async function envoyerInvitationAccesGratuit(
         <p>${bonjour}</p>
         <p>Ton accès gratuit à VolpeVox est prêt : tu dictes ta prestation, le devis se remplit tout seul, ton client signe sur son téléphone, et tu transformes le devis en facture en un clic.</p>
         <p>Pour commencer, crée ton compte avec <strong>cette adresse email</strong> (${personne.email}) : l'accès gratuit s'activera tout seul.</p>
-        <p style="background:#f4f6f8;border-radius:8px;padding:12px 14px;margin:16px 0;"><strong>Conseil :</strong> dès la première ouverture, ajoute VolpeVox à ton écran d'accueil — sur iPhone, appuie sur le bouton Partager puis « Sur l'écran d'accueil » ; sur Android, menu ⋮ puis « Ajouter à l'écran d'accueil ». L'app s'ouvre alors en plein écran, comme une vraie application, et c'est bien plus agréable à utiliser que dans le navigateur.</p>
+        <p style="background:#fbf3dd;border-left:3px solid #d4af37;border-radius:6px;padding:12px 14px;margin:16px 0;"><strong style="color:#0d1b2a;">Conseil :</strong> dès la première ouverture, ajoute VolpeVox à ton écran d'accueil — sur iPhone, appuie sur le bouton Partager puis « Sur l'écran d'accueil » ; sur Android, menu ⋮ puis « Ajouter à l'écran d'accueil ». L'app s'ouvre alors en plein écran, comme une vraie application, et c'est bien plus agréable à utiliser que dans le navigateur.</p>
         <p>Une question ? Réponds simplement à ce mail.</p>
       `,
       boutonUrl: "https://app.volpevox.fr/connexion?mode=inscription",
