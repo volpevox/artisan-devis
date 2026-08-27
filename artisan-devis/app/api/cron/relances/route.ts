@@ -69,7 +69,61 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ succes: true, relancesEnvoyees });
+  // --- Invitations "acces gratuit" -----------------------------------
+  // Envoie une seule fois un mail de bienvenue personnalise a chaque
+  // personne ajoutee dans acces_gratuit_emails (voir supabase/acces-
+  // gratuit-invitations.sql). "invite_le" vide = mail pas encore parti.
+  let invitationsEnvoyees = 0;
+  const { data: aInviter } = await supabase
+    .from("acces_gratuit_emails")
+    .select("email, prenom")
+    .eq("actif", true)
+    .is("invite_le", null);
+
+  for (const personne of aInviter || []) {
+    if (!personne.email) continue;
+    try {
+      await envoyerInvitationAccesGratuit(personne, origin);
+      await supabase
+        .from("acces_gratuit_emails")
+        .update({ invite_le: new Date().toISOString() })
+        .eq("email", personne.email);
+      invitationsEnvoyees++;
+    } catch (e) {
+      // Un echec d'envoi ne bloque pas le reste du cron : invite_le reste
+      // vide, on reessaiera au prochain passage.
+      console.error("Invitation acces gratuit echouee pour", personne.email, e);
+    }
+  }
+
+  return NextResponse.json({ succes: true, relancesEnvoyees, invitationsEnvoyees });
+}
+
+// Mail de bienvenue envoye a une personne a qui Marley offre l'acces gratuit.
+// L'adresse de reponse est celle de Marley pour qu'il recoive les questions.
+async function envoyerInvitationAccesGratuit(
+  personne: { email: string; prenom: string | null },
+  origin: string,
+) {
+  const bonjour = personne.prenom ? `Bonjour ${personne.prenom},` : "Bonjour,";
+
+  await resend.emails.send({
+    from: "VolpeVox <devis@volpevox.fr>",
+    replyTo: "volpevox@outlook.fr",
+    to: personne.email,
+    subject: "Ton accès VolpeVox est prêt 🦊",
+    html: emailHtml({
+      titre: "Ton accès gratuit à VolpeVox",
+      corpsHtml: `
+        <p>${bonjour}</p>
+        <p>Marley t'offre un accès gratuit à VolpeVox : tu dictes ton chantier, le devis se remplit tout seul, ton client signe sur son téléphone, et tu transformes le devis en facture en un clic.</p>
+        <p>Pour commencer, crée ton compte avec <strong>cette adresse email</strong> (${personne.email}) : l'accès gratuit s'activera tout seul.</p>
+        <p>Une question ? Réponds simplement à ce mail.</p>
+      `,
+      boutonUrl: `${origin}/connexion?mode=inscription`,
+      boutonTexte: "Créer mon compte",
+    }),
+  });
 }
 
 // Recupere l'email de connexion de l'artisan, pour que les reponses du
