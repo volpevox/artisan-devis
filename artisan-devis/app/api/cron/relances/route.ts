@@ -113,12 +113,12 @@ async function envoyerInvitationAccesGratuit(
     from: "VolpeVox <devis@volpevox.fr>",
     replyTo: "volpevox@outlook.fr",
     to: personne.email,
-    subject: "Ton accès VolpeVox est prêt 🦊",
+    subject: "Ton accès gratuit à VolpeVox est prêt 🦊",
     html: emailHtml({
-      titre: "Ton accès gratuit à VolpeVox",
+      titre: "Ton accès gratuit à VolpeVox est prêt 🦊",
       corpsHtml: `
         <p>${bonjour}</p>
-        <p>Marley t'offre un accès gratuit à VolpeVox : tu dictes ton chantier, le devis se remplit tout seul, ton client signe sur son téléphone, et tu transformes le devis en facture en un clic.</p>
+        <p>Ton accès gratuit à VolpeVox est prêt : tu dictes ta prestation, le devis se remplit tout seul, ton client signe sur son téléphone, et tu transformes le devis en facture en un clic.</p>
         <p>Pour commencer, crée ton compte avec <strong>cette adresse email</strong> (${personne.email}) : l'accès gratuit s'activera tout seul.</p>
         <p>Une question ? Réponds simplement à ce mail.</p>
       `,
