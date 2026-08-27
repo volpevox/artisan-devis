@@ -29,8 +29,7 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   overflow-x: clip;
-  overflow-y: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
   touch-action: pan-y;
   /* Couleur du menu (--card-bg) en dessous de tout, plutot que --bg : sur
      iPhone en mode "ajoute a l'ecran d'accueil", un espace peut apparaitre
