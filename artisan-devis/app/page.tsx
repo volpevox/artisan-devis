@@ -51,6 +51,7 @@ export default function Home() {
   const [etape, setEtape] = useState<"voice" | "form">("voice");
   const [typeDocument, setTypeDocument] = useState<"devis" | "facture">("devis");
   const [nomEntreprise, setNomEntreprise] = useState("");
+  const [nomComplet, setNomComplet] = useState("");
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
@@ -86,11 +87,12 @@ export default function Home() {
     if (!artisanId) return;
     supabase
       .from("artisans")
-      .select("nom_entreprise, stripe_paiement_actif")
+      .select("nom_entreprise, nom_complet, stripe_paiement_actif")
       .eq("id", artisanId)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.nom_entreprise) setNomEntreprise(data.nom_entreprise);
+        if (data?.nom_complet) setNomComplet(data.nom_complet);
         setPaiementEnLigneDisponible(Boolean(data?.stripe_paiement_actif));
       });
   }, [artisanId]);
@@ -455,7 +457,7 @@ export default function Home() {
           <div className="voice-top">
             <p className="voice-greeting">
               <span className="voice-greeting-hand">Bonjour</span>
-              {nomEntreprise ? ` ${nomEntreprise}` : ""} !
+              {nomEntreprise || nomComplet ? ` ${nomEntreprise || nomComplet}` : ""} !
             </p>
             {toggleTypeDocument}
           </div>
