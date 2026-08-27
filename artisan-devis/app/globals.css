@@ -59,6 +59,13 @@ body {
   height: 100vh;
   height: 100svh;
   height: 100dvh;
+  /* --app-height est posee en JS (voir layout.tsx) a partir de
+     document.documentElement.clientHeight, mesure fiable a 100% sur cet
+     appareil (contrairement a innerHeight/dvh, qui peuvent inclure en trop
+     la zone de securite du haut -- confirme par captures d'ecran du
+     27/08/2026). Simple secours (100dvh) tant que le JS n'a pas encore
+     tourne. */
+  height: var(--app-height, 100dvh);
   background: var(--bg);
 }
 
