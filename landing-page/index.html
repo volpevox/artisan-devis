@@ -7,7 +7,7 @@
 <meta name="description" content="Dicte ta prestation à voix haute, VolpeVox transforme ça en devis, en facture, en relance et en encaissement. Essai gratuit 14 jours.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0f1b2e;
@@ -35,14 +35,14 @@
     margin:0;
     background:var(--bg);
     color:var(--cream);
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
   img{max-width:100%;display:block;}
   a{color:inherit;}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
-  h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;margin:0;line-height:1.15;}
+  h1,h2,h3{font-family:'Poppins',system-ui,-apple-system,Segoe UI,sans-serif;font-weight:700;margin:0;line-height:1.15;}
   .eyebrow{
     display:flex;align-items:center;gap:8px;
     font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
@@ -72,6 +72,8 @@
   }
   .btn:hover{background:var(--gold-dark);transform:translateY(-1px);}
   .btn-sm{padding:10px 20px;font-size:14px;}
+  .btn-ghost{background:transparent;border:1px solid var(--card-border);color:var(--cream);font-weight:600;}
+  .btn-ghost:hover{background:var(--card);border-color:var(--gold);}
   .fine-print{color:var(--muted-2);font-size:13px;margin-top:14px;}
 
   /* header */
@@ -86,7 +88,7 @@
     0%,100%{filter:drop-shadow(0 0 0 rgba(227,169,74,0));}
     50%{filter:drop-shadow(0 0 5px rgba(227,169,74,.7));}
   }
-  .brand span{font-family:'Inter',sans-serif;font-weight:700;font-size:19px;}
+  .brand span{font-family:'Poppins',sans-serif;font-weight:700;font-size:19px;}
   .brand .vox{color:var(--gold);}
 
   /* hero */
@@ -134,7 +136,7 @@
     color:var(--green);font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;margin-bottom:8px;
   }
   .float-tag .label{color:var(--muted);font-size:13px;}
-  .float-tag .amount{font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin-top:2px;}
+  .float-tag .amount{font-family:'Roboto',sans-serif;font-size:24px;font-weight:700;margin-top:2px;}
 
   /* generic section */
   section{padding:44px 0;}
@@ -165,7 +167,7 @@
     width:44px;height:44px;border-radius:50%;border:1.5px solid var(--gold);
     display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--gold);
   }
-  .card h3{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;margin-bottom:10px;}
+  .card h3{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:700;margin-bottom:10px;}
   .card p{color:var(--muted);font-size:14.5px;margin:0;}
 
   /* steps : timeline verticale */
@@ -201,13 +203,13 @@
   .step:nth-child(1){transition-delay:0s;}
   .step:nth-child(2){transition-delay:.15s;}
   .step:nth-child(3){transition-delay:.3s;}
-  .step h3{font-family:'Inter',sans-serif;font-size:19px;font-weight:700;margin-bottom:10px;}
+  .step h3{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:700;margin-bottom:10px;}
   .step p{color:var(--muted);font-size:14.5px;margin:0;}
 
   /* result */
   .result{text-align:center;}
   .result .eyebrow{justify-content:center;}
-  .result .stat{font-family:'Fraunces',serif;font-weight:600;color:var(--gold);font-size:96px;line-height:1;display:inline-block;animation:statPulse 3.5s ease-in-out infinite;}
+  .result .stat{font-family:'Roboto',sans-serif;font-weight:900;color:var(--gold);font-size:96px;line-height:1;display:inline-block;animation:statPulse 3.5s ease-in-out infinite;}
   @keyframes statPulse{
     0%,100%{transform:scale(1);text-shadow:0 0 0 rgba(227,169,74,0);}
     50%{transform:scale(1.04);text-shadow:0 0 30px rgba(227,169,74,.45);}
@@ -228,8 +230,8 @@
     font-size:11px;font-weight:800;letter-spacing:.08em;padding:5px 46px;transform:rotate(45deg);
   }
   .price-card .eyebrow{justify-content:center;}
-  .price-card .price{font-family:'Fraunces',serif;font-weight:600;color:var(--gold);font-size:48px;}
-  .price-card .price .per{font-family:'Inter',sans-serif;color:var(--muted);font-size:15px;font-weight:400;}
+  .price-card .price{font-family:'Roboto',sans-serif;font-weight:900;color:var(--gold);font-size:48px;}
+  .price-card .price .per{font-family:'Montserrat',sans-serif;color:var(--muted);font-size:15px;font-weight:400;}
   .price-card .highlight{color:var(--gold);font-weight:700;font-size:14px;margin-top:6px;}
   .price-card .trial{color:var(--muted);font-size:14px;margin-top:4px;margin-bottom:28px;}
   .price-list{list-style:none;padding:0;margin:0 0 28px;text-align:left;}
@@ -240,7 +242,7 @@
   /* faq */
   .faq{max-width:720px;margin:0 auto;}
   .faq-item{border-bottom:1px solid var(--card-border);padding:22px 0;}
-  .faq-item h3{font-family:'Inter',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;}
+  .faq-item h3{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;}
   .faq-item p{color:var(--muted);font-size:14.5px;margin:0;}
 
   /* final cta */
@@ -396,6 +398,9 @@
           <h3>Le client signe, tu es payé</h3>
           <p>Signature électronique sur son téléphone, facture générée en un clic, paiement en ligne sans commission.</p>
         </div>
+      </div>
+      <div style="text-align:center;margin-top:40px;">
+        <a class="btn btn-sm btn-ghost" href="/comment-ca-marche">Comment ça marche, étape par étape →</a>
       </div>
     </div>
   </section>

@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Comment ça marche — VolpeVox</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Le parcours complet VolpeVox, de la dictée de la prestation jusqu'au paiement de la facture — étape par étape.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1b2e;
+    --bg-soft:#0c1626;
+    --card:#172542;
+    --card-border:#2a3a56;
+    --gold:#e3a94a;
+    --gold-dark:#c9902f;
+    --cream:#f5f1e6;
+    --muted:#9aa5b5;
+    --muted-2:#7b8494;
+    --green:#3fae72;
+    --maxw:100%;
+
+    /* alias pour reprendre tel quel le CSS "comment ça marche" de la webapp */
+    --ink:var(--gold);
+    --on-ink:#1a1305;
+    --text:var(--cream);
+    --border:var(--card-border);
+    --input-bg:var(--bg-soft);
+    --card-bg:var(--card);
+    --success:var(--green);
+    --success-bg:rgba(63,174,114,.15);
+    --danger:#ff6b6b;
+    --font-poppins:'Poppins';
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  header, main, footer{max-width:none !important;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease, transform .6s ease;}
+  .reveal.is-visible{opacity:1;transform:none;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  h1,h2{font-family:'Poppins',system-ui,-apple-system,Segoe UI,sans-serif;font-weight:700;margin:0;line-height:1.15;}
+  .btn{
+    display:inline-block;background:var(--gold);color:#1a1305;font-weight:700;font-size:15px;
+    padding:14px 28px;border-radius:8px;text-decoration:none;border:none;cursor:pointer;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .btn:hover{background:var(--gold-dark);transform:translateY(-1px);}
+  .btn-sm{padding:10px 20px;font-size:14px;}
+  .btn-ghost{background:transparent;border:1px solid var(--card-border);color:var(--cream);font-weight:600;}
+  .btn-ghost:hover{background:var(--card);border-color:var(--gold);}
+  .fine-print{color:var(--muted-2);font-size:13px;margin-top:14px;}
+
+  /* header */
+  header{border-bottom:1px solid var(--card-border);}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;max-width:var(--maxw);margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+  .brand img{width:34px;height:34px;object-fit:contain;animation:logoGlow 4s ease-in-out infinite;}
+  @keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 0 rgba(227,169,74,0));}50%{filter:drop-shadow(0 0 5px rgba(227,169,74,.7));}}
+  .brand span{font-family:'Poppins',sans-serif;font-weight:700;font-size:19px;}
+  .brand .vox{color:var(--gold);}
+
+  /* intro */
+  .ccm-hero{padding:56px 0 24px;}
+  .ccm-hero .inner{max-width:640px;margin:0 auto;text-align:center;animation:fadeUp .8s ease both;}
+  .ccm-hero .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:16px;
+  }
+  .ccm-hero h1{font-size:36px;margin-bottom:16px;}
+  .ccm-hero p{color:var(--muted);font-size:16px;margin:0;}
+
+  section{padding:24px 0 56px;}
+
+  /* ------- Parcours "comment ça marche" (repris de la webapp) ------- */
+  .ccm-timeline{display:flex;flex-direction:column;max-width:600px;margin:0 auto;}
+  .ccm-etape{display:grid;grid-template-columns:38px 1fr;gap:14px;}
+  .ccm-numero-col{display:flex;flex-direction:column;align-items:center;}
+  .ccm-numero{
+    flex:none;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--on-ink);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;
+    font-family:var(--font-poppins),sans-serif;
+  }
+  .ccm-ligne-verticale{flex:1 1 auto;width:2px;min-height:20px;background:var(--border);margin:4px 0;}
+  .ccm-etape:last-child .ccm-ligne-verticale{display:none;}
+  .ccm-etape-corps{padding-bottom:26px;}
+  .ccm-etape-titre{font-family:'Montserrat',sans-serif;font-weight:700;font-size:15.5px;color:var(--text);margin:3px 0 4px;}
+  .ccm-etape-texte{font-size:13.5px;line-height:1.55;color:var(--muted);margin:0;}
+  .ccm-demo{
+    margin-top:12px;min-height:76px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;gap:14px;overflow:hidden;position:relative;padding:10px 14px;
+  }
+
+  .ccm-profil-icone{width:40px;height:40px;border-radius:10px;background:rgba(227,169,74,.14);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none;}
+  .ccm-profil-icone svg{width:22px;height:22px;}
+
+  .ccm-mic-mini{position:relative;width:40px;height:40px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;flex:none;}
+  .ccm-mic-mini svg{width:20px;height:20px;color:var(--on-ink);animation:mic-breathe 1.4s ease-in-out infinite;}
+  .ccm-mic-mini::before,.ccm-mic-mini::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--ink);opacity:.6;animation:pulse-ring 1.6s ease-out infinite;}
+  .ccm-mic-mini::after{border-color:#5eead4;animation-delay:.5s;}
+  @keyframes mic-breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+  @keyframes pulse-ring{0%{transform:scale(.9);opacity:.6;}70%{transform:scale(1.3);opacity:0;}100%{transform:scale(1.3);opacity:0;}}
+
+  .ccm-wave-mini{display:flex;align-items:center;gap:3px;height:30px;}
+  .ccm-wave-mini span{width:4px;border-radius:2px;background:var(--ink);height:6px;animation:wave-bounce 1s ease-in-out infinite;}
+  @keyframes wave-bounce{0%,100%{transform:scaleY(.25);}50%{transform:scaleY(var(--amp,1));}}
+
+  .ccm-lignes{width:100%;max-width:220px;display:flex;flex-direction:column;gap:9px;}
+  .ccm-ligne-texte{height:8px;border-radius:4px;background:var(--ink);opacity:.85;animation:ccm-remplir 3s ease-in-out infinite;}
+  @keyframes ccm-remplir{0%{clip-path:inset(0 100% 0 0);}40%{clip-path:inset(0 0 0 0);}85%{clip-path:inset(0 0 0 0);}100%{clip-path:inset(0 100% 0 0);}}
+
+  .ccm-enveloppe svg{width:34px;height:34px;color:var(--ink);animation:ccm-envoyer 2.6s ease-in-out infinite;}
+  @keyframes ccm-envoyer{0%{transform:translateX(-26px);opacity:0;}15%{transform:translateX(0);opacity:1;}55%{transform:translateX(0);opacity:1;}75%{transform:translateX(26px);opacity:0;}100%{opacity:0;}}
+
+  .ccm-telephone{width:60px;height:92px;border:2px solid var(--border);border-radius:10px;padding:8px 6px;display:flex;align-items:center;justify-content:center;background:var(--card-bg);flex:none;}
+  .ccm-telephone svg path{animation:ccm-signer 2.8s ease-in-out infinite;}
+  @keyframes ccm-signer{0%{stroke-dashoffset:1;}55%{stroke-dashoffset:0;}85%{stroke-dashoffset:0;}100%{stroke-dashoffset:1;}}
+
+  .ccm-cloche{position:relative;}
+  .ccm-cloche svg{width:30px;height:30px;color:var(--ink);transform-origin:50% 10%;animation:ccm-clochette 2.6s ease-in-out infinite;}
+  @keyframes ccm-clochette{0%,45%,100%{transform:rotate(0deg);}50%{transform:rotate(-12deg);}57%{transform:rotate(10deg);}64%{transform:rotate(-7deg);}71%{transform:rotate(5deg);}78%{transform:rotate(0deg);}}
+  .ccm-point-relance{position:absolute;top:-2px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--danger);animation:ccm-point-pulse 2.6s ease-in-out infinite;}
+  @keyframes ccm-point-pulse{0%,48%{opacity:0;transform:scale(.5);}62%{opacity:1;transform:scale(1.15);}78%,100%{opacity:1;transform:scale(1);}}
+
+  .ccm-transform{display:flex;align-items:center;gap:10px;}
+  .ccm-mini-doc{width:48px;height:60px;border-radius:6px;background:var(--card-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.3px;color:var(--muted);flex:none;}
+  .ccm-mini-doc--facture{border-color:var(--ink);color:var(--ink);animation:ccm-facture-pulse 2.6s ease-in-out infinite;}
+  @keyframes ccm-facture-pulse{0%,65%,100%{box-shadow:0 0 0 0 rgba(227,169,74,0);}80%{box-shadow:0 0 0 6px rgba(227,169,74,.16);}}
+  .ccm-fleche-icone{width:20px;height:20px;color:var(--ink);flex:none;animation:ccm-fleche 1.4s ease-in-out infinite;}
+  @keyframes ccm-fleche{0%,100%{transform:translateX(0);opacity:.5;}50%{transform:translateX(4px);opacity:1;}}
+
+  .ccm-paiement{display:flex;align-items:center;gap:12px;}
+  .ccm-euro{width:40px;height:40px;border-radius:50%;background:var(--success-bg);border:1px solid var(--success);color:var(--success);font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .ccm-check svg{width:30px;height:30px;color:var(--success);}
+  .ccm-check svg path{animation:ccm-check-dessine 2.8s ease-in-out infinite;}
+  .ccm-check svg circle{animation:ccm-check-cercle 2.8s ease-in-out infinite;}
+  @keyframes ccm-check-dessine{0%,15%{stroke-dashoffset:1;opacity:0;}25%{opacity:1;}50%,85%{stroke-dashoffset:0;opacity:1;}100%{opacity:0;}}
+  @keyframes ccm-check-cercle{0%,15%{opacity:0;}25%,85%{opacity:1;}100%{opacity:0;}}
+
+  .ccm-suivi{display:flex;align-items:center;gap:6px;}
+  .ccm-suivi-pt{width:10px;height:10px;border-radius:50%;background:var(--border);flex:none;animation:ccm-suivi-remplir 3.2s ease-in-out infinite;}
+  .ccm-suivi-trait{width:16px;height:2px;background:var(--border);flex:none;}
+  @keyframes ccm-suivi-remplir{0%,6%{background:var(--border);}16%,88%{background:var(--success);}98%,100%{background:var(--border);}}
+
+  .link-row{margin-top:12px;font-size:13.5px;font-weight:600;}
+  .link-row a{color:var(--gold);text-decoration:none;}
+
+  .end-cta{text-align:center;padding-top:8px;}
+  .end-cta h2{font-size:28px;margin-bottom:22px;}
+
+  /* footer */
+  footer{border-top:1px solid var(--card-border);padding:28px 0;}
+  .foot-wrap{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;}
+  .foot-brand{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;}
+  .foot-brand img{width:20px;height:20px;object-fit:contain;}
+  .foot-links{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
+  .foot-links a{color:var(--muted);font-size:14px;text-decoration:none;}
+  .foot-links a:hover{color:var(--cream);}
+
+  @media (min-width:860px){
+    .ccm-hero h1{font-size:44px;}
+    .foot-wrap{flex-direction:row;justify-content:space-between;text-align:left;}
+  }
+  @media (max-width:859px){
+    .nav{justify-content:center;padding:10px 24px;}
+    .nav .btn{display:none;}
+    .brand{gap:4px;}
+    .brand img{width:56px;height:56px;}
+    .brand span{font-size:23px;}
+    .ccm-hero{padding:32px 0 16px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="brand" href="/">
+      <img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="Logo VolpeVox">
+      <span>Volpe<span class="vox">Vox</span></span>
+    </a>
+    <a class="btn btn-sm" href="https://app.volpevox.fr/connexion?mode=inscription">Essai gratuit 14 jours</a>
+  </div>
+</header>
+
+<main>
+
+  <section class="ccm-hero">
+    <div class="wrap">
+      <div class="inner">
+        <div class="eyebrow">Comment ça marche</div>
+        <h1>De la dictée au paiement, étape par étape.</h1>
+        <p>Le parcours complet, de la dictée de la prestation jusqu'au paiement de la facture. Chaque étape se fait en quelques secondes, depuis ton téléphone.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="ccm-timeline">
+
+        <!-- 1. Profil -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">1</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Tu complètes ton profil (une seule fois)</p>
+            <p class="ccm-etape-texte">Nom, adresse, SIRET, taux de TVA, logo... Ces informations apparaissent automatiquement sur tous tes devis et factures. C'est la seule étape à faire avant de commencer — ensuite tu n'y retournes plus.</p>
+            <div class="ccm-demo">
+              <div class="ccm-paiement" aria-hidden="true">
+                <span class="ccm-profil-icone">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"></rect>
+                    <circle cx="9" cy="11" r="2" stroke="currentColor" stroke-width="1.6"></circle>
+                    <path d="M13 10.5h5M13 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span class="ccm-check">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" pathLength="1" style="stroke-dasharray:1"></circle>
+                    <path d="M8 12.5 11 15.5 16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" pathLength="1" style="stroke-dasharray:1"></path>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Dictée vocale -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">2</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Tu dictes la prestation</p>
+            <p class="ccm-etape-texte">Appuie sur le micro et raconte à voix haute : le client, ce que tu vas faire, ton prix. Pas besoin de taper quoi que ce soit.</p>
+            <div class="ccm-demo">
+              <div class="ccm-mic-mini">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"></rect>
+                  <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                </svg>
+              </div>
+              <div class="ccm-wave-mini" aria-hidden="true">
+                <span style="--amp:0.4;animation-delay:0s"></span>
+                <span style="--amp:0.9;animation-delay:0.08s"></span>
+                <span style="--amp:0.55;animation-delay:0.16s"></span>
+                <span style="--amp:1;animation-delay:0.24s"></span>
+                <span style="--amp:0.35;animation-delay:0.32s"></span>
+                <span style="--amp:0.75;animation-delay:0.4s"></span>
+                <span style="--amp:0.5;animation-delay:0.48s"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. IA structure le devis -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">3</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Le devis se remplit tout seul</p>
+            <p class="ccm-etape-texte">Une IA transcrit ta voix, puis une seconde IA remplit le devis : client, description, prix — avec un prix déjà suggéré si tu as fait une prestation similaire avant (ton carnet de prix).</p>
+            <div class="ccm-demo">
+              <div class="ccm-lignes" aria-hidden="true">
+                <span class="ccm-ligne-texte" style="width:95%;animation-delay:0s"></span>
+                <span class="ccm-ligne-texte" style="width:78%;animation-delay:0.3s"></span>
+                <span class="ccm-ligne-texte" style="width:55%;animation-delay:0.6s"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Vérification et envoi -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">4</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Tu vérifies et tu envoies</p>
+            <p class="ccm-etape-texte">Tu relis, tu corriges si besoin, puis tu envoies le devis par email en un clic. Le client reçoit un joli PDF à ton nom, avec ton logo.</p>
+            <div class="ccm-demo">
+              <div class="ccm-enveloppe" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"></rect>
+                  <path d="M3 6.5 12 13l9-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Signature électronique -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">5</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Le client signe sur son téléphone</p>
+            <p class="ccm-etape-texte">Il ouvre le lien reçu par email et signe avec son doigt, directement sur son téléphone. Pas besoin d'imprimer ni de se déplacer.</p>
+            <div class="ccm-demo">
+              <div class="ccm-telephone" aria-hidden="true">
+                <svg viewBox="0 0 120 40" width="44" height="15">
+                  <path d="M6 28 C 18 6, 28 40, 40 18 S 62 4, 74 22 S 96 34, 114 12" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round" pathLength="1" style="stroke-dasharray:1"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Relance devis -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">6</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Tu es prévenu, et relancé si besoin</p>
+            <p class="ccm-etape-texte">Tu es notifié dès que le devis est signé. S'il ne répond pas, une relance automatique part toute seule (à J+3 puis J+7) — tu n'as rien à faire.</p>
+            <div class="ccm-demo">
+              <div class="ccm-cloche" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.2 1-.5 1.4L5 15h14l-1.5-2.4a2 2 0 0 1-.5-1.4V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+                <span class="ccm-point-relance"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Transformation en facture -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">7</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Le devis devient une facture</p>
+            <p class="ccm-etape-texte">Une fois la prestation terminée, transforme le devis en facture en un clic — numérotée automatiquement. Tu peux aussi dicter une facture directement si tout a été convenu à l'oral avec le client.</p>
+            <div class="ccm-demo">
+              <div class="ccm-transform" aria-hidden="true">
+                <span class="ccm-mini-doc">DEVIS</span>
+                <svg class="ccm-fleche-icone" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <span class="ccm-mini-doc ccm-mini-doc--facture">FACTURE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. Paiement en ligne -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">8</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Le client paie en ligne</p>
+            <p class="ccm-etape-texte">Connecte une seule fois ton compte Stripe (Paramètres → Paiement en ligne) : à partir de là, chaque facture envoyée contient un bouton de paiement, le client paie par carte, et l'argent arrive directement sur ton compte — sans commission VolpeVox. Si Stripe n'est pas encore configuré, pas de souci : choisis simplement un autre moyen de paiement (virement, chèque, espèces) en créant la facture, le client paiera de cette façon-là.</p>
+            <div class="ccm-demo">
+              <div class="ccm-paiement" aria-hidden="true">
+                <span class="ccm-euro">€</span>
+                <span class="ccm-check">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" pathLength="1" style="stroke-dasharray:1"></circle>
+                    <path d="M8 12.5 11 15.5 16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" pathLength="1" style="stroke-dasharray:1"></path>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Relance facture -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">9</span><span class="ccm-ligne-verticale"></span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Relance si la facture traîne</p>
+            <p class="ccm-etape-texte">Facture impayée après quelques jours ? Une relance automatique part toute seule, comme pour un devis non signé — tu n'as pas à y penser.</p>
+            <div class="ccm-demo">
+              <div class="ccm-cloche" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.2 1-.5 1.4L5 15h14l-1.5-2.4a2 2 0 0 1-.5-1.4V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+                <span class="ccm-point-relance"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. Suivi centralisé -->
+        <div class="ccm-etape reveal">
+          <div class="ccm-numero-col"><span class="ccm-numero">10</span></div>
+          <div class="ccm-etape-corps">
+            <p class="ccm-etape-titre">Tout est suivi au même endroit</p>
+            <p class="ccm-etape-texte">Tes devis et factures restent dans l'appli, avec leur statut toujours à jour : brouillon, envoyé, signé, payé.</p>
+            <div class="ccm-demo">
+              <div class="ccm-suivi" aria-hidden="true">
+                <span class="ccm-suivi-pt" style="animation-delay:0s"></span>
+                <span class="ccm-suivi-trait"></span>
+                <span class="ccm-suivi-pt" style="animation-delay:0.4s"></span>
+                <span class="ccm-suivi-trait"></span>
+                <span class="ccm-suivi-pt" style="animation-delay:0.8s"></span>
+                <span class="ccm-suivi-trait"></span>
+                <span class="ccm-suivi-pt" style="animation-delay:1.2s"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="end-cta reveal">
+        <h2>Prêt à récupérer tes soirées ?</h2>
+        <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Démarrer mon essai gratuit</a>
+        <div class="fine-print">Essai 14 jours · carte bancaire requise · aucun prélèvement avant la fin de l'essai</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-wrap">
+    <div class="foot-brand">
+      <img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="">
+      © 2026 VolpeVox
+    </div>
+    <div class="foot-links">
+      <a href="/">Accueil</a>
+      <a href="https://app.volpevox.fr/mentions-legales">Mentions légales</a>
+      <a href="https://app.volpevox.fr/cgv">CGV</a>
+      <a href="https://app.volpevox.fr/cgu">CGU</a>
+      <a href="https://app.volpevox.fr/confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  function init(){
+    var items = document.querySelectorAll('.reveal');
+    if(!items.length) return;
+    if(!('IntersectionObserver' in window)){
+      items.forEach(function(el){ el.classList.add('is-visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function(el){ io.observe(el); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
