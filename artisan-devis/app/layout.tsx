@@ -30,6 +30,7 @@ export const metadata = {
   title: "VolpeVox",
   description: "Créez vos devis en dictant, en quelques secondes",
   appleWebApp: {
+    capable: true,
     title: "VolpeVox",
     statusBarStyle: "black-translucent",
   },
