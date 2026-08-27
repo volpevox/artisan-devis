@@ -12,17 +12,9 @@ export function DebugOverlay() {
   const [infos, setInfos] = useState<string[]>([]);
 
   useEffect(() => {
-    // L'icone de l'ecran d'accueil s'ouvre toujours sur la meme adresse fixe
-    // (sans parametre d'URL) : on memorise l'activation dans localStorage
-    // pour qu'elle reste active aux lancements suivants depuis l'icone,
-    // apres une premiere visite via Safari avec ?debug=1 dans l'adresse.
-    if (window.location.search.includes("debug=1")) {
-      localStorage.setItem("debugOverlay", "1");
-    } else if (window.location.search.includes("debug=0")) {
-      localStorage.removeItem("debugOverlay");
-    }
-
-    if (!localStorage.getItem("debugOverlay")) return;
+    // ACTIVE TEMPORAIREMENT POUR TOUT LE MONDE -- localStorage ne se
+    // partage pas entre Safari et l'app installee sur l'ecran d'accueil.
+    // A retirer/regater juste apres avoir recupere la capture de Marley.
     setActif(true);
 
     function mesurer() {
