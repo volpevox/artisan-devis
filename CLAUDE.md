@@ -55,7 +55,7 @@ La vision complète du parcours (dictée → devis → signature → facture →
 - Suppression d'un devis ou d'une facture (bouton "Supprimer" avec confirmation avant suppression définitive) sur les cartes devis/factures (`components/CarteDocument.tsx`) — nécessite `supabase/suppression-documents.sql` (policies RLS delete, absentes par défaut)
 
 ## Bugs connus, mis de côté (faible priorité)
-- En mode "ajouté à l'écran d'accueil" sur iPhone, le menu du bas flotte au tout premier chargement et se recolle après un défilement manuel — plusieurs correctifs tentés sans succès total, mis de côté par Marley
+- ~~En mode "ajouté à l'écran d'accueil" sur iPhone, le menu du bas flotte au tout premier chargement et se recolle après un défilement manuel~~ — CORRIGÉ le 2026-08-27 (commit `c961a2c`, confirmé par Marley sur son iPhone). Cause : en PWA iOS plein écran (`viewport-fit=cover` + `black-translucent`), `100dvh` renvoie une hauteur fausse au tout premier cold start et ne se corrige qu'après un changement de géométrie (rotation ou défilement). Fix : `.app-viewport` en `height: 100vh` seul (retrait de `100svh`/`100dvh`), `html,body` en `100vh` au lieu de `100%`. Piste trouvée via un gist sur les pièges des PWA iOS.
 - Le remplissage automatique des mots de passe (et Face ID associé) ne fonctionne pas en mode app iPhone, seulement dans Safari classique — limitation connue d'iOS, mise de côté
 
 ## Reste à faire (dans cet ordre convenu avec Marley)
