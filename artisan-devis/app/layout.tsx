@@ -1,7 +1,6 @@
 import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
-import { SyncViewportHeight } from "@/components/SyncViewportHeight";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -61,7 +60,6 @@ export default function RootLayout({
       className={`${poppins.variable} ${montserrat.variable} ${patrickHand.variable} ${roboto.variable}`}
     >
       <body>
-        <SyncViewportHeight />
         <div className="app-viewport">
           <div className="app-scroll">{children}</div>
           <BottomNav />
