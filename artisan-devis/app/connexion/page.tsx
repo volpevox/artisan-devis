@@ -78,16 +78,29 @@ function ConnexionContenu() {
         // iOS (stockage isole entre Safari et l'app installee, y compris
         // pour une valeur memorisee en localStorage avant l'installation).
         // L'email, lui, est toujours disponible, peu importe le chemin pris.
+        // Delai maximum de 4 s sur cet appel : sur Vercel, une fonction
+        // serverless "froide" peut mettre plusieurs secondes a repondre, et
+        // pendant ce temps le bouton reste beige sans que rien ne se passe.
+        // Si le delai est depasse, on redirige vers /abonnement (parcours
+        // payant normal) -- aucun risque pour un acces gratuit : useArtisan.ts
+        // rappelle /api/activer-invite au prochain chargement et activera
+        // l'acces (au pire, le popup de bienvenue "mois offert" ne s'affiche
+        // pas cette fois-la).
         let accesGratuit = false;
         try {
+          const controleur = new AbortController();
+          const minuteur = setTimeout(() => controleur.abort(), 4000);
           const reponse = await fetch("/api/activer-invite", {
             method: "POST",
             headers: { Authorization: `Bearer ${data.session.access_token}` },
+            signal: controleur.signal,
           });
+          clearTimeout(minuteur);
           const resultat = await reponse.json();
           accesGratuit = Boolean(resultat.ok);
         } catch {
-          // Ignore : useArtisan.ts renverra vers /abonnement si l'activation a echoue.
+          // Ignore (delai depasse, reseau, etc.) : useArtisan.ts renverra
+          // vers /abonnement ou activera l'acces gratuit au prochain chargement.
         }
 
         // Une vraie navigation (plutot qu'un changement de page en JS) est
