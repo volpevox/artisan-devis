@@ -29,6 +29,9 @@ const roboto = Roboto({
 export const metadata = {
   title: "VolpeVox",
   description: "Créez vos devis en dictant, en quelques secondes",
+  // Application privee : aucune page de app.volpevox.fr ne doit apparaitre
+  // dans les moteurs de recherche (voir aussi app/robots.ts).
+  robots: { index: false, follow: false },
   appleWebApp: {
     capable: true,
     title: "VolpeVox",
