@@ -127,7 +127,7 @@ export default function Home() {
         return;
       }
 
-      setMessage("Analyse du devis en cours...");
+      setMessage(typeDocument === "facture" ? "Analyse de la facture en cours..." : "Analyse du devis en cours...");
 
       const resStructure = await fetch("/api/structurer", {
         method: "POST",
