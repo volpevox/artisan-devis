@@ -70,14 +70,17 @@ export async function GET(req: NextRequest) {
   }
 
   // --- Invitations "acces gratuit" -----------------------------------
-  // Envoie une seule fois un mail de bienvenue personnalise a chaque
-  // personne ajoutee dans acces_gratuit_emails (voir supabase/acces-
-  // gratuit-invitations.sql). "invite_le" vide = mail pas encore parti.
+  // Envoie une seule fois un mail de bienvenue personnalise. Marley controle
+  // qui le recoit avec la case "envoyer_le_mail" dans le Table Editor :
+  // le mail ne part QUE pour les lignes cochees. "invite_le" (rempli ici
+  // apres l'envoi) empeche un second envoi a la meme personne.
+  // Voir supabase/acces-gratuit-invitations.sql.
   let invitationsEnvoyees = 0;
   const { data: aInviter } = await supabase
     .from("acces_gratuit_emails")
     .select("email, prenom")
     .eq("actif", true)
+    .eq("envoyer_le_mail", true)
     .is("invite_le", null);
 
   for (const personne of aInviter || []) {
