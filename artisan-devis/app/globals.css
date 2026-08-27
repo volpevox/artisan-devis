@@ -41,13 +41,20 @@ body {
   font-family: var(--font-montserrat), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Cadre plein ecran : le menu du bas fait partie du flux normal de la mise
-   en page (dernier enfant du cadre), au lieu d'un element "position: fixed"
-   flottant par-dessus le contenu. Sur iPhone en mode "ajoute a l'ecran
-   d'accueil", les elements fixes ne rejoignent pas toujours le vrai bord de
-   l'ecran (bug connu de Safari) -- un menu dans le flux normal n'a pas ce
-   probleme, puisqu'il n'a jamais besoin d'etre repositionne par rapport au
-   viewport. Seul le contenu (.app-scroll) defile ; le menu reste immobile. */
+/* Cadre plein ecran, en position: fixed avec une hauteur pilotee par JS
+   (--app-height, voir components/SyncViewportHeight.tsx) plutot que 100dvh :
+   sur iPhone en mode "ajoute a l'ecran d'accueil", dvh/innerHeight peuvent
+   etre faux de +env(safe-area-inset-top) au tout premier chargement, ce qui
+   pousse le menu du bas hors de l'ecran visible. Le composant JS resynchronise
+   --app-height via document.documentElement.clientHeight (fiable) sur
+   plusieurs evenements, et force scrollTo(0,0) pour annuler tout rebond
+   elastique de la page plutot que de le bloquer (ancienne tentative qui avait
+   supprime le seul moyen manuel de recoller le menu -- voir historique memoire
+   du 27/08/2026 si ce correctif ne suffit pas non plus).
+   Risque connu : les elements position:fixed n'atteignent pas toujours le
+   vrai bord de l'ecran en mode standalone (autre bug Safari, distinct) --
+   c'est pour cette raison que le cadre etait auparavant en flux normal. A
+   surveiller specifiquement si ce correctif est teste sur un vrai iPhone. */
 html,
 body {
   height: 100%;
@@ -56,9 +63,9 @@ body {
 .app-viewport {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100svh;
-  height: 100dvh;
+  position: fixed;
+  inset: 0;
+  height: var(--app-height, 100dvh);
   background: var(--bg);
 }
 
