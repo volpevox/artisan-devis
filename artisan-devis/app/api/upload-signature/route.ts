@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
-import { emailHtml } from "@/lib/emailTemplate";
+import { emailHtml, logoInline } from "@/lib/emailTemplate";
 import { envoyerNotificationPush } from "@/lib/pushNotifications";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
               boutonUrl: `${req.nextUrl.origin}/api/devis-pdf/${devisId}`,
               boutonTexte: "Voir le devis signé",
             }),
+            attachments: [...(await logoInline())],
           });
         }
       }

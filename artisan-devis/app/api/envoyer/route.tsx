@@ -4,7 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 import { nomAffichageDocument } from "@/lib/nomAffichage";
-import { emailHtml } from "@/lib/emailTemplate";
+import { emailHtml, logoInline } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
         boutonTexte: "Signer ce devis en ligne",
       }),
       attachments: [
+        ...(await logoInline()),
         {
           filename: "devis.pdf",
           content: pdfBuffer,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
-import { emailHtml } from "@/lib/emailTemplate";
+import { emailHtml, logoInline } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const UN_JOUR_MS = 24 * 60 * 60 * 1000;
@@ -126,6 +126,7 @@ async function envoyerInvitationAccesGratuit(
       boutonUrl: "https://app.volpevox.fr/connexion?mode=inscription",
       boutonTexte: "Créer mon compte",
     }),
+    attachments: [...(await logoInline())],
   });
 }
 
@@ -161,6 +162,7 @@ async function envoyerRelanceDevis(devis: any, origin: string, supabase: ReturnT
       boutonUrl: `${origin}/signer/${devis.id}`,
       boutonTexte: "Consulter et signer le devis",
     }),
+    attachments: [...(await logoInline())],
   });
 }
 
@@ -181,5 +183,6 @@ async function envoyerRelanceFacture(facture: any, origin: string, supabase: Ret
       boutonUrl: `${origin}/api/devis-pdf/${facture.id}`,
       boutonTexte: "Voir la facture",
     }),
+    attachments: [...(await logoInline())],
   });
 }

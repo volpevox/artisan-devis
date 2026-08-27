@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { Resend } from "resend";
 import { stripe } from "@/lib/stripeClient";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
-import { emailHtml } from "@/lib/emailTemplate";
+import { emailHtml, logoInline } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -21,6 +21,7 @@ async function previnerAdmin(sujet: string, corpsHtml: string) {
     to: EMAIL_ADMIN,
     subject: sujet,
     html: emailHtml({ titre: sujet, corpsHtml }),
+    attachments: [...(await logoInline())],
   });
 }
 

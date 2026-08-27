@@ -5,12 +5,39 @@ interface EmailHtmlOptions {
   boutonTexte?: string;
 }
 
+// Le logo est JOINT au mail (piece jointe "inline") plutot que charge depuis
+// une URL : Gmail et Mail iOS l'affichent alors sans demander l'autorisation
+// (Outlook la demande encore une fois). L'en-tete le reference par "cid:
+// volpevox-logo". Si le telechargement echoue, le mot "VolpeVox" sous le
+// logo sert de repli. A ajouter dans le champ "attachments" de chaque
+// resend.emails.send(...) : attachments: [...(await logoInline()), ...autres].
+type PieceJointe = { filename: string; content: Buffer; contentId: string };
+let logoCache: PieceJointe[] | null = null;
+
+export async function logoInline(): Promise<PieceJointe[]> {
+  if (logoCache) return logoCache;
+  try {
+    const res = await fetch("https://app.volpevox.fr/fox-icon.png");
+    if (!res.ok) return [];
+    logoCache = [
+      {
+        filename: "volpevox.png",
+        content: Buffer.from(await res.arrayBuffer()),
+        contentId: "volpevox-logo",
+      },
+    ];
+    return logoCache;
+  } catch {
+    return [];
+  }
+}
+
 export function emailHtml({ titre, corpsHtml, boutonUrl, boutonTexte }: EmailHtmlOptions) {
   return `
     <div style="background:#f4f6f8;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
       <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e6ee;">
         <div style="padding:26px 28px 20px;text-align:center;border-bottom:2px solid #d4af37;">
-          <img src="https://app.volpevox.fr/fox-icon.png" alt="" width="46" height="46" style="display:block;margin:0 auto 6px;width:46px;height:46px;border:0;" />
+          <img src="cid:volpevox-logo" alt="" width="46" height="46" style="display:block;margin:0 auto 6px;width:46px;height:46px;border:0;" />
           <span style="font-size:20px;font-weight:800;font-family:Arial,Helvetica,sans-serif;">
             <span style="color:#0d1b2a;">Volpe</span><span style="color:#d4af37;">Vox</span>
           </span>
