@@ -882,7 +882,7 @@ textarea {
 .splash-screen {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 1000;
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -890,6 +890,14 @@ textarea {
   justify-content: center;
   gap: 22px;
   cursor: pointer;
+}
+
+/* L'ecran d'accueil anime prend tout l'ecran. Le menu du bas est rendu par
+   le layout (hors de la page) et reste dans le flux normal : sans cette
+   regle, il depasse sous le splash sur iPhone en mode PWA (100vh != zone
+   visible reelle, voir CLAUDE.md). On le masque tant que le splash est la. */
+body:has(.splash-screen) .bottom-nav {
+  display: none;
 }
 
 .connexion-logo {
