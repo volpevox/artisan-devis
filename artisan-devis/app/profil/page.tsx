@@ -154,126 +154,177 @@ export default function Profil() {
       <PropositionCommentCaMarche />
 
       <h1 className="page-title">Mon profil</h1>
+      <p className="hint" style={{ margin: "0 0 16px" }}>
+        Ces informations apparaissent sur tes devis et factures. Les champs marqués d'un{" "}
+        <span style={{ color: "var(--ink)", fontWeight: 700 }}>*</span> sont obligatoires.
+      </p>
 
-      <div className="card">
-        <p className="hint" style={{ margin: "0 0 12px" }}>
-          Les champs marqués d'un * sont obligatoires.
-        </p>
-
-        <label className="field-label">Logo (facultatif)</label>
-        {logoApercu ? (
-          <div style={{ position: "relative", display: "inline-block", marginBottom: 12 }}>
-            <img
-              src={logoApercu}
-              alt="Logo actuel"
-              style={{ maxWidth: 150, maxHeight: 150, display: "block", borderRadius: 8 }}
-            />
-            <button
-              type="button"
-              onClick={supprimerLogo}
-              aria-label="Supprimer le logo"
-              style={{
-                position: "absolute",
-                top: -8,
-                right: -8,
-                width: 26,
-                height: 26,
-                borderRadius: "50%",
-                background: "var(--danger)",
-                color: "#fff",
-                border: "2px solid var(--card-bg)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                fontSize: 14,
-                lineHeight: 1,
-                padding: 0,
-              }}
-            >
-              ✕
-            </button>
+      <div className="form-bloc">
+        <p className="form-bloc-titre">Identité</p>
+        <div className="form-carte">
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-nom">
+              Nom et prénom <span className="obligatoire">*</span>
+            </label>
+            <input id="p-nom" className="field" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
           </div>
-        ) : (
-          <input type="file" accept="image/*" onChange={choisirLogo} style={{ display: "block", marginBottom: 12 }} />
-        )}
-
-        <label className="field-label">
-          Nom et prénom *
-          <input className="field" style={{ marginTop: 6 }} value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
-        </label>
-        <label className="field-label">
-          Nom de l'entreprise (facultatif)
-          <input className="field" style={{ marginTop: 6 }} value={nomEntreprise} onChange={(e) => setNomEntreprise(e.target.value)} />
-        </label>
-        <label className="field-label">
-          Téléphone *
-          <input className="field" style={{ marginTop: 6 }} value={telephone} onChange={(e) => setTelephone(e.target.value)} />
-        </label>
-        <label className="field-label">
-          Adresse *
-          <input className="field" style={{ marginTop: 6 }} value={adresse} onChange={(e) => setAdresse(e.target.value)} />
-        </label>
-        <div className="field-row">
-          <label className="field-label" style={{ flex: "1 1 0%", minWidth: 0, marginBottom: 0 }}>
-            Code postal *
-            <input className="field" style={{ marginTop: 6, width: "100%" }} value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
-          </label>
-          <label className="field-label" style={{ flex: "2 1 0%", minWidth: 0, marginBottom: 0 }}>
-            Ville *
-            <input className="field" style={{ marginTop: 6, width: "100%" }} value={ville} onChange={(e) => setVille(e.target.value)} />
-          </label>
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-entreprise">
+              Nom de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif)</span>
+            </label>
+            <input
+              id="p-entreprise"
+              className="field"
+              value={nomEntreprise}
+              onChange={(e) => setNomEntreprise(e.target.value)}
+            />
+          </div>
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-tel">
+              Téléphone <span className="obligatoire">*</span>
+            </label>
+            <input id="p-tel" className="field" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+          </div>
         </div>
       </div>
 
-      <div className="card">
-        <h2 style={{ fontSize: 15, marginTop: 0, marginBottom: 14, color: "var(--ink)" }}>Informations légales</h2>
-
-        <label className="field-label">
-          SIRET *
-          <input className="field" style={{ marginTop: 6 }} value={siret} onChange={(e) => setSiret(e.target.value)} />
-        </label>
-
-        <label className="field-label">
-          Taux de TVA (%) * — choisis 0 % si tu es en franchise en base de TVA (auto-entrepreneur)
-          <select
-            className="field"
-            style={{ marginTop: 6 }}
-            value={tauxTva}
-            onChange={(e) => setTauxTva(e.target.value)}
-          >
-            <option value="0">0 % — Franchise en base (auto-entrepreneur)</option>
-            <option value="2.1">2,1 % — Taux particulier</option>
-            <option value="5.5">5,5 % — Taux réduit</option>
-            <option value="10">10 % — Taux intermédiaire</option>
-            <option value="20">20 % — Taux normal</option>
-          </select>
-        </label>
-
-        <label className="field-label">
-          N° TVA intracommunautaire (facultatif, si assujetti à la TVA)
-          <input className="field" style={{ marginTop: 6 }} value={numeroTva} onChange={(e) => setNumeroTva(e.target.value)} />
-        </label>
-        <label className="field-label">
-          IBAN (pour paiement, facultatif)
-          <input className="field" style={{ marginTop: 6 }} value={iban} onChange={(e) => setIban(e.target.value)} />
-        </label>
-        <label className="field-label">
-          Conditions de paiement (facultatif, ex: Acompte 30% à la commande, solde à la livraison)
-          <textarea
-            className="field"
-            style={{ marginTop: 6 }}
-            value={conditionsPaiement}
-            onChange={(e) => setConditionsPaiement(e.target.value)}
-          />
-        </label>
-
-        <button className="btn btn-primary" onClick={enregistrer}>
-          Enregistrer
-        </button>
-
-        {message && <p className="message">{message}</p>}
+      <div className="form-bloc">
+        <p className="form-bloc-titre">Adresse</p>
+        <div className="form-carte">
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-adresse">
+              Adresse <span className="obligatoire">*</span>
+            </label>
+            <input id="p-adresse" className="field" value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+          </div>
+          <div className="champ champ-duo">
+            <div style={{ flex: "1 1 40%" }}>
+              <label className="champ-label" htmlFor="p-cp">
+                Code postal <span className="obligatoire">*</span>
+              </label>
+              <input id="p-cp" className="field" inputMode="numeric" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+            </div>
+            <div style={{ flex: "1 1 60%" }}>
+              <label className="champ-label" htmlFor="p-ville">
+                Ville <span className="obligatoire">*</span>
+              </label>
+              <input id="p-ville" className="field" value={ville} onChange={(e) => setVille(e.target.value)} />
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div className="form-bloc">
+        <p className="form-bloc-titre">Informations légales</p>
+        <div className="form-carte">
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-siret">
+              SIRET <span className="obligatoire">*</span>
+            </label>
+            <input id="p-siret" className="field" inputMode="numeric" value={siret} onChange={(e) => setSiret(e.target.value)} />
+          </div>
+
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-tva">
+              Taux de TVA <span className="obligatoire">*</span>
+            </label>
+            <select id="p-tva" className="field" value={tauxTva} onChange={(e) => setTauxTva(e.target.value)}>
+              <option value="0">0 % — Franchise en base (auto-entrepreneur)</option>
+              <option value="2.1">2,1 % — Taux particulier</option>
+              <option value="5.5">5,5 % — Taux réduit</option>
+              <option value="10">10 % — Taux intermédiaire</option>
+              <option value="20">20 % — Taux normal</option>
+            </select>
+            <p className="champ-aide">Choisis 0 % si tu es en franchise en base de TVA.</p>
+          </div>
+
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-numtva">
+              N° TVA intracommunautaire <span style={{ fontWeight: 400 }}>(si assujetti à la TVA)</span>
+            </label>
+            <input id="p-numtva" className="field" value={numeroTva} onChange={(e) => setNumeroTva(e.target.value)} />
+          </div>
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-iban">
+              IBAN <span style={{ fontWeight: 400 }}>(affiché sur les factures, facultatif)</span>
+            </label>
+            <input id="p-iban" className="field" value={iban} onChange={(e) => setIban(e.target.value)} />
+          </div>
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-conditions">
+              Conditions de paiement <span style={{ fontWeight: 400 }}>(facultatif)</span>
+            </label>
+            <textarea
+              id="p-conditions"
+              className="field"
+              placeholder="Ex : Acompte 30 % à la commande, solde à la livraison"
+              value={conditionsPaiement}
+              onChange={(e) => setConditionsPaiement(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="form-bloc">
+        <p className="form-bloc-titre">Logo</p>
+        <div className="form-carte">
+          <div className="champ">
+            <label className="champ-label">
+              Logo de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif, affiché en haut des documents)</span>
+            </label>
+            {logoApercu ? (
+              <div style={{ position: "relative", display: "inline-block", marginTop: 4 }}>
+                <img
+                  src={logoApercu}
+                  alt="Logo actuel"
+                  style={{
+                    maxWidth: 140,
+                    maxHeight: 140,
+                    display: "block",
+                    borderRadius: 10,
+                    border: "1px solid var(--border)",
+                    background: "#fff",
+                    padding: 6,
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={supprimerLogo}
+                  aria-label="Supprimer le logo"
+                  style={{
+                    position: "absolute",
+                    top: -8,
+                    right: -8,
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: "var(--danger)",
+                    color: "#fff",
+                    border: "2px solid var(--card-bg)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    fontSize: 14,
+                    lineHeight: 1,
+                    padding: 0,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <input type="file" accept="image/*" onChange={choisirLogo} style={{ display: "block", marginTop: 4 }} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <button className="btn btn-primary btn-bloc" onClick={enregistrer}>
+        Enregistrer
+      </button>
+
+      {message && <p className="message" style={{ textAlign: "center" }}>{message}</p>}
     </main>
   );
 }

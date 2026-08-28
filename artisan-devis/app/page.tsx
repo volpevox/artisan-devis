@@ -498,173 +498,246 @@ export default function Home() {
     );
   }
 
+  const iconeMicroPetit = (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+
   return (
     <main className="page-shell">
       <Topbar forcerRetour onRetour={() => setEtape("voice")} />
 
       <h1 className="page-title">{typeDocument === "facture" ? "Nouvelle facture" : "Nouveau devis"}</h1>
 
-      <div className="card">
-        {!devisEnregistre && toggleTypeDocument}
+      {!devisEnregistre && toggleTypeDocument}
 
-        <div className="mic-wrap">
-          <button
-            className={`mic-button${enregistrement ? " recording" : ""}`}
-            onClick={enregistrement ? arreterMicro : demarrerMicro}
-            aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
-          >
-            {iconeMicro}
-          </button>
-          <span className="mic-label">{enregistrement ? "Arrêter" : "Redicter la prestation"}</span>
-        </div>
+      <div style={{ marginBottom: 4 }}>
+        <button
+          type="button"
+          className={`form-redicter${enregistrement ? " recording" : ""}`}
+          onClick={enregistrement ? arreterMicro : demarrerMicro}
+          aria-label={enregistrement ? "Arrêter la dictée" : "Redicter la prestation"}
+        >
+          {iconeMicroPetit}
+          {enregistrement ? "Arrêter la dictée" : "Redicter la prestation"}
+        </button>
+      </div>
 
-        <input
-          className="field"
-          placeholder="Nom et prénom ou raison sociale"
-          value={client}
-          onChange={(e) => setClient(e.target.value)}
-        />
-        <input
-          className="field"
-          type="email"
-          autoCapitalize="none"
-          autoCorrect="off"
-          placeholder="Email du client"
-          value={clientEmail}
-          onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
-        />
-        <input
-          className="field"
-          placeholder="Adresse du client"
-          value={clientAdresse}
-          onChange={(e) => setClientAdresse(e.target.value)}
-        />
-        {typeDocument === "facture" && (
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>
-              Date de la prestation
-            </label>
+      <div className="form-bloc">
+        <p className="form-bloc-titre">Client</p>
+        <div className="form-carte">
+          <div className="champ">
+            <label className="champ-label" htmlFor="client-nom">Nom et prénom ou raison sociale</label>
             <input
+              id="client-nom"
               className="field"
-              type="text"
-              inputMode="numeric"
-              placeholder="JJ/MM/AAAA"
-              maxLength={10}
-              style={{ marginBottom: 0 }}
-              value={dateAffichage}
-              onChange={(e) => {
-                const chiffres = e.target.value.replace(/\D/g, "").slice(0, 8);
-                setDateAffichage(chiffresVersAffichage(chiffres));
-                if (chiffres.length === 8) {
-                  setDatePrestation(`${chiffres.slice(4, 8)}-${chiffres.slice(2, 4)}-${chiffres.slice(0, 2)}`);
-                }
-              }}
+              placeholder="Ex : Marie Dupont"
+              value={client}
+              onChange={(e) => setClient(e.target.value)}
             />
           </div>
-        )}
-        {typeDocument === "facture" && (
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, color: "var(--muted)", marginBottom: 6 }}>
-              Mode de paiement
-            </label>
-            <select
+          <div className="champ">
+            <label className="champ-label" htmlFor="client-email">Email du client</label>
+            <input
+              id="client-email"
               className="field"
-              style={{ marginBottom: 0 }}
-              value={modePaiement}
-              onChange={(e) => setModePaiement(e.target.value)}
-            >
-              {MODES_PAIEMENT_FACTURE.filter((m) => !m.enLigne || paiementEnLigneDisponible).map((m) => (
-                <option key={m.valeur} value={m.valeur}>
-                  {m.libelle}
-                </option>
-              ))}
-            </select>
-            {modePaiement === MODES_PAIEMENT_FACTURE[0].valeur && (
-              <p className="hint" style={{ margin: "6px 0 0" }}>
-                Le mail contiendra un bouton "Payer en ligne".
-              </p>
-            )}
+              type="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              placeholder="marie.dupont@email.fr"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
+            />
           </div>
-        )}
-        {lignes.map((ligne, index) => {
-          const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
-          return (
-            <div key={index} style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-              <textarea
-                className="field"
-                placeholder="Description de la prestation"
-                value={ligne.description}
-                onChange={(e) => majLigne(index, "description", e.target.value)}
-              />
-              <input
-                className="field"
-                placeholder="Type de prestation (pour apprendre les prix)"
-                value={ligne.prestation}
-                onChange={(e) => majLigne(index, "prestation", e.target.value)}
-              />
+          <div className="champ">
+            <label className="champ-label" htmlFor="client-adresse">Adresse du client</label>
+            <input
+              id="client-adresse"
+              className="field"
+              placeholder="12 rue des Lilas, 75011 Paris"
+              value={clientAdresse}
+              onChange={(e) => setClientAdresse(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
-              <div className="field-row">
-                <input
-                  className="field"
-                  style={{ flex: "1 1 0%" }}
-                  placeholder="Quantité"
-                  value={ligne.quantite}
-                  onChange={(e) => majLigne(index, "quantite", e.target.value)}
-                />
-                <input
-                  className="field"
-                  style={{ flex: "2 1 0%" }}
-                  placeholder="Unité (m², heure, forfait...)"
-                  value={ligne.unite}
-                  onChange={(e) => majLigne(index, "unite", e.target.value)}
-                />
-              </div>
-
+      {typeDocument === "facture" && (
+        <div className="form-bloc">
+          <p className="form-bloc-titre">Détails de la facture</p>
+          <div className="form-carte">
+            <div className="champ">
+              <label className="champ-label" htmlFor="date-presta">Date de la prestation</label>
               <input
+                id="date-presta"
                 className="field"
-                placeholder="Prix unitaire (€)"
-                value={ligne.prixUnitaire}
+                type="text"
+                inputMode="numeric"
+                placeholder="JJ/MM/AAAA"
+                maxLength={10}
+                value={dateAffichage}
                 onChange={(e) => {
-                  majLigne(index, "prixUnitaire", e.target.value);
-                  majLigne(index, "prixPropose", false);
+                  const chiffres = e.target.value.replace(/\D/g, "").slice(0, 8);
+                  setDateAffichage(chiffresVersAffichage(chiffres));
+                  if (chiffres.length === 8) {
+                    setDatePrestation(`${chiffres.slice(4, 8)}-${chiffres.slice(2, 4)}-${chiffres.slice(0, 2)}`);
+                  }
                 }}
-                style={ligne.prixPropose ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" } : undefined}
               />
-              {ligne.prixPropose && (
-                <p className="hint-success">Prix unitaire proposé automatiquement d'après tes anciens devis</p>
-              )}
-
-              <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>
-                Sous-total : {totalLigne.toFixed(2)} €
-              </p>
-
-              {lignes.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => supprimerLigne(index)}
-                  style={{ background: "none", border: "none", color: "var(--danger)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginTop: 8 }}
-                >
-                  Supprimer cette ligne
-                </button>
+            </div>
+            <div className="champ">
+              <label className="champ-label" htmlFor="mode-paiement">Mode de paiement</label>
+              <select
+                id="mode-paiement"
+                className="field"
+                value={modePaiement}
+                onChange={(e) => setModePaiement(e.target.value)}
+              >
+                {MODES_PAIEMENT_FACTURE.filter((m) => !m.enLigne || paiementEnLigneDisponible).map((m) => (
+                  <option key={m.valeur} value={m.valeur}>
+                    {m.libelle}
+                  </option>
+                ))}
+              </select>
+              {modePaiement === MODES_PAIEMENT_FACTURE[0].valeur && (
+                <p className="champ-aide">Le mail contiendra un bouton « Payer en ligne ».</p>
               )}
             </div>
-          );
-        })}
+          </div>
+        </div>
+      )}
 
-        <button type="button" className="btn btn-outline" onClick={ajouterLigne} style={{ marginBottom: 16 }}>
-          + Ajouter une ligne
-        </button>
+      <div className="form-bloc">
+        <p className="form-bloc-titre">{typeDocument === "facture" ? "Prestations facturées" : "Prestations"}</p>
+        <div className="form-carte">
+          {lignes.map((ligne, index) => {
+            const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
+            return (
+              <div key={index} className="ligne-presta">
+                <div className="ligne-presta-tete">
+                  <span className="ligne-presta-num">Ligne {index + 1}</span>
+                  {lignes.length > 1 && (
+                    <button
+                      type="button"
+                      className="ligne-presta-suppr"
+                      onClick={() => supprimerLigne(index)}
+                      aria-label="Supprimer cette ligne"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path
+                          d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.7 12a1 1 0 0 1-1 1H8.7a1 1 0 0 1-1-1L7 7"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
 
-        <p className="total-line">
-          Total HT : {total.toFixed(2)} € (TVA ajoutée sur {typeDocument === "facture" ? "la facture finale" : "le devis final"})
-        </p>
+                <div className="champ">
+                  <label className="champ-label">Description de la prestation</label>
+                  <textarea
+                    className="field"
+                    placeholder="Ex : Peinture des murs et plafond du salon, 2 couches"
+                    value={ligne.description}
+                    onChange={(e) => majLigne(index, "description", e.target.value)}
+                  />
+                </div>
+
+                <div className="champ">
+                  <label className="champ-label">
+                    Type de prestation <span style={{ fontWeight: 400 }}>— pour mémoriser tes prix</span>
+                  </label>
+                  <input
+                    className="field"
+                    placeholder="Ex : peinture murs"
+                    value={ligne.prestation}
+                    onChange={(e) => majLigne(index, "prestation", e.target.value)}
+                  />
+                </div>
+
+                <div className="champ champ-duo">
+                  <div>
+                    <label className="champ-label">Quantité</label>
+                    <input
+                      className="field"
+                      inputMode="decimal"
+                      placeholder="1"
+                      value={ligne.quantite}
+                      onChange={(e) => majLigne(index, "quantite", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="champ-label">Unité</label>
+                    <input
+                      className="field"
+                      placeholder="m², heure, forfait..."
+                      value={ligne.unite}
+                      onChange={(e) => majLigne(index, "unite", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="champ">
+                  <label className="champ-label">Prix unitaire (€)</label>
+                  <input
+                    className="field"
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    value={ligne.prixUnitaire}
+                    onChange={(e) => {
+                      majLigne(index, "prixUnitaire", e.target.value);
+                      majLigne(index, "prixPropose", false);
+                    }}
+                    style={
+                      ligne.prixPropose
+                        ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" }
+                        : undefined
+                    }
+                  />
+                  {ligne.prixPropose && (
+                    <p className="hint-success" style={{ margin: "6px 0 0" }}>
+                      Prix proposé automatiquement d'après tes anciens devis
+                    </p>
+                  )}
+                </div>
+
+                <div className="ligne-presta-soustotal">
+                  <span>Sous-total</span>
+                  <strong>{totalLigne.toFixed(2)} €</strong>
+                </div>
+              </div>
+            );
+          })}
+
+          <button type="button" className="btn btn-outline btn-bloc" onClick={ajouterLigne}>
+            + Ajouter une ligne
+          </button>
+        </div>
+      </div>
+
+      <div className="form-bloc">
+        <div className="total-bloc">
+          <span className="total-bloc-label">
+            Total HT
+            <br />
+            <span style={{ fontSize: 11.5 }}>
+              TVA ajoutée sur {typeDocument === "facture" ? "la facture" : "le devis"} final
+            </span>
+          </span>
+          <span className="total-bloc-montant">{total.toFixed(2)} €</span>
+        </div>
 
         {!devisEnregistre ? (
-          <button className="btn btn-primary" onClick={envoyer}>
+          <button className="btn btn-primary btn-bloc" onClick={envoyer}>
             {typeDocument === "facture" ? "Enregistrer la facture" : "Enregistrer le devis"}
           </button>
         ) : (
-          <button className="btn btn-success" onClick={envoyerAuClient}>
+          <button className="btn btn-success btn-bloc" onClick={envoyerAuClient}>
             Envoyer au client
           </button>
         )}

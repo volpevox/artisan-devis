@@ -2014,3 +2014,191 @@ textarea {
 .interrupteur-piste[data-actif="oui"]::after {
   transform: translateX(18px);
 }
+
+/* ---- Formulaires : sections homogènes ---- */
+
+.form-bloc {
+  margin-bottom: 18px;
+}
+
+.form-bloc-titre {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px 4px;
+}
+
+.form-carte {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.champ {
+  margin-bottom: 15px;
+}
+
+.champ:last-child {
+  margin-bottom: 0;
+}
+
+.champ-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.champ-label .obligatoire {
+  color: var(--ink);
+}
+
+/* Dans un .champ, l'input porte déjà l'espacement du .champ : on neutralise
+   les marges héritées de .field / des règles globales. */
+.champ .field,
+.champ input,
+.champ select,
+.champ textarea {
+  margin-bottom: 0;
+}
+
+.champ-aide {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+.champ-duo {
+  display: flex;
+  gap: 10px;
+}
+
+.champ-duo > * {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* Bouton pleine largeur, plus présent, pour valider un formulaire */
+.btn-bloc {
+  display: flex;
+  width: 100%;
+  padding: 13px 20px;
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+/* Ligne de prestation (formulaire devis / facture) */
+.ligne-presta {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ligne-presta-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ligne-presta-num {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ligne-presta-suppr {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: -4px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+}
+
+.ligne-presta-suppr:hover {
+  color: var(--danger);
+}
+
+.ligne-presta-suppr svg {
+  width: 17px;
+  height: 17px;
+}
+
+.ligne-presta-soustotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ligne-presta-soustotal strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Bandeau du total, en bas du formulaire */
+.total-bloc {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(221, 167, 66, 0.1);
+  border: 1px solid rgba(221, 167, 66, 0.35);
+  margin: 4px 0 14px;
+}
+
+.total-bloc-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.total-bloc-montant {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ink);
+}
+
+/* Barre micro discrète en haut du formulaire (au lieu du gros disque) */
+.form-redicter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.form-redicter.recording {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.form-redicter svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
