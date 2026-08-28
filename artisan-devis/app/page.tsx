@@ -1,10 +1,16 @@
 "use client";
 import { useState, useRef } from "react";
 import type { CSSProperties } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
 import { useArtisanSession } from "@/lib/useArtisan";
+
+// pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
+const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
+  ssr: false,
+});
 
 const AMPLITUDES_ONDE = [
   0.3, 0.55, 0.4, 0.8, 0.5, 1, 0.65, 0.45, 0.9, 0.35, 0.7, 0.5, 0.85, 0.4, 0.6, 1, 0.5, 0.75, 0.35, 0.9, 0.55, 0.4,
@@ -46,6 +52,33 @@ function chiffresVersAffichage(chiffres: string) {
   return chiffres;
 }
 
+// Sur un enregistrement silencieux, Whisper renvoie soit du vide, soit une
+// phrase "toute faite" qu'il invente (generique de sous-titres, "merci
+// d'avoir regarde"...). On refuse ces cas plutot que d'ouvrir le formulaire
+// avec un texte qui n'a jamais ete dicte.
+function rienDicte(texte: string, dureeMs: number) {
+  const t = (texte || "").trim().toLowerCase();
+  if (!t) return true;
+
+  const hallucinationsConnues = [
+    "amara.org",
+    "sous-titr",
+    "soustitr",
+    "sous titrage",
+    "merci d'avoir regard",
+    "merci d’avoir regard",
+    "myfrenchfilmfestival",
+    "abonnez-vous",
+  ];
+  if (hallucinationsConnues.some((h) => t.includes(h))) return true;
+
+  // Texte tres court + enregistrement tres court = quasi certainement rien.
+  const lettres = t.replace(/[^a-zàâäçéèêëîïôöùûüœ0-9]/gi, "");
+  if (lettres.length < 8 && dureeMs < 2500) return true;
+
+  return false;
+}
+
 export default function Home() {
   const { session, artisanId, profilArtisan, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
@@ -62,9 +95,12 @@ export default function Home() {
   const [devisEnregistre, setDevisEnregistre] = useState(false);
   const [devisId, setDevisId] = useState("");
   const [lienSignature, setLienSignature] = useState("");
+  const [apercuUrl, setApercuUrl] = useState("");
+  const [apercuEnCours, setApercuEnCours] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const debutEnregistrementRef = useRef(0);
 
   // Infos issues du profil deja charge par useArtisanSession (plus de requete
   // a la table artisans propre a cet ecran).
@@ -100,6 +136,7 @@ export default function Home() {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
 
+      const dureeMs = Date.now() - debutEnregistrementRef.current;
       const blob = new Blob(chunksRef.current, { type: "audio/webm" });
       setMessage("Transcription en cours...");
 
@@ -115,6 +152,13 @@ export default function Home() {
 
       if (data.erreur) {
         setMessage("Erreur : " + data.erreur);
+        return;
+      }
+
+      if (rienDicte(data.texte, dureeMs)) {
+        setMessage(
+          "Je n'ai rien entendu. Appuie sur le micro et décris ta prestation à voix haute, près du téléphone."
+        );
         return;
       }
 
@@ -166,12 +210,63 @@ export default function Home() {
     };
 
     recorder.start();
+    debutEnregistrementRef.current = Date.now();
     setEnregistrement(true);
   }
 
   function arreterMicro() {
     mediaRecorderRef.current?.stop();
     setEnregistrement(false);
+  }
+
+  async function previsualiser() {
+    setApercuEnCours(true);
+    setMessage("");
+    try {
+      const res = await fetch("/api/apercu-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          type: typeDocument,
+          client,
+          clientAdresse,
+          datePrestation: datePrestation || null,
+          modePaiement,
+          lignes: lignes.map((l) => ({
+            description: l.description,
+            quantite: l.quantite,
+            unite: l.unite,
+            prixUnitaire: l.prixUnitaire,
+          })),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setMessage("Aperçu impossible : " + (err.erreur || `erreur ${res.status}`));
+        return;
+      }
+
+      const blob = await res.blob();
+      setApercuUrl((ancien) => {
+        if (ancien) URL.revokeObjectURL(ancien);
+        return URL.createObjectURL(blob);
+      });
+    } catch {
+      setMessage("Aperçu impossible : vérifie ta connexion.");
+    } finally {
+      setApercuEnCours(false);
+    }
+  }
+
+  function fermerApercu() {
+    setApercuUrl((ancien) => {
+      if (ancien) URL.revokeObjectURL(ancien);
+      return "";
+    });
   }
 
   async function apprendrePrix(prestationSaisie: string, uniteSaisie: string, prixUnitaireNum: number) {
@@ -385,6 +480,15 @@ export default function Home() {
       <main className="page-shell">
         <p className="message">Chargement...</p>
       </main>
+    );
+  }
+
+  if (apercuUrl) {
+    return (
+      <div className="pdf-viewer-shell">
+        <Topbar forcerRetour onRetour={fermerApercu} />
+        <VisionneusePdf url={apercuUrl} />
+      </div>
     );
   }
 
@@ -731,6 +835,16 @@ export default function Home() {
           </span>
           <span className="total-bloc-montant">{total.toFixed(2)} €</span>
         </div>
+
+        <button
+          type="button"
+          className="btn btn-outline btn-bloc"
+          onClick={previsualiser}
+          disabled={apercuEnCours}
+          style={{ marginBottom: 8 }}
+        >
+          {apercuEnCours ? "Génération de l'aperçu..." : "Prévisualiser en PDF"}
+        </button>
 
         {!devisEnregistre ? (
           <button className="btn btn-primary btn-bloc" onClick={envoyer}>
