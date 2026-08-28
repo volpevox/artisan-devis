@@ -934,12 +934,35 @@ textarea {
   height: 190px;
   object-fit: contain;
   opacity: 0;
-  animation: splash-logo-in 0.9s ease forwards;
+  /* Apparition, puis respiration continue avec une aura doree qui pulse
+     (meme jaune que le reste de l'app, var(--ink) = #dda742). */
+  animation:
+    splash-logo-in 0.9s ease forwards,
+    splash-logo-respire 3.4s ease-in-out 0.9s infinite;
 }
 
 @keyframes splash-logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+    filter: drop-shadow(0 0 0 rgba(221, 167, 66, 0));
+  }
   to {
     opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 20px rgba(221, 167, 66, 0.5));
+  }
+}
+
+@keyframes splash-logo-respire {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 14px rgba(221, 167, 66, 0.38));
+  }
+  50% {
+    transform: scale(1.045);
+    filter: drop-shadow(0 0 32px rgba(221, 167, 66, 0.68));
   }
 }
 
@@ -1017,6 +1040,20 @@ textarea {
   50% {
     opacity: 1;
   }
+}
+
+.splash-credit {
+  position: absolute;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  opacity: 0;
+  animation: splash-tap-in 0.6s ease 2.9s forwards;
 }
 
 @media (max-width: 640px) {

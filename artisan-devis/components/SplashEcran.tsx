@@ -21,9 +21,10 @@ export function SplashEcran({ onContinuer }: SplashEcranProps) {
         <span className="splash-brand-vox">Vox</span>
       </p>
       <p className="splash-sub splash-ligne splash-ligne-2">
-        Vos devis à la voix, la signature au doigt, la facture payée en ligne.
+        Devis et facturations à la voix, signatures et paiements en ligne
       </p>
       <p className="splash-tap">Touchez pour continuer</p>
+      <p className="splash-credit">Développé par Volpe-Tech</p>
     </div>
   );
 }

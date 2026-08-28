@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
+import { SplashEcran } from "@/components/SplashEcran";
 import { useArtisanSession } from "@/lib/useArtisan";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
@@ -98,6 +99,9 @@ export default function Home() {
   const [devisEnregistre, setDevisEnregistre] = useState(false);
   const [devisId, setDevisId] = useState("");
   const [lienSignature, setLienSignature] = useState("");
+  // Ecran d'accueil anime (logo + slogan) : reaffiche a chaque ouverture de
+  // la page d'accueil, y compris quand l'artisan est deja connecte.
+  const [afficherSplash, setAfficherSplash] = useState(true);
   const [apercuUrl, setApercuUrl] = useState("");
   const [apercuEnCours, setApercuEnCours] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -476,6 +480,10 @@ export default function Home() {
     setLignes([ligneVide()]);
     setDevisEnregistre(false);
     setEtape("voice");
+  }
+
+  if (afficherSplash) {
+    return <SplashEcran onContinuer={() => setAfficherSplash(false)} />;
   }
 
   if (loading) {
