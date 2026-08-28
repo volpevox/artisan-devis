@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
   const datePrestation =
     estFacture && body.datePrestation ? new Date(body.datePrestation) : null;
 
+  // Numero qui sera attribue au document s'il est enregistre maintenant :
+  // valeur actuelle du compteur de l'artisan (rien n'est reserve, l'apercu
+  // ne consomme pas le numero).
+  const prochainNumero = estFacture
+    ? Number(artisan?.prochain_numero_facture) || 1
+    : Number(artisan?.prochain_numero_devis) || 1;
+
   const pdfBuffer = await renderToBuffer(
     <DevisPDF
       entreprise={{
@@ -54,7 +61,7 @@ export async function POST(req: NextRequest) {
       signeLe={null}
       lieuSignature={null}
       type={estFacture ? "facture" : "devis"}
-      numero={null}
+      numero={prochainNumero}
       paiement={estFacture ? { payeeLe: null, moyenPaiement: body.modePaiement || null } : null}
       datePrestation={datePrestation}
     />
