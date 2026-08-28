@@ -17,6 +17,9 @@ const AMPLITUDES_ONDE = [
   0.7, 0.3,
 ];
 
+// Ondes qui flanquent le micro dans le formulaire (4 barres de chaque cote).
+const ONDES_MINI = [0.45, 0.85, 1, 0.6];
+
 // La valeur "Carte bancaire (en ligne)" doit rester identique a celle
 // ecrite par /api/confirmer-paiement-facture lors d'un vrai paiement en
 // ligne : c'est ce qui permet, cote /api/facture/[id], de savoir si le
@@ -602,13 +605,6 @@ export default function Home() {
     );
   }
 
-  const iconeMicroPetit = (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-
   return (
     <main className="page-shell">
       <Topbar forcerRetour onRetour={() => setEtape("voice")} />
@@ -617,17 +613,31 @@ export default function Home() {
 
       {!devisEnregistre && toggleTypeDocument}
 
-      <div style={{ marginBottom: 4 }}>
+      <div className="form-mic">
+        <div className={`form-mic-onde form-mic-onde--gauche${enregistrement ? " active" : ""}`} aria-hidden="true">
+          {ONDES_MINI.map((amp, i) => (
+            <span key={i} style={{ "--amp": amp, animationDelay: `${i * 0.12}s` } as CSSProperties} />
+          ))}
+        </div>
+
         <button
           type="button"
-          className={`form-redicter${enregistrement ? " recording" : ""}`}
+          className={`form-mic-btn${enregistrement ? " recording" : ""}`}
           onClick={enregistrement ? arreterMicro : demarrerMicro}
           aria-label={enregistrement ? "Arrêter la dictée" : "Redicter la prestation"}
         >
-          {iconeMicroPetit}
-          {enregistrement ? "Arrêter la dictée" : "Redicter la prestation"}
+          {iconeMicro}
         </button>
+
+        <div className={`form-mic-onde form-mic-onde--droite${enregistrement ? " active" : ""}`} aria-hidden="true">
+          {ONDES_MINI.map((amp, i) => (
+            <span key={i} style={{ "--amp": amp, animationDelay: `${i * 0.12}s` } as CSSProperties} />
+          ))}
+        </div>
       </div>
+      <p className="form-mic-label">
+        {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Redicter la prestation"}
+      </p>
 
       <div className="form-bloc">
         <p className="form-bloc-titre">Client</p>
