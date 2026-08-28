@@ -24,6 +24,8 @@ export default function Profil() {
   const [numeroTva, setNumeroTva] = useState("");
   const [iban, setIban] = useState("");
   const [conditionsPaiement, setConditionsPaiement] = useState("");
+  const [assurancePro, setAssurancePro] = useState("");
+  const [mediateurConso, setMediateurConso] = useState("");
   // Numerotation : "prochain numero" a attribuer. Rempli avec la valeur
   // actuelle du compteur ; l'artisan peut le faire avancer (reprise d'une
   // numerotation existante) mais pas reculer.
@@ -63,6 +65,8 @@ export default function Profil() {
         setNumeroTva(data.numero_tva || "");
         setIban(data.iban || "");
         setConditionsPaiement(data.conditions_paiement || "");
+        setAssurancePro(data.assurance_pro || "");
+        setMediateurConso(data.mediateur_conso || "");
 
         const nDevis = Number(data.prochain_numero_devis) || 1;
         const nFacture = Number(data.prochain_numero_facture) || 1;
@@ -145,6 +149,8 @@ export default function Profil() {
       numero_tva: numeroTva,
       iban,
       conditions_paiement: conditionsPaiement,
+      assurance_pro: assurancePro,
+      mediateur_conso: mediateurConso,
     };
 
     // On n'ecrit le compteur QUE s'il a change : sinon, enregistrer le profil
@@ -298,6 +304,34 @@ export default function Profil() {
               value={conditionsPaiement}
               onChange={(e) => setConditionsPaiement(e.target.value)}
             />
+          </div>
+
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-assurance">
+              Assurance professionnelle <span style={{ fontWeight: 400 }}>(facultatif, affichée sur les documents)</span>
+            </label>
+            <textarea
+              id="p-assurance"
+              className="field"
+              placeholder="Ex : Assurance décennale n° 123456 souscrite auprès de [Assureur], couvrant les chantiers en France métropolitaine."
+              value={assurancePro}
+              onChange={(e) => setAssurancePro(e.target.value)}
+            />
+            <p className="champ-aide">Mention obligatoire sur les devis et factures pour les métiers du bâtiment.</p>
+          </div>
+
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-mediateur">
+              Médiateur de la consommation <span style={{ fontWeight: 400 }}>(facultatif)</span>
+            </label>
+            <textarea
+              id="p-mediateur"
+              className="field"
+              placeholder="Ex : En cas de litige : [nom du médiateur] — [adresse] — [site web]."
+              value={mediateurConso}
+              onChange={(e) => setMediateurConso(e.target.value)}
+            />
+            <p className="champ-aide">Mention obligatoire si tu vends à des particuliers.</p>
           </div>
         </div>
       </div>

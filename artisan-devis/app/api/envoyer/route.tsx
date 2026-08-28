@@ -61,6 +61,8 @@ export async function POST(req: NextRequest) {
           numeroTva: profil?.numero_tva,
           iban: profil?.iban,
           conditionsPaiement: profil?.conditions_paiement,
+          assurancePro: profil?.assurance_pro,
+          mediateurConso: profil?.mediateur_conso,
         }}
         clientNom={clientNom}
         clientAdresse={clientAdresse}

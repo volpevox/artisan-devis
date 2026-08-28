@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
         numeroTva: artisan?.numero_tva,
         iban: artisan?.iban,
         conditionsPaiement: artisan?.conditions_paiement,
+        assurancePro: artisan?.assurance_pro,
+        mediateurConso: artisan?.mediateur_conso,
       }}
       clientNom={body.client || ""}
       clientAdresse={body.clientAdresse || null}

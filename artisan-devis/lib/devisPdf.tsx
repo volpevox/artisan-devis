@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
   },
 
   footnotes: { marginTop: 26 },
+  footnotesSuite: { marginTop: 12 },
   footnoteTitre: {
     fontFamily: "JetBrains Mono",
     fontSize: 8,
@@ -255,6 +256,8 @@ interface DevisPdfProps {
     numeroTva?: string | null;
     iban?: string | null;
     conditionsPaiement?: string | null;
+    assurancePro?: string | null;
+    mediateurConso?: string | null;
   };
   clientNom: string;
   clientAdresse?: string | null;
@@ -402,6 +405,20 @@ export function DevisPDF({
             <View style={styles.footnotes}>
               <Text style={styles.footnoteTitre}>Conditions de paiement</Text>
               <Text style={styles.footnoteTexte}>{entreprise.conditionsPaiement}</Text>
+            </View>
+          ) : null}
+
+          {entreprise.assurancePro ? (
+            <View style={entreprise.conditionsPaiement ? styles.footnotesSuite : styles.footnotes}>
+              <Text style={styles.footnoteTitre}>Assurance professionnelle</Text>
+              <Text style={styles.footnoteTexte}>{entreprise.assurancePro}</Text>
+            </View>
+          ) : null}
+
+          {entreprise.mediateurConso ? (
+            <View style={entreprise.conditionsPaiement || entreprise.assurancePro ? styles.footnotesSuite : styles.footnotes}>
+              <Text style={styles.footnoteTitre}>Médiation de la consommation</Text>
+              <Text style={styles.footnoteTexte}>{entreprise.mediateurConso}</Text>
             </View>
           ) : null}
 
