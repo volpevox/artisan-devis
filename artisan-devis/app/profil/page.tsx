@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
@@ -24,6 +24,13 @@ export default function Profil() {
   const [numeroTva, setNumeroTva] = useState("");
   const [iban, setIban] = useState("");
   const [conditionsPaiement, setConditionsPaiement] = useState("");
+  // Numerotation : "prochain numero" a attribuer. Rempli avec la valeur
+  // actuelle du compteur ; l'artisan peut le faire avancer (reprise d'une
+  // numerotation existante) mais pas reculer.
+  const [prochainNumeroDevis, setProchainNumeroDevis] = useState("1");
+  const [prochainNumeroFacture, setProchainNumeroFacture] = useState("1");
+  const numeroDevisCharge = useRef(1);
+  const numeroFactureCharge = useRef(1);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(true);
 
@@ -56,6 +63,13 @@ export default function Profil() {
         setNumeroTva(data.numero_tva || "");
         setIban(data.iban || "");
         setConditionsPaiement(data.conditions_paiement || "");
+
+        const nDevis = Number(data.prochain_numero_devis) || 1;
+        const nFacture = Number(data.prochain_numero_facture) || 1;
+        numeroDevisCharge.current = nDevis;
+        numeroFactureCharge.current = nFacture;
+        setProchainNumeroDevis(String(nDevis));
+        setProchainNumeroFacture(String(nFacture));
       }
       setChargement(false);
     }
@@ -77,6 +91,19 @@ export default function Profil() {
   async function enregistrer() {
     if (!nomComplet.trim() || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
       setMessage("Merci de remplir tous les champs obligatoires (marqués d'un *).");
+      return;
+    }
+
+    const nDevis = Number(prochainNumeroDevis);
+    const nFacture = Number(prochainNumeroFacture);
+    if (!Number.isInteger(nDevis) || nDevis < 1 || !Number.isInteger(nFacture) || nFacture < 1) {
+      setMessage("Les prochains numéros de devis et de facture doivent être des nombres entiers positifs.");
+      return;
+    }
+    if (nDevis < numeroDevisCharge.current || nFacture < numeroFactureCharge.current) {
+      setMessage(
+        `Le prochain numéro ne peut pas être diminué (devis : ${numeroDevisCharge.current} minimum, facture : ${numeroFactureCharge.current} minimum) : la numérotation doit rester continue.`
+      );
       return;
     }
 
@@ -105,7 +132,7 @@ export default function Profil() {
       setLogoFichier(null);
     }
 
-    const infos = {
+    const infos: Record<string, unknown> = {
       nom_complet: nomComplet,
       nom_entreprise: nomEntreprise,
       telephone,
@@ -120,11 +147,21 @@ export default function Profil() {
       conditions_paiement: conditionsPaiement,
     };
 
+    // On n'ecrit le compteur QUE s'il a change : sinon, enregistrer le profil
+    // apres qu'un devis ait ete cree ailleurs (compteur deja avance en base)
+    // le ferait reculer a la valeur affichee ici, et le prochain numero
+    // ferait doublon.
+    if (nDevis !== numeroDevisCharge.current) infos.prochain_numero_devis = nDevis;
+    if (nFacture !== numeroFactureCharge.current) infos.prochain_numero_facture = nFacture;
+
     const { error } = await supabase.from("artisans").update(infos).eq("id", artisanId);
     if (error) {
       setMessage("Erreur : " + error.message);
       return;
     }
+
+    numeroDevisCharge.current = nDevis;
+    numeroFactureCharge.current = nFacture;
 
     // Si l'artisan arrivait ici avec un profil incomplet (juste apres
     // l'inscription, voir useArtisanSession), le profil est maintenant
@@ -261,6 +298,39 @@ export default function Profil() {
               value={conditionsPaiement}
               onChange={(e) => setConditionsPaiement(e.target.value)}
             />
+          </div>
+        </div>
+      </div>
+
+      <div className="form-bloc">
+        <p className="form-bloc-titre">Numérotation</p>
+        <div className="form-carte">
+          <p className="champ-aide" style={{ margin: "0 0 14px" }}>
+            Numéro à partir duquel VolpeVox continue la numérotation. À ajuster si tu reprends une numérotation déjà
+            commencée ailleurs (ex : mettre 40 si tu as déjà émis 39 factures). Le numéro peut augmenter mais pas
+            diminuer : la numérotation des factures doit rester continue.
+          </p>
+          <div className="champ champ-duo">
+            <div>
+              <label className="champ-label" htmlFor="p-num-devis">Prochain numéro de devis</label>
+              <input
+                id="p-num-devis"
+                className="field"
+                inputMode="numeric"
+                value={prochainNumeroDevis}
+                onChange={(e) => setProchainNumeroDevis(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
+            <div>
+              <label className="champ-label" htmlFor="p-num-facture">Prochain numéro de facture</label>
+              <input
+                id="p-num-facture"
+                className="field"
+                inputMode="numeric"
+                value={prochainNumeroFacture}
+                onChange={(e) => setProchainNumeroFacture(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
           </div>
         </div>
       </div>
