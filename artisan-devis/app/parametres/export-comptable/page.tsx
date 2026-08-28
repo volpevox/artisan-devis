@@ -234,7 +234,7 @@ export default function ExportComptable() {
         </p>
 
         <label className="field-label">Période</label>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6, marginBottom: periode === "personnalise" ? 12 : 0 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
           {PERIODES.map((p) => (
             <button
               key={p.cle}
@@ -257,8 +257,8 @@ export default function ExportComptable() {
         </div>
 
         {periode === "personnalise" && (
-          <div className="field-row">
-            <label className="field-label" style={{ flex: "1 1 0%", minWidth: 0, marginBottom: 0 }}>
+          <div style={{ marginTop: 14 }}>
+            <label className="field-label">
               Du
               <input
                 type="date"
@@ -268,7 +268,7 @@ export default function ExportComptable() {
                 onChange={(e) => setDateDebut(e.target.value)}
               />
             </label>
-            <label className="field-label" style={{ flex: "1 1 0%", minWidth: 0, marginBottom: 0 }}>
+            <label className="field-label" style={{ marginBottom: 0 }}>
               Au
               <input
                 type="date"
@@ -281,7 +281,7 @@ export default function ExportComptable() {
           </div>
         )}
 
-        <button className="btn btn-primary" onClick={preparer} disabled={enCours}>
+        <button className="btn btn-primary" onClick={preparer} disabled={enCours} style={{ marginTop: 20, display: "block" }}>
           {enCours ? "Préparation..." : "Préparer l'export"}
         </button>
 
