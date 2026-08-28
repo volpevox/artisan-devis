@@ -141,7 +141,7 @@ function ConnexionContenu() {
   }
 
   return (
-    <main className="page-shell" style={{ justifyContent: "center" }}>
+    <main className="page-shell connexion-shell">
       <div style={{ textAlign: "center", marginBottom: 22 }}>
         <Image src="/fox-icon.png" alt="" aria-hidden="true" width={84} height={84} className="connexion-logo" priority />
         <p className="connexion-brand">

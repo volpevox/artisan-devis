@@ -900,6 +900,21 @@ body:has(.splash-screen) .bottom-nav {
   display: none;
 }
 
+/* Ecran de connexion / inscription : centre verticalement en mode "app
+   installee" (standalone). Dans un onglet navigateur, on remonte le
+   contenu vers le haut -- sinon, avec la barre d'adresse, le logo se
+   retrouve trop bas. */
+.connexion-shell {
+  justify-content: center;
+}
+
+@media (display-mode: browser) {
+  .connexion-shell {
+    justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top) + 6vh);
+  }
+}
+
 .connexion-logo {
   width: 84px;
   height: 84px;
