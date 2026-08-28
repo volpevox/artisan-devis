@@ -32,13 +32,16 @@ export default function Parametres() {
   const [notifEnCours, setNotifEnCours] = useState(false);
   const [notifMessage, setNotifMessage] = useState("");
 
+  const [relancesActives, setRelancesActives] = useState(true);
+  const [relancesEnCours, setRelancesEnCours] = useState(false);
+
   useEffect(() => {
     if (!artisanId) return;
 
     async function charger() {
       const { data } = await supabase
         .from("artisans")
-        .select("nom_complet, nom_entreprise, stripe_account_id, stripe_paiement_actif")
+        .select("nom_complet, nom_entreprise, stripe_account_id, stripe_paiement_actif, relances_actives")
         .eq("id", artisanId)
         .maybeSingle();
       if (data) {
@@ -46,6 +49,7 @@ export default function Parametres() {
         setNomEntreprise(data.nom_entreprise || "");
         setStripeAccountId(data.stripe_account_id || "");
         setStripePaiementActif(!!data.stripe_paiement_actif);
+        setRelancesActives(data.relances_actives !== false);
       }
       setChargement(false);
     }
@@ -78,6 +82,24 @@ export default function Parametres() {
     }
 
     setNotifEnCours(false);
+  }
+
+  async function basculerRelances() {
+    if (!artisanId || relancesEnCours) return;
+    const nouvelleValeur = !relancesActives;
+    setRelancesEnCours(true);
+    setRelancesActives(nouvelleValeur);
+
+    const { error } = await supabase
+      .from("artisans")
+      .update({ relances_actives: nouvelleValeur })
+      .eq("id", artisanId);
+
+    if (error) {
+      setRelancesActives(!nouvelleValeur);
+      setMessage("Erreur : " + error.message);
+    }
+    setRelancesEnCours(false);
   }
 
   useEffect(() => {
@@ -298,6 +320,45 @@ export default function Parametres() {
                   />
                 </span>
               )}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="reglages-item"
+            onClick={basculerRelances}
+            disabled={relancesEnCours || chargement}
+          >
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Relances automatiques</span>
+              <span className="reglages-item-sous">
+                {relancesActives
+                  ? "Relance des devis non signés et factures impayées (J+3, J+7)"
+                  : "Aucune relance envoyée à tes clients"}
+              </span>
+            </span>
+            <span className="reglages-item-fin">
+              <span className="interrupteur">
+                <span className="interrupteur-piste" data-actif={relancesActives ? "oui" : "non"} />
+              </span>
             </span>
           </button>
 

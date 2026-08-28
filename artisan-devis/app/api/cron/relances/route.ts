@@ -23,6 +23,15 @@ export async function GET(req: NextRequest) {
   const maintenant = Date.now();
   let relancesEnvoyees = 0;
 
+  // Artisans qui ont coupe les relances automatiques (reglage Parametres) :
+  // on n'envoie aucune relance a leurs clients. Recupere une seule fois
+  // plutot qu'une requete par devis/facture.
+  const { data: artisansSansRelances } = await supabase
+    .from("artisans")
+    .select("id")
+    .eq("relances_actives", false);
+  const relancesCoupees = new Set((artisansSansRelances || []).map((a) => a.id));
+
   const { data: devisEnAttente } = await supabase
     .from("devis")
     .select("*")
@@ -33,6 +42,7 @@ export async function GET(req: NextRequest) {
 
   for (const devis of devisEnAttente || []) {
     if (!devis.client_email) continue;
+    if (relancesCoupees.has(devis.artisan_id)) continue;
     const joursEcoules = (maintenant - new Date(devis.envoye_le).getTime()) / UN_JOUR_MS;
 
     if (joursEcoules >= 7 && !devis.relance_j7_envoyee_le) {
@@ -56,6 +66,7 @@ export async function GET(req: NextRequest) {
 
   for (const facture of facturesEnAttente || []) {
     if (!facture.client_email) continue;
+    if (relancesCoupees.has(facture.artisan_id)) continue;
     const joursEcoules = (maintenant - new Date(facture.facture_envoyee_le).getTime()) / UN_JOUR_MS;
 
     if (joursEcoules >= 7 && !facture.relance_j7_envoyee_le) {
