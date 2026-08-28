@@ -467,6 +467,28 @@ export default function Parametres() {
               <Chevron />
             </span>
           </Link>
+
+          <Link href="/parametres/ajout-ecran-accueil" className="reglages-item">
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="6" y="3" width="12" height="18" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+                <path
+                  d="M12 7v6.5m0 0-2.3-2.3M12 13.5l2.3-2.3"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Ajouter à l'écran d'accueil</span>
+              <span className="reglages-item-sous">Ouvrir VolpeVox comme une vraie application</span>
+            </span>
+            <span className="reglages-item-fin">
+              <Chevron />
+            </span>
+          </Link>
         </div>
         {notifMessage && <p className="message">{notifMessage}</p>}
       </div>

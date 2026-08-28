@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import { notificationsPossibles, abonnementActuel, activerNotifications } from "@/lib/pushClient";
+import { estSurEcranAccueil } from "./AideEcranAccueil";
 
 interface PropositionNotificationsProps {
   session: Session | null;
@@ -26,11 +27,20 @@ export function PropositionNotifications({ session, artisanId }: PropositionNoti
 
     async function verifier() {
       const [{ data }, abonnement] = await Promise.all([
-        supabase.from("artisans").select("notifications_proposees_le").eq("id", artisanId).maybeSingle(),
+        supabase
+          .from("artisans")
+          .select("notifications_proposees_le, ecran_accueil_propose_le")
+          .eq("id", artisanId)
+          .maybeSingle(),
         abonnementActuel(),
       ]);
 
-      if (actif && !data?.notifications_proposees_le && !abonnement) {
+      // On laisse d'abord passer le popup "Ajouter a l'ecran d'accueil"
+      // (PropositionEcranAccueil) s'il est encore en attente : pas deux
+      // popups empiles a la premiere ouverture.
+      const ecranAccueilEnAttente = !estSurEcranAccueil() && !data?.ecran_accueil_propose_le;
+
+      if (actif && !data?.notifications_proposees_le && !abonnement && !ecranAccueilEnAttente) {
         setVisible(true);
       }
     }
