@@ -35,13 +35,18 @@ export default function Parametres() {
   const [relancesActives, setRelancesActives] = useState(true);
   const [relancesEnCours, setRelancesEnCours] = useState(false);
 
+  const [copieEnvois, setCopieEnvois] = useState(false);
+  const [copieEnCours, setCopieEnCours] = useState(false);
+
   useEffect(() => {
     if (!artisanId) return;
 
     async function charger() {
       const { data } = await supabase
         .from("artisans")
-        .select("nom_complet, nom_entreprise, stripe_account_id, stripe_paiement_actif, relances_actives")
+        .select(
+          "nom_complet, nom_entreprise, stripe_account_id, stripe_paiement_actif, relances_actives, copie_envois"
+        )
         .eq("id", artisanId)
         .maybeSingle();
       if (data) {
@@ -50,6 +55,7 @@ export default function Parametres() {
         setStripeAccountId(data.stripe_account_id || "");
         setStripePaiementActif(!!data.stripe_paiement_actif);
         setRelancesActives(data.relances_actives !== false);
+        setCopieEnvois(!!data.copie_envois);
       }
       setChargement(false);
     }
@@ -100,6 +106,24 @@ export default function Parametres() {
       setMessage("Erreur : " + error.message);
     }
     setRelancesEnCours(false);
+  }
+
+  async function basculerCopieEnvois() {
+    if (!artisanId || copieEnCours) return;
+    const nouvelleValeur = !copieEnvois;
+    setCopieEnCours(true);
+    setCopieEnvois(nouvelleValeur);
+
+    const { error } = await supabase
+      .from("artisans")
+      .update({ copie_envois: nouvelleValeur })
+      .eq("id", artisanId);
+
+    if (error) {
+      setCopieEnvois(!nouvelleValeur);
+      setMessage("Erreur : " + error.message);
+    }
+    setCopieEnCours(false);
   }
 
   useEffect(() => {
@@ -358,6 +382,38 @@ export default function Parametres() {
             <span className="reglages-item-fin">
               <span className="interrupteur">
                 <span className="interrupteur-piste" data-actif={relancesActives ? "oui" : "non"} />
+              </span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="reglages-item"
+            onClick={basculerCopieEnvois}
+            disabled={copieEnCours || chargement}
+          >
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M3 7l9 6 9-6M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Recevoir une copie de mes envois</span>
+              <span className="reglages-item-sous">
+                {copieEnvois
+                  ? "Une copie de chaque devis / facture arrive dans ta boîte mail"
+                  : "Être en copie cachée des devis et factures envoyés"}
+              </span>
+            </span>
+            <span className="reglages-item-fin">
+              <span className="interrupteur">
+                <span className="interrupteur-piste" data-actif={copieEnvois ? "oui" : "non"} />
               </span>
             </span>
           </button>

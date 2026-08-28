@@ -80,6 +80,9 @@ export async function POST(req: NextRequest) {
       from: "VolpeVox <devis@volpevox.fr>",
       replyTo: resultat.email || undefined,
       to: clientEmail,
+      // L'artisan recoit une copie cachee de son envoi s'il a active le
+      // reglage "Recevoir une copie de mes envois" (Parametres).
+      bcc: profil?.copie_envois && resultat.email ? resultat.email : undefined,
       subject: `Votre devis${devisRow?.numero_devis ? ` n°${devisRow.numero_devis}` : ""} - ${clientNom}`,
       html: emailHtml({
         titre: `Devis pour ${clientNom}`,

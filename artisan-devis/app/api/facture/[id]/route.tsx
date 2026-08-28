@@ -104,6 +104,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       from: "VolpeVox <devis@volpevox.fr>",
       replyTo: emailArtisan || undefined,
       to: devis.client_email,
+      // Copie cachee a l'artisan s'il a active "Recevoir une copie de mes
+      // envois" (Parametres).
+      bcc: profil?.copie_envois && emailArtisan ? emailArtisan : undefined,
       subject: `Votre facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} - ${devis.client_nom || ""}`,
       html: emailHtml({
         titre: `Facture pour ${devis.client_nom || ""}`,
