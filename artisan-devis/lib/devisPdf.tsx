@@ -146,6 +146,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  validiteDevis: {
+    fontSize: 9.5,
+    fontWeight: 700,
+    color: TEXTE,
+    marginTop: 12,
+    textAlign: "center",
+  },
+
   acquitteeBadge: {
     fontSize: 9.5,
     fontWeight: 700,
@@ -258,6 +266,7 @@ interface DevisPdfProps {
     conditionsPaiement?: string | null;
     assurancePro?: string | null;
     mediateurConso?: string | null;
+    validiteJours?: number | null;
   };
   clientNom: string;
   clientAdresse?: string | null;
@@ -299,6 +308,11 @@ export function DevisPDF({
   // est indique en bas, a cote de "Signe le").
   const lieuFaitA = estFacture ? entreprise.ville : null;
   const dateFaitA = estFacture ? date : null;
+
+  // Devis : date limite de validite = date d'emission + N jours (reglage
+  // "duree_validite_devis" du profil). N a 0 ou absent = pas de mention.
+  const validiteJours = !estFacture ? Number(entreprise.validiteJours) || 0 : 0;
+  const dateValidite = validiteJours > 0 ? new Date(date.getTime() + validiteJours * 86400000) : null;
 
   const infosPied = [
     entreprise.nom,
@@ -391,6 +405,12 @@ export function DevisPDF({
               <Text style={styles.totalTTCValeur}>{totalTTC.toFixed(2)} €</Text>
             </View>
           </View>
+
+          {dateValidite ? (
+            <Text style={styles.validiteDevis}>
+              Ce devis est valable jusqu'au {formaterDate(dateValidite)} ({validiteJours} jours).
+            </Text>
+          ) : null}
 
           {estFacture && paiement?.payeeLe ? (
             <Text style={styles.acquitteeBadge}>

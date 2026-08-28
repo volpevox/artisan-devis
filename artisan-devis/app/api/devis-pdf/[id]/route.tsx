@@ -46,6 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         conditionsPaiement: profil?.conditions_paiement,
         assurancePro: profil?.assurance_pro,
         mediateurConso: profil?.mediateur_conso,
+        validiteJours: profil?.duree_validite_devis,
       }}
       clientNom={devis.client_nom || ""}
       clientAdresse={devis.client_adresse}

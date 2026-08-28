@@ -26,6 +26,7 @@ export default function Profil() {
   const [conditionsPaiement, setConditionsPaiement] = useState("");
   const [assurancePro, setAssurancePro] = useState("");
   const [mediateurConso, setMediateurConso] = useState("");
+  const [validiteDevis, setValiditeDevis] = useState("30");
   // Numerotation : "prochain numero" a attribuer. Rempli avec la valeur
   // actuelle du compteur ; l'artisan peut le faire avancer (reprise d'une
   // numerotation existante) mais pas reculer.
@@ -67,6 +68,11 @@ export default function Profil() {
         setConditionsPaiement(data.conditions_paiement || "");
         setAssurancePro(data.assurance_pro || "");
         setMediateurConso(data.mediateur_conso || "");
+        setValiditeDevis(
+          data.duree_validite_devis !== null && data.duree_validite_devis !== undefined
+            ? String(data.duree_validite_devis)
+            : "30"
+        );
 
         const nDevis = Number(data.prochain_numero_devis) || 1;
         const nFacture = Number(data.prochain_numero_facture) || 1;
@@ -151,6 +157,7 @@ export default function Profil() {
       conditions_paiement: conditionsPaiement,
       assurance_pro: assurancePro,
       mediateur_conso: mediateurConso,
+      duree_validite_devis: Number(validiteDevis) || 0,
     };
 
     // On n'ecrit le compteur QUE s'il a change : sinon, enregistrer le profil
@@ -304,6 +311,26 @@ export default function Profil() {
               value={conditionsPaiement}
               onChange={(e) => setConditionsPaiement(e.target.value)}
             />
+          </div>
+
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-validite">Durée de validité des devis</label>
+            <select
+              id="p-validite"
+              className="field"
+              value={validiteDevis}
+              onChange={(e) => setValiditeDevis(e.target.value)}
+            >
+              <option value="15">15 jours</option>
+              <option value="30">30 jours</option>
+              <option value="45">45 jours</option>
+              <option value="60">60 jours</option>
+              <option value="90">90 jours</option>
+              <option value="0">Ne pas afficher</option>
+            </select>
+            <p className="champ-aide">
+              Ajoute « Ce devis est valable jusqu'au … » sur les devis (pas les factures).
+            </p>
           </div>
 
           <div className="champ">
