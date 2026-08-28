@@ -64,28 +64,56 @@ export function useArtisanSession() {
       }
 
       if (actif) setSession(sessionActuelle);
+      const sessionValide = sessionActuelle;
+
+      // Lecture du profil. On selectionne aussi nom_entreprise et
+      // stripe_paiement_actif : l'ecran d'accueil s'en sert (salutation +
+      // disponibilite du paiement en ligne) et evite ainsi de refaire sa
+      // propre requete a la table artisans.
+      const lireProfil = () =>
+        supabase
+          .from("artisans")
+          .select(
+            "id, abonnement_actif, nom_complet, nom_entreprise, telephone, adresse, code_postal, ville, siret, taux_tva, stripe_paiement_actif"
+          )
+          .eq("user_id", sessionValide.user.id)
+          .maybeSingle()
+          .then(({ data }) => data);
 
       // Synchronise l'acces gratuit (accorde si l'email est dans la liste
-      // acces_gratuit_emails, revoque s'il n'y est plus) AVANT de lire le
-      // profil ci-dessous, pour que abonnement_actif soit a jour. Sans
-      // importance si ca echoue : on lit quand meme le profil ensuite.
-      if (!verificationAccesGratuitFaite) {
+      // acces_gratuit_emails, revoque s'il n'y est plus). Une seule fois par
+      // chargement d'appli (le hook est monte par plusieurs composants).
+      const synchroniserAccesGratuit = async () => {
+        if (verificationAccesGratuitFaite) return;
         verificationAccesGratuitFaite = true;
         try {
           await fetch("/api/activer-invite", {
             method: "POST",
-            headers: { Authorization: `Bearer ${sessionActuelle.access_token}` },
+            headers: { Authorization: `Bearer ${sessionValide.access_token}` },
           });
         } catch {
-          // ignore : la lecture du profil ci-dessous reste la source de verite
+          // ignore : la lecture du profil reste la source de verite
         }
-      }
+      };
 
-      const { data: profil } = await supabase
-        .from("artisans")
-        .select("id, abonnement_actif, nom_complet, telephone, adresse, code_postal, ville, siret, taux_tva")
-        .eq("user_id", sessionActuelle.user.id)
-        .maybeSingle();
+      let profil = await lireProfil();
+
+      if (profil?.abonnement_actif) {
+        // Cas normal (artisan abonne) : on affiche tout de suite et on lance
+        // la synchro acces gratuit en arriere-plan. Elle ne peut ici que
+        // revoquer un acces gratuit retire de la liste -- ce qui prendra
+        // effet a l'ouverture suivante, sans retarder l'affichage a chaque
+        // ouverture (c'etait le principal cout au demarrage : on attendait le
+        // reveil de la fonction Vercel avant meme de lire le profil).
+        synchroniserAccesGratuit();
+      } else {
+        // Pas (ou plus) d'abonnement actif : la synchro peut debloquer
+        // l'artisan (email present dans la liste). On l'attend puis on relit
+        // le profil avant de decider de bloquer l'acces.
+        await synchroniserAccesGratuit();
+        if (!actif) return;
+        profil = await lireProfil();
+      }
 
       // Aucune ligne "artisans" n'est creee ici : elle n'existe qu'une fois
       // l'abonnement Stripe reellement demarre (voir le webhook Stripe), pour
@@ -155,5 +183,5 @@ export function useArtisanSession() {
     }
   }, [pathname, loading, accesBloque, profilArtisan, router]);
 
-  return { session, artisanId, loading, accesBloque };
+  return { session, artisanId, profilArtisan, loading, accesBloque };
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
@@ -47,18 +47,15 @@ function chiffresVersAffichage(chiffres: string) {
 }
 
 export default function Home() {
-  const { session, artisanId, loading } = useArtisanSession();
+  const { session, artisanId, profilArtisan, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
   const [typeDocument, setTypeDocument] = useState<"devis" | "facture">("devis");
-  const [nomEntreprise, setNomEntreprise] = useState("");
-  const [nomComplet, setNomComplet] = useState("");
   const [client, setClient] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
   const [datePrestation, setDatePrestation] = useState("");
   const [dateAffichage, setDateAffichage] = useState("");
   const [modePaiement, setModePaiement] = useState(MODES_PAIEMENT_FACTURE[1].valeur);
-  const [paiementEnLigneDisponible, setPaiementEnLigneDisponible] = useState(false);
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
@@ -68,6 +65,12 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  // Infos issues du profil deja charge par useArtisanSession (plus de requete
+  // a la table artisans propre a cet ecran).
+  const nomEntreprise = profilArtisan?.nom_entreprise || "";
+  const nomComplet = profilArtisan?.nom_complet || "";
+  const paiementEnLigneDisponible = Boolean(profilArtisan?.stripe_paiement_actif);
 
   const total = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
 
@@ -82,20 +85,6 @@ export default function Home() {
   function supprimerLigne(index: number) {
     setLignes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== index) : ls));
   }
-
-  useEffect(() => {
-    if (!artisanId) return;
-    supabase
-      .from("artisans")
-      .select("nom_entreprise, nom_complet, stripe_paiement_actif")
-      .eq("id", artisanId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.nom_entreprise) setNomEntreprise(data.nom_entreprise);
-        if (data?.nom_complet) setNomComplet(data.nom_complet);
-        setPaiementEnLigneDisponible(Boolean(data?.stripe_paiement_actif));
-      });
-  }, [artisanId]);
 
   async function demarrerMicro() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
