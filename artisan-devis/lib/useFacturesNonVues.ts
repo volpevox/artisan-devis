@@ -18,13 +18,18 @@ export function useFacturesNonVues(artisanId: string | null) {
 
   async function recompter() {
     if (!artisanId) return;
-    const { count } = await supabase
+    // On liste les ids au lieu d'un count "head: true" : cette requete-la
+    // (HEAD + Prefer: count=exact) revient en 503 a travers la passerelle
+    // Supabase quand elle est faite avec la session de l'artisan (verifie en
+    // prod le 28/08/2026 ; la meme requete en GET passe). Les elements "non
+    // vus" sont peu nombreux par nature, lister leurs ids est negligeable.
+    const { data } = await supabase
       .from("devis")
-      .select("id", { count: "exact", head: true })
+      .select("id")
       .eq("artisan_id", artisanId)
       .eq("est_facture", true)
       .is("facture_vue_le", null);
-    setCompte(count || 0);
+    setCompte(data?.length || 0);
   }
 
   useEffect(() => {
