@@ -35,6 +35,28 @@ function finDuJour(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 }
 
+// Saisie libre "jj/mm/aaaa" -> Date (ou null si incomplète / date inexistante).
+function parseDateFr(saisie: string): Date | null {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(saisie.trim());
+  if (!m) return null;
+  const j = Number(m[1]);
+  const mo = Number(m[2]);
+  const an = Number(m[3]);
+  const d = new Date(an, mo - 1, j);
+  if (d.getFullYear() !== an || d.getMonth() !== mo - 1 || d.getDate() !== j) return null;
+  return d;
+}
+
+// Ajoute les "/" au fil de la frappe : "12032026" -> "12/03/2026".
+function formaterSaisieDate(valeur: string): string {
+  const chiffres = valeur.replace(/\D/g, "").slice(0, 8);
+  const bouts: string[] = [];
+  bouts.push(chiffres.slice(0, 2));
+  if (chiffres.length >= 3) bouts.push(chiffres.slice(2, 4));
+  if (chiffres.length >= 5) bouts.push(chiffres.slice(4, 8));
+  return bouts.join("/");
+}
+
 function bornesPeriode(cle: ClePeriode, dateDebut: string, dateFin: string): { debut: Date; fin: Date } | null {
   const maintenant = new Date();
   const a = maintenant.getFullYear();
@@ -48,12 +70,11 @@ function bornesPeriode(cle: ClePeriode, dateDebut: string, dateFin: string): { d
   }
   if (cle === "cette-annee") return { debut: new Date(a, 0, 1), fin: finDuJour(new Date(a, 11, 31)) };
 
-  // Personnalisé
-  if (!dateDebut || !dateFin) return null;
-  const [ad, md, jd] = dateDebut.split("-").map(Number);
-  const [af, mf, jf] = dateFin.split("-").map(Number);
-  const debut = new Date(ad, md - 1, jd);
-  const fin = finDuJour(new Date(af, mf - 1, jf));
+  // Personnalisé — saisie "jj/mm/aaaa"
+  const debut = parseDateFr(dateDebut);
+  const finBrut = parseDateFr(dateFin);
+  if (!debut || !finBrut) return null;
+  const fin = finDuJour(finBrut);
   if (debut > fin) return null;
   return { debut, fin };
 }
@@ -160,7 +181,7 @@ export default function ExportComptable() {
 
     const bornes = bornesPeriode(periode, dateDebut, dateFin);
     if (!bornes) {
-      setMessage("Choisis une date de début et une date de fin valides.");
+      setMessage("Saisis une date de début et une date de fin valides, au format jj/mm/aaaa (la fin après le début).");
       return;
     }
     if (!artisanId) return;
@@ -261,21 +282,25 @@ export default function ExportComptable() {
             <label className="field-label">
               Du
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                placeholder="jj/mm/aaaa"
                 className="field"
                 style={{ marginTop: 6, width: "100%" }}
                 value={dateDebut}
-                onChange={(e) => setDateDebut(e.target.value)}
+                onChange={(e) => setDateDebut(formaterSaisieDate(e.target.value))}
               />
             </label>
             <label className="field-label" style={{ marginBottom: 0 }}>
               Au
               <input
-                type="date"
+                type="text"
+                inputMode="numeric"
+                placeholder="jj/mm/aaaa"
                 className="field"
                 style={{ marginTop: 6, width: "100%" }}
                 value={dateFin}
-                onChange={(e) => setDateFin(e.target.value)}
+                onChange={(e) => setDateFin(formaterSaisieDate(e.target.value))}
               />
             </label>
           </div>
