@@ -66,6 +66,35 @@ export default function ChangerMotDePasse() {
     setMessage("Mot de passe mis à jour !");
   }
 
+  // Pour l'artisan qui ne connait plus son mot de passe actuel : on lui
+  // envoie le meme lien de reinitialisation que depuis l'ecran de connexion,
+  // vers son adresse email de compte.
+  async function envoyerLienReinitialisation() {
+    const email = session?.user?.email;
+    if (!email) {
+      setMessage("Session invalide, reconnecte-toi.");
+      return;
+    }
+
+    setEnCours(true);
+    setMessage("");
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reinitialiser-mot-de-passe`,
+    });
+
+    setEnCours(false);
+
+    if (error) {
+      setMessage("Erreur : " + error.message);
+      return;
+    }
+
+    setMessage(
+      `Email envoyé à ${email}. Ouvre le lien reçu pour choisir un nouveau mot de passe (pense à regarder tes spams).`
+    );
+  }
+
   if (chargementSession) {
     return (
       <main className="page-shell">
@@ -151,6 +180,30 @@ export default function ChangerMotDePasse() {
         </button>
 
         {message && <p className="message">{message}</p>}
+
+        <div style={{ borderTop: "1px solid var(--border)", marginTop: 16, paddingTop: 14 }}>
+          <p className="hint" style={{ margin: 0 }}>
+            Tu ne te souviens plus de ton mot de passe actuel ?
+          </p>
+          <button
+            type="button"
+            onClick={envoyerLienReinitialisation}
+            disabled={enCours}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--ink)",
+              fontSize: 13.5,
+              fontWeight: 600,
+              textDecoration: "underline",
+              cursor: "pointer",
+              padding: 0,
+              marginTop: 6,
+            }}
+          >
+            Recevoir un lien de réinitialisation par email
+          </button>
+        </div>
       </div>
     </main>
   );
