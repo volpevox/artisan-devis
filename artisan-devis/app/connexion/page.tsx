@@ -4,14 +4,16 @@ import type { FormEvent } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { SplashEcran } from "@/components/SplashEcran";
 import { IconeOeil } from "@/components/IconeOeil";
 
 function ConnexionContenu() {
   // Le bouton "Demarrer mon essai gratuit" de la landing page pointe vers
-  // /connexion?mode=inscription : on saute directement au formulaire de
-  // creation de compte (et on passe l'ecran de demarrage) pour eviter deux
-  // clics inutiles a quelqu'un qui vient deja de decider de s'inscrire.
+  // /connexion?mode=inscription : on ouvre directement le formulaire de
+  // creation de compte pour eviter un clic inutile a quelqu'un qui vient
+  // deja de decider de s'inscrire.
+  // (L'ecran d'accueil anime avec le logo est desormais affiche en amont,
+  // au tout premier chargement de l'app -- voir app/page.tsx -- il n'a plus
+  // besoin d'etre repete ici.)
   const searchParams = useSearchParams();
   const modeInscriptionDirect = searchParams.get("mode") === "inscription";
 
@@ -25,7 +27,6 @@ function ConnexionContenu() {
   const [afficherConfirmation, setAfficherConfirmation] = useState(false);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
-  const [afficherDemarrage, setAfficherDemarrage] = useState(!modeInscriptionDirect);
   const [conditionsAcceptees, setConditionsAcceptees] = useState(false);
 
   async function valider(e: FormEvent) {
@@ -137,10 +138,6 @@ function ConnexionContenu() {
     // Idem : vraie navigation pour laisser le navigateur proposer
     // l'enregistrement du mot de passe.
     window.location.href = "/";
-  }
-
-  if (afficherDemarrage) {
-    return <SplashEcran onContinuer={() => setAfficherDemarrage(false)} />;
   }
 
   return (
