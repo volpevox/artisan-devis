@@ -67,6 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           conditionsPaiement: profil?.conditions_paiement,
           assurancePro: profil?.assurance_pro,
           mediateurConso: profil?.mediateur_conso,
+          penalitesRetard: profil?.penalites_retard,
         }}
         clientNom={devis.client_nom || ""}
         clientAdresse={devis.client_adresse}

@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
         assurancePro: artisan?.assurance_pro,
         mediateurConso: artisan?.mediateur_conso,
         validiteJours: artisan?.duree_validite_devis,
+        penalitesRetard: artisan?.penalites_retard,
       }}
       clientNom={body.client || ""}
       clientAdresse={body.clientAdresse || null}

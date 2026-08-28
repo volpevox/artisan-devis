@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import { MENTION_PENALITES_RETARD_DEFAUT } from "./mentionsDocuments";
 
 Font.register({
   family: "Fraunces",
@@ -267,6 +268,7 @@ interface DevisPdfProps {
     assurancePro?: string | null;
     mediateurConso?: string | null;
     validiteJours?: number | null;
+    penalitesRetard?: string | null;
   };
   clientNom: string;
   clientAdresse?: string | null;
@@ -445,9 +447,7 @@ export function DevisPDF({
           {estFacture && (
             <View style={styles.mentionLegaleFacture}>
               <Text style={styles.footnoteTexte}>
-                En cas de retard de paiement, une pénalité calculée au taux d'intérêt légal en vigueur majoré de 10
-                points sera appliquée, ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 €
-                (article L441-10 du Code de commerce).
+                {entreprise.penalitesRetard || MENTION_PENALITES_RETARD_DEFAUT}
               </Text>
             </View>
           )}

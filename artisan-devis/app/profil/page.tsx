@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionCommentCaMarche } from "@/components/PropositionCommentCaMarche";
 import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
+import { MENTION_PENALITES_RETARD_DEFAUT } from "@/lib/mentionsDocuments";
 
 export default function Profil() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function Profil() {
   const [conditionsPaiement, setConditionsPaiement] = useState("");
   const [assurancePro, setAssurancePro] = useState("");
   const [mediateurConso, setMediateurConso] = useState("");
+  const [penalitesRetard, setPenalitesRetard] = useState(MENTION_PENALITES_RETARD_DEFAUT);
   const [validiteDevis, setValiditeDevis] = useState("30");
   // Numerotation : "prochain numero" a attribuer. Rempli avec la valeur
   // actuelle du compteur ; l'artisan peut le faire avancer (reprise d'une
@@ -68,6 +70,7 @@ export default function Profil() {
         setConditionsPaiement(data.conditions_paiement || "");
         setAssurancePro(data.assurance_pro || "");
         setMediateurConso(data.mediateur_conso || "");
+        setPenalitesRetard(data.penalites_retard || MENTION_PENALITES_RETARD_DEFAUT);
         setValiditeDevis(
           data.duree_validite_devis !== null && data.duree_validite_devis !== undefined
             ? String(data.duree_validite_devis)
@@ -157,6 +160,10 @@ export default function Profil() {
       conditions_paiement: conditionsPaiement,
       assurance_pro: assurancePro,
       mediateur_conso: mediateurConso,
+      // Champ laisse tel quel (= texte par defaut) -> on stocke null pour
+      // garder le repli dynamique cote appli.
+      penalites_retard:
+        penalitesRetard.trim() === MENTION_PENALITES_RETARD_DEFAUT.trim() ? null : penalitesRetard,
       duree_validite_devis: Number(validiteDevis) || 0,
     };
 
@@ -359,6 +366,21 @@ export default function Profil() {
               onChange={(e) => setMediateurConso(e.target.value)}
             />
             <p className="champ-aide">Mention obligatoire si tu vends à des particuliers.</p>
+          </div>
+
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-penalites">Pénalités de retard (facture)</label>
+            <textarea
+              id="p-penalites"
+              className="field"
+              rows={4}
+              value={penalitesRetard}
+              onChange={(e) => setPenalitesRetard(e.target.value)}
+            />
+            <p className="champ-aide">
+              Texte affiché en bas des factures. Laisse le texte par défaut, ou remplace-le par la formulation de tes
+              CGV (le taux ne peut pas être inférieur à 3× le taux d'intérêt légal).
+            </p>
           </div>
         </div>
       </div>
