@@ -53,6 +53,13 @@ body {
   height: 100vh;
 }
 
+@media (display-mode: browser) {
+  html,
+  body {
+    height: 100dvh;
+  }
+}
+
 .app-viewport {
   display: flex;
   flex-direction: column;
@@ -64,6 +71,18 @@ body {
      standalone il n'y a pas de barre d'outils qui varie. */
   height: 100vh;
   background: var(--bg);
+}
+
+/* Dans un onglet navigateur (Safari surtout), la barre d'adresse retrecit
+   la zone visible : avec height: 100vh (grande fenetre), le contenu court
+   laissait un vide en bas et le contenu centre se retrouvait trop bas.
+   100dvh = hauteur reellement visible, qui s'ajuste. On garde 100vh en
+   mode "app installee" (standalone) ou 100dvh est faux au cold start iOS
+   (voir CLAUDE.md). */
+@media (display-mode: browser) {
+  .app-viewport {
+    height: 100dvh;
+  }
 }
 
 .app-scroll {
@@ -900,19 +919,9 @@ body:has(.splash-screen) .bottom-nav {
   display: none;
 }
 
-/* Ecran de connexion / inscription : centre verticalement en mode "app
-   installee" (standalone). Dans un onglet navigateur, on remonte le
-   contenu vers le haut -- sinon, avec la barre d'adresse, le logo se
-   retrouve trop bas. */
+/* Ecran de connexion / inscription : contenu centre verticalement. */
 .connexion-shell {
   justify-content: center;
-}
-
-@media (display-mode: browser) {
-  .connexion-shell {
-    justify-content: flex-start;
-    padding-top: calc(env(safe-area-inset-top) + 6vh);
-  }
 }
 
 .connexion-logo {
