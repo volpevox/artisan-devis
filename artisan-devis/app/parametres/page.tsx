@@ -222,6 +222,27 @@ export default function Parametres() {
 
       {message && <p className="message">{message}</p>}
 
+      <Link href="/parametres/export-comptable" className="card ccm-lien-carte">
+        <span className="ccm-lien-icone">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M7 3h7l5 5v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <path d="M13 3v5h5M12 12v6m0 0-2.5-2.5M12 18l2.5-2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <span>
+          <span style={{ display: "block", fontWeight: 700, fontSize: 14.5, color: "var(--text)" }}>Export comptable</span>
+          <span className="hint" style={{ margin: 0 }}>Un fichier de tes factures pour ton comptable</span>
+        </span>
+        <svg className="ccm-lien-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+
       <div className="tuiles-carrees">
         {etatNotifications === "indisponible" ? (
           <span className="tuile-carree" style={{ opacity: 0.6 }}>
