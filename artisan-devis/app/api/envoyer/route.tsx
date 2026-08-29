@@ -9,7 +9,7 @@ import { emailHtml, logoInline } from "@/lib/emailTemplate";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { clientEmail, clientNom, clientAdresse, lignes, prix, devisId } = await req.json();
+  const { clientEmail, clientNom, clientTelephone, clientAdresse, lignes, prix, devisId } = await req.json();
 
   if (!clientEmail) {
     return NextResponse.json({ erreur: "Aucun email de client fourni" }, { status: 400 });
@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
         }}
         clientNom={clientNom}
         clientAdresse={clientAdresse}
+        clientTelephone={clientTelephone}
         lignes={lignes}
         tauxTva={tauxTva}
         date={date}

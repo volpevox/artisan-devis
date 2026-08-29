@@ -56,8 +56,9 @@ export async function POST(req: NextRequest) {
         validiteJours: artisan?.duree_validite_devis,
         penalitesRetard: artisan?.penalites_retard,
       }}
-      clientNom={body.client || ""}
+      clientNom={body.clientNom || ""}
       clientAdresse={body.clientAdresse || null}
+      clientTelephone={body.clientTelephone || null}
       lignes={lignes}
       tauxTva={tauxTva}
       date={new Date()}

@@ -89,8 +89,11 @@ export default function Home() {
   const { session, artisanId, profilArtisan, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
   const [typeDocument, setTypeDocument] = useState<"devis" | "facture">("devis");
-  const [client, setClient] = useState("");
+  const [clientPrenom, setClientPrenom] = useState("");
+  const [clientNom, setClientNom] = useState("");
+  const [clientRaisonSociale, setClientRaisonSociale] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  const [clientTelephone, setClientTelephone] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
   const [datePrestation, setDatePrestation] = useState("");
   const [dateAffichage, setDateAffichage] = useState("");
@@ -137,6 +140,14 @@ export default function Home() {
   const paiementEnLigneDisponible = Boolean(profilArtisan?.stripe_paiement_actif);
 
   const total = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
+
+  // Nom affiche sur le document et dans les emails : la raison sociale prime
+  // (client = entreprise), sinon "Prenom Nom". Un seul champ client_nom est
+  // stocke en base -- pas de colonne prenom/raison sociale separee, pour rester
+  // simple et ne rien casser cote PDF/emails/cartes qui lisent deja client_nom.
+  const nomClientAffiche = (
+    clientRaisonSociale.trim() || [clientPrenom.trim(), clientNom.trim()].filter(Boolean).join(" ")
+  ).trim();
 
   function majLigne(index: number, champ: keyof Ligne, valeur: string | boolean) {
     setLignes((ls) => ls.map((l, i) => (i === index ? { ...l, [champ]: valeur } : l)));
@@ -202,8 +213,15 @@ export default function Home() {
       });
       const donnees = await resStructure.json();
 
-      if (donnees.client) setClient(donnees.client);
+      if (donnees.clientPrenom) setClientPrenom(donnees.clientPrenom);
+      if (donnees.clientNom) setClientNom(donnees.clientNom);
+      if (donnees.clientRaisonSociale) setClientRaisonSociale(donnees.clientRaisonSociale);
+      if (donnees.clientTelephone) setClientTelephone(donnees.clientTelephone);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
+      // Retro-compat : ancienne reponse IA avec un seul champ "client".
+      if (donnees.client && !donnees.clientNom && !donnees.clientPrenom && !donnees.clientRaisonSociale) {
+        setClientNom(donnees.client);
+      }
 
       const lignesRecues = Array.isArray(donnees.lignes) && donnees.lignes.length > 0 ? donnees.lignes : [{}];
       const nouvellesLignes = lignesRecues.map((l: any) => ({
@@ -259,7 +277,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           type: typeDocument,
-          client,
+          clientNom: nomClientAffiche,
+          clientTelephone: clientTelephone.trim() || null,
           clientAdresse,
           datePrestation: datePrestation || null,
           modePaiement,
@@ -370,8 +389,9 @@ export default function Home() {
       .from("devis")
       .insert({
         artisan_id: artisanId,
-        client_nom: client,
+        client_nom: nomClientAffiche,
         client_email: clientEmail.trim(),
+        client_telephone: clientTelephone.trim() || null,
         client_adresse: clientAdresse,
         total,
         ...infosDocument,
@@ -428,8 +448,9 @@ export default function Home() {
       await supabase
         .from("devis")
         .update({
-          client_nom: client,
+          client_nom: nomClientAffiche,
           client_email: clientEmail.trim(),
+          client_telephone: clientTelephone.trim() || null,
           client_adresse: clientAdresse,
           total,
           date_prestation: datePrestation || null,
@@ -464,7 +485,8 @@ export default function Home() {
           },
           body: JSON.stringify({
             clientEmail: clientEmail.trim(),
-            clientNom: client,
+            clientNom: nomClientAffiche,
+            clientTelephone: clientTelephone.trim() || null,
             clientAdresse,
             lignes: lignes.map((l) => ({
               description: l.description,
@@ -492,8 +514,11 @@ export default function Home() {
 
     setLienSignature(`${window.location.origin}/signer/${devisId}`);
     setMessage(estFacture ? "Facture envoyée au client !" : "Devis envoyé au client !");
-    setClient("");
+    setClientPrenom("");
+    setClientNom("");
+    setClientRaisonSociale("");
     setClientEmail("");
+    setClientTelephone("");
     setClientAdresse("");
     setDatePrestation("");
     setDateAffichage("");
@@ -672,14 +697,38 @@ export default function Home() {
       <div className="form-bloc">
         <p className="form-bloc-titre">Client</p>
         <div className="form-carte">
+          <div className="champ champ-duo">
+            <div>
+              <label className="champ-label" htmlFor="client-prenom">Prénom</label>
+              <input
+                id="client-prenom"
+                className="field"
+                placeholder="Marie"
+                value={clientPrenom}
+                onChange={(e) => setClientPrenom(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="champ-label" htmlFor="client-nom">Nom</label>
+              <input
+                id="client-nom"
+                className="field"
+                placeholder="Dupont"
+                value={clientNom}
+                onChange={(e) => setClientNom(e.target.value)}
+              />
+            </div>
+          </div>
           <div className="champ">
-            <label className="champ-label" htmlFor="client-nom">Nom et prénom ou raison sociale</label>
+            <label className="champ-label" htmlFor="client-raison">
+              Raison sociale <span style={{ fontWeight: 400 }}>— si le client est une entreprise</span>
+            </label>
             <input
-              id="client-nom"
+              id="client-raison"
               className="field"
-              placeholder="Ex : Marie Dupont"
-              value={client}
-              onChange={(e) => setClient(e.target.value)}
+              placeholder="Ex : Dupont & Fils SARL"
+              value={clientRaisonSociale}
+              onChange={(e) => setClientRaisonSociale(e.target.value)}
             />
           </div>
           <div className="champ">
@@ -693,6 +742,19 @@ export default function Home() {
               placeholder="marie.dupont@email.fr"
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
+            />
+          </div>
+          <div className="champ">
+            <label className="champ-label" htmlFor="client-tel">Téléphone du client</label>
+            <input
+              id="client-tel"
+              className="field"
+              type="tel"
+              inputMode="tel"
+              autoCorrect="off"
+              placeholder="06 12 34 56 78"
+              value={clientTelephone}
+              onChange={(e) => setClientTelephone(e.target.value)}
             />
           </div>
           <div className="champ">

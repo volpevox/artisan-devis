@@ -32,7 +32,10 @@ export async function POST(req: NextRequest) {
       {
         role: "system",
         content: `Tu extrais les informations d'un devis dicté par un professionnel indépendant ou une petite entreprise, tous secteurs confondus (bâtiment, espaces verts, agence web, prestations de services, artisanat...). Réponds UNIQUEMENT en JSON, avec exactement ces champs :
-- client (texte, vide si non mentionné)
+- clientPrenom (texte, le prénom du client si mentionné, vide sinon)
+- clientNom (texte, le nom de famille du client si mentionné, vide sinon)
+- clientRaisonSociale (texte, le nom de l'entreprise / raison sociale du client si le client est une société, vide sinon)
+- clientTelephone (texte, le numéro de téléphone du client si mentionné, vide sinon)
 - clientAdresse (texte, l'adresse du client si mentionnée, vide sinon)
 - lignes (tableau d'objets) : une entrée par prestation DISTINCTE mentionnée dans la dictée. Si la dictée ne décrit qu'une seule prestation, renvoie un tableau avec une seule entrée. Ne sépare en plusieurs lignes que des tâches réellement différentes (pas un simple découpage artificiel d'une même tâche). Chaque entrée contient :
   - description (texte, le descriptif de cette prestation tel que dicté)
@@ -61,6 +64,13 @@ Pour chaque ligne, si aucun prix n'est dicté pour elle, ne propose un prixUnita
     }
     return NextResponse.json(donnees);
   } catch {
-    return NextResponse.json({ client: "", clientAdresse: "", lignes: [ligneParDefaut] });
+    return NextResponse.json({
+      clientPrenom: "",
+      clientNom: "",
+      clientRaisonSociale: "",
+      clientTelephone: "",
+      clientAdresse: "",
+      lignes: [ligneParDefaut],
+    });
   }
 }

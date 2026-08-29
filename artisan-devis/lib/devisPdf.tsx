@@ -272,6 +272,7 @@ interface DevisPdfProps {
   };
   clientNom: string;
   clientAdresse?: string | null;
+  clientTelephone?: string | null;
   lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
@@ -288,6 +289,7 @@ export function DevisPDF({
   entreprise,
   clientNom,
   clientAdresse,
+  clientTelephone,
   lignes,
   tauxTva,
   date,
@@ -367,6 +369,7 @@ export function DevisPDF({
             <Text style={styles.clientLabel}>{motDocument} adressé{estFacture ? "e" : ""} à</Text>
             <Text style={styles.clientNom}>{clientNom}</Text>
             {clientAdresse ? <Text style={styles.clientAdresse}>{clientAdresse}</Text> : null}
+            {clientTelephone ? <Text style={styles.clientAdresse}>Tél. {clientTelephone}</Text> : null}
             {estFacture && datePrestation ? (
               <Text style={styles.prestationDate}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
             ) : null}
