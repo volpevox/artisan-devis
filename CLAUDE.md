@@ -5,6 +5,14 @@ SaaS ultra-simple pour artisans/prestataires en France : dictée orale d'un chan
 
 La vision complète du parcours (dictée → devis → signature → facture → paiement → relances) est aujourd'hui fonctionnelle de bout en bout. Le prix visé (79€/mois) est justifié par le temps récupéré (2-4h/jour selon Marley) plutôt que par une comparaison de fonctionnalités avec la concurrence — argument central à reprendre sur la future landing page.
 
+## ⚠️ MODE GRATUIT PENDANT LE LANCEMENT (depuis le 2026-08-29)
+Changement de stratégie : **plus de prix ni de bouton « s'abonner »**, ni sur la webapp ni sur la landing. L'app est **gratuite pour tous** le temps d'acquérir des utilisateurs (SEA prévu). Marley remettra le payant plus tard, une fois le positionnement prix étudié et les gens installés.
+- Interrupteur unique : variable Vercel `NEXT_PUBLIC_MODE_GRATUIT` (`"true"` en Production depuis le 29/08). Lue par `lib/modeGratuit.ts`.
+- En mode gratuit : `/api/activer-invite` autorise **tout** email et l'ajoute à `acces_gratuit_emails` (note « inscrit lancement gratuit ») → journal daté des inscrits + ils restent « grandfathered » si on repasse en payant.
+- Pour repasser en payant : mettre `NEXT_PUBLIC_MODE_GRATUIT=false` dans Vercel + redéployer ; recréer un tarif Stripe + (option) un coupon ; décider en SQL du sort des inscrits du lancement (garder gratuit / convertir). Le code du parcours Stripe (`/api/creer-abonnement`, page `/abonnement`, webhook) est resté intact, juste court-circuité.
+- Stripe abonnement : tarif récurrent + coupon « Découverte » **à archiver/supprimer** dans le Dashboard (live) — rien ne les appelle plus en mode gratuit, c'est du rangement.
+- Landing WordPress (pages `Accueil` id 53 et `comment-ca-marche` id 79) : déjà mises à jour (carte « Gratuit », CTA « Créer mon compte gratuitement »). Les copies de référence `landing-page/*.html` sont à jour. Mise à jour faite via l'API REST WP (`POST /wp-json/wp/v2/pages/<id>` avec `X-WP-Nonce`), pas le bloc Gutenberg — l'upload média `.txt`/`.html` est bloqué sur cette install.
+
 ## Stack technique
 - Next.js 14 (App Router) + React + TypeScript
 - Hébergement : Vercel
