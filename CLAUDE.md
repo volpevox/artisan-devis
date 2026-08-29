@@ -30,7 +30,7 @@ Changement de stratégie : **plus de prix ni de bouton « s'abonner »**, ni sur
 
 ## Schéma Supabase actuel (principales colonnes)
 - `artisans` : id, user_id, nom_complet, nom_entreprise (facultatif), telephone, adresse, code_postal, ville, logo_url, taux_tva, siret, numero_tva, iban, conditions_paiement, essai_expire_le, abonnement_actif, stripe_account_id, stripe_paiement_actif
-- `devis` : id, artisan_id, client_nom, client_email, client_adresse, date_prestation, statut (brouillon/envoye/signe), total, numero_devis, signature_url, signe_le, lieu_signature, signature_vue_le, est_facture, numero_facture, facture_creee_le, facture_envoyee_le, payee_le, moyen_paiement, relance_j3_envoyee_le, relance_j7_envoyee_le
+- `devis` : id, artisan_id, client_nom, client_email, client_telephone, client_adresse, date_prestation, statut (brouillon/envoye/signe), total, numero_devis, signature_url, signe_le, lieu_signature, signature_vue_le, est_facture, numero_facture, facture_creee_le, facture_envoyee_le, payee_le, moyen_paiement, relance_j3_envoyee_le, relance_j7_envoyee_le
 - `lignes_devis` : id, devis_id, description, quantite, unite, prix_unitaire, total_ligne, ordre
 - `prix_appris` : id, artisan_id, prestation, prix_moyen, nombre_utilisations, updated_at — utilisée : suggère un prix a partir des devis precedents de l'artisan
 - Migrations ponctuelles en SQL brut dans `supabase/*.sql`, a executer manuellement par Marley dans le SQL Editor Supabase (pas de vraie migration versionnee)
@@ -53,6 +53,7 @@ Changement de stratégie : **plus de prix ni de bouton « s'abonner »**, ni sur
 - Page Profil complète : identité (nom/prénom obligatoire, nom d'entreprise facultatif), adresse complète (code postal obligatoire), infos légales (SIRET, taux de TVA en liste déroulante, IBAN facultatif), logo (upload + suppression), tuiles carrées Abonnement/Paiement en ligne
 - Page Abonnement : prix et fonctionnalités toujours visibles, bouton support WhatsApp (pas de portail Stripe en libre-service, Marley préfère être contacté directement)
 - Nom affiché sur les documents adapté au statut : taux de TVA à 0% → nom et prénom (+ entreprise si renseigné) ; taux > 0% → nom d'entreprise seul (probable société)
+- Formulaire client (devis + facture, `app/page.tsx`) : Prénom / Nom séparés (côte à côte), Raison sociale (facultatif), Email, Téléphone, Adresse. `client_nom` stocké = raison sociale si remplie sinon « Prénom Nom » (pas de colonne prénom/raison sociale séparée). `client_telephone` = colonne dédiée, affichée sur le PDF sous l'adresse. Le prompt IA (`/api/structurer`) renvoie clientPrenom/clientNom/clientRaisonSociale/clientTelephone séparément.
 - Visionneuse PDF in-app (react-pdf/pdf.js) au lieu du lecteur natif du téléphone, pour garder l'en-tête et le bouton retour visibles
 - Bouton "Partager" (devis/factures) via l'API de partage native du téléphone
 - Redesign graphique : bouton de dictée (icône SVG, plus de pixelisation), cartes devis/factures (montant mis en avant, vrais boutons), écran de connexion (logo animé, centré)
