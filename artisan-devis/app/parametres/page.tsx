@@ -4,7 +4,14 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
-import { notificationsPossibles, abonnementActuel, activerNotifications, desactiverNotifications } from "@/lib/pushClient";
+import {
+  notificationsPossibles,
+  abonnementActuel,
+  activerNotifications,
+  desactiverNotifications,
+  envoyerNotificationTest,
+  pushMarquerActive,
+} from "@/lib/pushClient";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 const NUMERO_WHATSAPP_SUPPORT = "33766213674";
@@ -68,7 +75,13 @@ export default function Parametres() {
       setEtatNotifications("indisponible");
       return;
     }
-    abonnementActuel().then((sub) => setEtatNotifications(sub ? "actif" : "inactif"));
+    abonnementActuel().then((sub) => {
+      setEtatNotifications(sub ? "actif" : "inactif");
+      // Un abonnement present ici veut dire que l'artisan a bien active les
+      // notifications sur cet appareil : on le note pour que l'appli tente de
+      // le reparer toute seule si iOS l'invalide plus tard.
+      if (sub) pushMarquerActive(true);
+    });
   }, []);
 
   async function basculerNotifications() {
@@ -84,6 +97,25 @@ export default function Parametres() {
         await activerNotifications(session.access_token);
         setEtatNotifications("actif");
       }
+    } catch (e: any) {
+      setNotifMessage(e.message || "Erreur");
+    }
+
+    setNotifEnCours(false);
+  }
+
+  async function testerNotifications() {
+    if (!session || notifEnCours) return;
+    setNotifEnCours(true);
+    setNotifMessage("");
+
+    try {
+      const { aucun } = await envoyerNotificationTest(session.access_token);
+      setNotifMessage(
+        aucun
+          ? "Aucun appareil enregistré. Désactive puis réactive les notifications ci-dessus."
+          : "Notification envoyée. Tu devrais la recevoir d'ici quelques secondes."
+      );
     } catch (e: any) {
       setNotifMessage(e.message || "Erreur");
     }
@@ -371,6 +403,34 @@ export default function Parametres() {
               )}
             </span>
           </button>
+
+          {etatNotifications === "actif" && (
+            <button
+              type="button"
+              className="reglages-item"
+              onClick={testerNotifications}
+              disabled={notifEnCours}
+            >
+              <span className="reglages-item-icone">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M5 12l4 4L19 6"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="reglages-item-corps">
+                <span className="reglages-item-titre">Envoyer une notification test</span>
+                <span className="reglages-item-sous">Vérifier d'un geste que les alertes arrivent bien</span>
+              </span>
+              <span className="reglages-item-fin">
+                <Chevron />
+              </span>
+            </button>
+          )}
 
           <button
             type="button"

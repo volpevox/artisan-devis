@@ -29,6 +29,23 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(titre, options));
 });
 
+// Le navigateur previent ici quand il renouvelle/invalide l'abonnement push
+// (expiration, rotation de cle...). On se re-abonne aussitot pour que le
+// navigateur garde un abonnement valide ; le serveur, lui, est remis a jour
+// a la prochaine ouverture de l'appli (resynchroniserPush dans pushClient.ts).
+// Note : iOS ne declenche quasiment jamais cet evenement -- c'est surtout
+// utile sur Android / navigateur de bureau.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  const options = event.oldSubscription && event.oldSubscription.options;
+  if (!options || !options.applicationServerKey) return;
+
+  event.waitUntil(
+    self.registration.pushManager.subscribe(options).catch(() => {
+      // rien a faire : l'appli retentera au prochain demarrage
+    })
+  );
+});
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification.data?.url || "/";

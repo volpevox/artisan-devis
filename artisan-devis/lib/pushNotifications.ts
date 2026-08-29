@@ -13,11 +13,22 @@ interface NotificationPush {
   url?: string;
 }
 
+interface ResultatEnvoi {
+  total: number; // abonnements enregistres pour l'artisan
+  envoyes: number; // notifications acceptees par le service push
+  supprimes: number; // abonnements morts (404/410) nettoyes
+}
+
 // Envoie une notification push a tous les appareils enregistres d'un
 // artisan. Ne fait jamais echouer l'appelant : une erreur individuelle
 // (endpoint expire, cle manquante...) est avalee, et un abonnement qui
 // repond 404/410 (peripherique/permission revoques) est supprime.
-export async function envoyerNotificationPush(artisanId: string, notif: NotificationPush) {
+export async function envoyerNotificationPush(
+  artisanId: string,
+  notif: NotificationPush
+): Promise<ResultatEnvoi> {
+  const resultat: ResultatEnvoi = { total: 0, envoyes: 0, supprimes: 0 };
+
   try {
     const supabaseAdmin = createAdminSupabase();
     const { data: abonnements } = await supabaseAdmin
@@ -27,9 +38,10 @@ export async function envoyerNotificationPush(artisanId: string, notif: Notifica
 
     if (!abonnements || abonnements.length === 0) {
       console.error(`[push] aucun abonnement enregistre pour l'artisan ${artisanId}`);
-      return;
+      return resultat;
     }
 
+    resultat.total = abonnements.length;
     const payload = JSON.stringify({ title: notif.titre, body: notif.corps, url: notif.url || "/" });
 
     await Promise.all(
@@ -39,9 +51,11 @@ export async function envoyerNotificationPush(artisanId: string, notif: Notifica
             { endpoint: abo.endpoint, keys: { p256dh: abo.p256dh, auth: abo.auth } },
             payload
           );
+          resultat.envoyes += 1;
         } catch (err: any) {
           if (err?.statusCode === 404 || err?.statusCode === 410) {
             await supabaseAdmin.from("push_subscriptions").delete().eq("id", abo.id);
+            resultat.supprimes += 1;
           } else {
             console.error(`[push] echec d'envoi (abonnement ${abo.id}) :`, err?.statusCode, err?.body || err?.message || err);
           }
@@ -54,4 +68,6 @@ export async function envoyerNotificationPush(artisanId: string, notif: Notifica
     // garde une trace de l'erreur pour pouvoir la diagnostiquer.
     console.error("[push] erreur inattendue lors de l'envoi :", err?.message || err);
   }
+
+  return resultat;
 }
