@@ -71,9 +71,9 @@ export function PropositionCommentCaMarche() {
         ) : gratuit ? (
           <>
             <span className="notif-propose-cadeau">🎁 Offert par VolpeVox</span>
-            <p className="notif-propose-titre">Ton premier mois est offert 🎉</p>
+            <p className="notif-propose-titre">Ton accès est gratuit 🎉</p>
             <p className="notif-propose-texte">
-              VolpeVox t&apos;offre un mois d&apos;accès complet, gratuit et sans engagement — aucune carte bancaire
+              VolpeVox est gratuit pendant le lancement : accès complet, sans engagement, aucune carte bancaire
               demandée. Tu dictes ta prestation, l&apos;IA remplit le devis, ton client signe sur son téléphone, tu
               passes en facture et il paie en ligne, avec des relances automatiques à chaque étape. Commence par
               compléter ton profil ci-dessous : ces infos apparaissent sur tous tes documents.

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabaseServerClient";
+import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 // Active un acces gratuit et permanent (sans passer par Stripe) pour les
 // personnes explicitement autorisees par Marley (amis, beta-testeurs,
@@ -41,6 +42,20 @@ export async function POST(req: NextRequest) {
   const emailUtilisateur = user.email.toLowerCase();
   const supabaseAdmin = createAdminSupabase();
 
+  // Mode "gratuit pendant le lancement" (NEXT_PUBLIC_MODE_GRATUIT) : tout le
+  // monde a acces. On inscrit chaque email dans acces_gratuit_emails (s'il n'y
+  // est pas deja) pour garder un journal date des inscrits ET pour qu'ils
+  // restent autorises automatiquement le jour ou on repasse en payant (ils
+  // sont alors "grandfathered" tant que Marley ne les retire pas de la table).
+  if (MODE_GRATUIT) {
+    await supabaseAdmin
+      .from("acces_gratuit_emails")
+      .upsert(
+        { email: emailUtilisateur, note: "inscrit lancement gratuit" },
+        { onConflict: "email", ignoreDuplicates: true }
+      );
+  }
+
   // Liste principale : table Supabase acces_gratuit_emails (editable sans
   // redeploiement). Si la table n'existe pas encore (SQL pas encore joue),
   // la requete echoue sans casser -- on se rabat alors sur la variable Vercel.
@@ -57,7 +72,7 @@ export async function POST(req: NextRequest) {
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-  const autorise = Boolean(ligneAcces) || emailsVercel.includes(emailUtilisateur);
+  const autorise = MODE_GRATUIT || Boolean(ligneAcces) || emailsVercel.includes(emailUtilisateur);
 
   const { data: artisanExistant } = await supabaseAdmin
     .from("artisans")

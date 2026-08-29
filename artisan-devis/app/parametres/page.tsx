@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { notificationsPossibles, abonnementActuel, activerNotifications, desactiverNotifications } from "@/lib/pushClient";
+import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 
@@ -234,7 +235,9 @@ export default function Parametres() {
             </span>
             <span className="reglages-item-corps">
               <span className="reglages-item-titre">Mon abonnement</span>
-              <span className="reglages-item-sous">Gérer mon abonnement VolpeVox</span>
+              <span className="reglages-item-sous">
+                {MODE_GRATUIT ? "Gratuit pendant le lancement" : "Gérer mon abonnement VolpeVox"}
+              </span>
             </span>
             <span className="reglages-item-fin">
               <Chevron />

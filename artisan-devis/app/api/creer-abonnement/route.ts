@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripeClient";
 import { createServerSupabase } from "@/lib/supabaseServerClient";
+import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 export async function POST(req: NextRequest) {
+  // Garde-fou : en mode "gratuit pendant le lancement", il n'y a plus de
+  // parcours d'abonnement. L'interface ne propose plus ce bouton, mais on
+  // bloque aussi cote serveur au cas ou.
+  if (MODE_GRATUIT) {
+    return NextResponse.json(
+      { erreur: "VolpeVox est gratuit pendant le lancement : aucun abonnement à souscrire." },
+      { status: 400 }
+    );
+  }
+
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return NextResponse.json({ erreur: "Non authentifié" }, { status: 401 });

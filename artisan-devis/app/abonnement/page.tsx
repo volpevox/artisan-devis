@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 
@@ -88,6 +89,54 @@ export default function Abonnement() {
   const lienWhatsapp = `https://wa.me/${NUMERO_WHATSAPP_SUPPORT}?text=${encodeURIComponent(
     "Bonjour, j'ai besoin d'aide avec VolpeVox :"
   )}`;
+
+  // Mode "gratuit pendant le lancement" : plus de prix ni de bouton
+  // "s'abonner". On garde la page (elle reste accessible depuis Paramètres)
+  // mais elle ne fait plus qu'informer.
+  if (MODE_GRATUIT) {
+    return (
+      <main className="page-shell">
+        <Topbar />
+        <h1 className="page-title">Mon abonnement</h1>
+
+        <div className="abo-carte">
+          <span className="badge badge-success">Accès gratuit</span>
+
+          <p style={{ fontWeight: 700, fontSize: 18, color: "var(--text)", margin: "12px 0 6px" }}>
+            VolpeVox est gratuit pendant le lancement
+          </p>
+          <p className="hint" style={{ margin: 0 }}>
+            Tu as accès à tout, sans carte bancaire et sans engagement. Les artisans inscrits pendant le
+            lancement garderont un tarif préférentiel à vie le jour où VolpeVox deviendra payant — tu seras
+            prévenu bien à l&apos;avance.
+          </p>
+
+          <ul className="abo-liste" style={{ marginTop: 16 }}>
+            {FONCTIONNALITES.map((f) => (
+              <li key={f}>
+                <span className="abo-liste-icone">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12.5 10 17 19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                {f}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="card">
+          <span style={{ fontWeight: 600, color: "var(--text)" }}>Besoin d&apos;aide ?</span>
+          <p className="hint" style={{ margin: "6px 0 12px" }}>
+            Une question sur l&apos;outil, un bug, une idée ? Écris-moi directement, je réponds rapidement.
+          </p>
+          <a className="btn-ghost" href={lienWhatsapp} target="_blank" rel="noreferrer">
+            Contacter le support (WhatsApp)
+          </a>
+        </div>
+      </main>
+    );
+  }
 
   const offreDecouverte = !stripeSubscriptionId;
 

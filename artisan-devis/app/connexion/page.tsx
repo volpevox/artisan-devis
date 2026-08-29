@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { IconeOeil } from "@/components/IconeOeil";
+import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 function ConnexionContenu() {
   // Le bouton "Demarrer mon essai gratuit" de la landing page pointe vers
@@ -87,7 +88,11 @@ function ConnexionContenu() {
         // rappelle /api/activer-invite au prochain chargement et activera
         // l'acces (au pire, le popup de bienvenue "mois offert" ne s'affiche
         // pas cette fois-la).
-        let accesGratuit = false;
+        // En mode "gratuit pendant le lancement", tout le monde a l'accès :
+        // on part du principe qu'il est accordé même si l'appel ci-dessous
+        // dépasse le délai (fonction Vercel froide). useArtisan.ts le
+        // confirmera de toute façon au prochain chargement.
+        let accesGratuit = MODE_GRATUIT;
         try {
           const controleur = new AbortController();
           const minuteur = setTimeout(() => controleur.abort(), 4000);
