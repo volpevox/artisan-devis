@@ -945,6 +945,28 @@ textarea {
   color: var(--muted);
 }
 
+/* Lien Instagram en bas de la page Parametres (couleur VolpeVox, pas Instagram). */
+.parametres-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px auto 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.parametres-social svg {
+  width: 20px;
+  height: 20px;
+}
+
+.parametres-social:hover {
+  color: var(--ink-soft);
+}
+
 .splash-screen {
   position: fixed;
   inset: 0;
