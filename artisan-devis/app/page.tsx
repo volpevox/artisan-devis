@@ -102,14 +102,26 @@ export default function Home() {
   const [devisId, setDevisId] = useState("");
   const [lienSignature, setLienSignature] = useState("");
   // Ecran d'accueil anime (logo + slogan) : uniquement en mode "app
-  // installee" (standalone) et a chaque ouverture, y compris connecte. Dans
+  // installee" (standalone), et UNE SEULE FOIS par session (au lancement de
+  // l'appli), pas a chaque retour sur la page dictee via le menu du bas. Dans
   // un onglet navigateur classique il n'apparait pas (evitait un flash
   // d'une demi-seconde). On part de false et on l'active apres le montage :
   // estSurEcranAccueil() a besoin de window, indisponible au rendu serveur.
   const [afficherSplash, setAfficherSplash] = useState(false);
 
   useEffect(() => {
-    if (estSurEcranAccueil()) setAfficherSplash(true);
+    if (!estSurEcranAccueil()) return;
+    try {
+      // sessionStorage est vide au vrai lancement de l'appli et persiste
+      // pendant toute la navigation interne -> le splash s'affiche une fois
+      // par ouverture, jamais en boucle quand on revient sur "/".
+      if (sessionStorage.getItem("splash_vu")) return;
+      sessionStorage.setItem("splash_vu", "1");
+    } catch {
+      // sessionStorage indisponible (navigation privee, etc.) : on montre le
+      // splash quand meme, quitte a ce qu'il reapparaisse a la navigation.
+    }
+    setAfficherSplash(true);
   }, []);
   const [apercuUrl, setApercuUrl] = useState("");
   const [apercuEnCours, setApercuEnCours] = useState(false);
