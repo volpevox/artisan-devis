@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
+import { BanniereRodage } from "@/components/BanniereRodage";
 import { SplashEcran } from "@/components/SplashEcran";
 import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
 import { useArtisanSession } from "@/lib/useArtisan";
@@ -564,6 +565,7 @@ export default function Home() {
       <main className="page-shell">
         <Topbar />
         <PropositionNotifications session={session} artisanId={artisanId} />
+        <BanniereRodage />
 
         <div className="voice-screen">
           <div className="voice-top">

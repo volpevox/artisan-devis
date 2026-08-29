@@ -898,6 +898,44 @@ textarea {
   color: var(--ink);
 }
 
+/* Bandeau "aide-moi a rendre l'outil parfait" -- phase gratuite uniquement,
+   en haut de l'ecran d'accueil (voir components/BanniereRodage.tsx). */
+.banniere-rodage {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(221, 167, 66, 0.08);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.banniere-rodage:hover {
+  border-color: var(--ink);
+}
+
+.banniere-rodage strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.banniere-rodage-icone {
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+.banniere-rodage-icone svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  margin-top: 1px;
+}
+
 .splash-screen {
   position: fixed;
   inset: 0;
