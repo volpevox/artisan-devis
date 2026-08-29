@@ -809,8 +809,8 @@ textarea {
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  padding: 4px 0 24px;
-  gap: 24px;
+  padding: 4px 0 16px;
+  gap: 18px;
 }
 
 .voice-top {
@@ -898,20 +898,21 @@ textarea {
   color: var(--ink);
 }
 
-/* Bandeau "aide-moi a rendre l'outil parfait" -- phase gratuite uniquement,
-   en haut de l'ecran d'accueil (voir components/BanniereRodage.tsx). */
+/* Bandeau "un bug ou une idee ?" -- phase gratuite uniquement, une ligne
+   compacte en haut de l'ecran d'accueil (voir components/BanniereRodage.tsx).
+   Doit rester tres discret pour ne pas faire defiler l'ecran de dictee. */
 .banniere-rodage {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 11px 13px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 7px 11px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 999px;
   background: rgba(221, 167, 66, 0.08);
   color: var(--muted);
-  font-size: 12.5px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.3;
   text-decoration: none;
 }
 
@@ -919,21 +920,29 @@ textarea {
   border-color: var(--ink);
 }
 
+.banniere-rodage-texte {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .banniere-rodage strong {
-  color: var(--text);
+  color: var(--ink);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .banniere-rodage-icone {
   flex-shrink: 0;
+  width: 15px;
+  height: 15px;
   color: var(--ink);
 }
 
-.banniere-rodage-icone svg {
-  width: 18px;
-  height: 18px;
-  display: block;
-  margin-top: 1px;
+.banniere-rodage-fleche {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
 }
 
 .splash-screen {
