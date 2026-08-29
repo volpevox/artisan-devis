@@ -1,6 +1,7 @@
 import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -67,6 +68,7 @@ export default function RootLayout({
           <div className="app-scroll">{children}</div>
           <BottomNav />
         </div>
+        <GoogleAnalytics />
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { IconeOeil } from "@/components/IconeOeil";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
+import { trackEvent } from "@/lib/analytics";
 
 function ConnexionContenu() {
   // Le bouton "Demarrer mon essai gratuit" de la landing page pointe vers
@@ -72,6 +73,11 @@ function ConnexionContenu() {
       }
 
       if (data.session) {
+        // Conversion GA4 : un compte a bien ete cree (session ouverte
+        // immediatement). Sert de base a la conversion Google Ads.
+        // Sans effet hors production (voir lib/analytics.ts).
+        trackEvent("sign_up", { method: "email" });
+
         // Acces gratuit (sans Stripe) pour les emails explicitement autorises
         // par Marley : /api/activer-invite verifie cote serveur l'email de la
         // session qui vient d'etre creee contre la liste EMAILS_ACCES_GRATUIT.
