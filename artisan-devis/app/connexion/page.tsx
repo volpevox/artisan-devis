@@ -31,6 +31,22 @@ function ConnexionContenu() {
   const [chargement, setChargement] = useState(false);
   const [conditionsAcceptees, setConditionsAcceptees] = useState(false);
 
+  async function connexionGoogle() {
+    setMessage("");
+    setChargement(true);
+    // Le navigateur part sur Google puis revient sur /auth/callback, qui
+    // finalise (conversion GA4, acces gratuit) et redirige. En cas d'erreur
+    // ici, on est encore sur cette page : on réaffiche le formulaire.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      setMessage("Erreur : " + error.message);
+      setChargement(false);
+    }
+  }
+
   async function valider(e: FormEvent) {
     e.preventDefault();
     setMessage("");
@@ -165,6 +181,47 @@ function ConnexionContenu() {
         <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 16, color: "var(--ink)" }}>
           {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer un compte" : "Mot de passe oublié"}
         </h2>
+
+        {mode !== "oubli" && (
+          <>
+            <button
+              type="button"
+              onClick={connexionGoogle}
+              disabled={chargement}
+              className="btn"
+              style={{
+                width: "100%",
+                background: "#fff",
+                color: "#1f1f1f",
+                border: "1px solid #dadce0",
+                gap: 10,
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
+                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z" />
+                <path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.05l3.01-2.33Z" />
+                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z" />
+              </svg>
+              {mode === "connexion" ? "Se connecter avec Google" : "Continuer avec Google"}
+            </button>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                margin: "16px 0",
+                color: "var(--muted)",
+                fontSize: 12.5,
+              }}
+            >
+              <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              ou
+              <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
+            </div>
+          </>
+        )}
 
         <form onSubmit={valider} autoComplete="on">
           <input
