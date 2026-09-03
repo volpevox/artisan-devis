@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       try {
         await fetch("https://ntfy.sh/volpevox-signup-a58k2", {
           method: "POST",
-          headers: { Title: "Nouvelle inscription VolpeVox", Tags: "tada" },
+          headers: { Title: "Nouvelle inscription VolpeVox", Tags: "tada", Priority: "5" },
           body: `Nouvel artisan inscrit : ${emailUtilisateur}`,
         });
       } catch {
