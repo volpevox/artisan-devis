@@ -87,6 +87,21 @@ export async function POST(req: NextRequest) {
       }
     } else {
       await supabaseAdmin.from("artisans").insert({ user_id: user.id, abonnement_actif: true });
+
+      // Nouvelle inscription gratuite : notification push a Marley via ntfy.sh
+      // (abonnement au canal depuis l'appli ntfy sur son telephone). C'est le
+      // seul endroit ou une ligne "artisans" issue de l'acces gratuit est
+      // creee pour la premiere fois -- donc "une inscription = un envoi".
+      // A l'inscription, le profil n'est pas encore rempli : on n'a que l'email.
+      try {
+        await fetch("https://ntfy.sh/volpevox-signup-a58k2", {
+          method: "POST",
+          headers: { Title: "Nouvelle inscription VolpeVox", Tags: "tada" },
+          body: `Nouvel artisan inscrit : ${emailUtilisateur}`,
+        });
+      } catch {
+        // ignore : une notif ratee ne doit jamais bloquer l'inscription
+      }
     }
     return NextResponse.json({ ok: true });
   }
