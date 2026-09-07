@@ -24,9 +24,7 @@ function ConnexionContenu() {
   );
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
-  const [confirmationMotDePasse, setConfirmationMotDePasse] = useState("");
   const [afficherMotDePasse, setAfficherMotDePasse] = useState(false);
-  const [afficherConfirmation, setAfficherConfirmation] = useState(false);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [conditionsAcceptees, setConditionsAcceptees] = useState(false);
@@ -50,11 +48,6 @@ function ConnexionContenu() {
   async function valider(e: FormEvent) {
     e.preventDefault();
     setMessage("");
-
-    if (mode === "inscription" && motDePasse !== confirmationMotDePasse) {
-      setMessage("Les deux mots de passe ne sont pas identiques.");
-      return;
-    }
 
     if (mode === "inscription" && !conditionsAcceptees) {
       setMessage("Merci d'accepter les conditions d'utilisation et la politique de confidentialité pour continuer.");
@@ -252,29 +245,6 @@ function ConnexionContenu() {
                 aria-label={afficherMotDePasse ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               >
                 <IconeOeil ouvert={afficherMotDePasse} />
-              </button>
-            </div>
-          )}
-
-          {mode === "inscription" && (
-            <div className="champ-mot-de-passe">
-              <input
-                className="field"
-                type={afficherConfirmation ? "text" : "password"}
-                name="confirmation-password"
-                autoComplete="new-password"
-                placeholder="Confirmer le mot de passe"
-                value={confirmationMotDePasse}
-                onChange={(e) => setConfirmationMotDePasse(e.target.value)}
-                style={{ marginBottom: 0 }}
-              />
-              <button
-                type="button"
-                className="champ-oeil"
-                onClick={() => setAfficherConfirmation((v) => !v)}
-                aria-label={afficherConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-              >
-                <IconeOeil ouvert={afficherConfirmation} />
               </button>
             </div>
           )}
