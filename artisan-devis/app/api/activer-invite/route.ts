@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabaseServerClient";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
+import { emailHtml, logoInline } from "@/lib/emailTemplate";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Meme numero WhatsApp de support que Parametres/Abonnement/BanniereRodage.
+const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 
 // Active un acces gratuit et permanent (sans passer par Stripe) pour les
 // personnes explicitement autorisees par Marley (amis, beta-testeurs,
@@ -101,6 +108,35 @@ export async function POST(req: NextRequest) {
         });
       } catch {
         // ignore : une notif ratee ne doit jamais bloquer l'inscription
+      }
+
+      // Email de bienvenue au nouvel artisan (une fois, a la creation de la
+      // ligne artisans). Un echec d'envoi ne doit jamais bloquer l'inscription.
+      try {
+        const lienWhatsapp = `https://wa.me/${NUMERO_WHATSAPP_SUPPORT}?text=${encodeURIComponent(
+          "Bonjour, j'ai une question sur VolpeVox :"
+        )}`;
+        await resend.emails.send({
+          from: "VolpeVox <devis@volpevox.fr>",
+          to: emailUtilisateur,
+          bcc: "volpevox@outlook.fr",
+          subject: "Bienvenue sur VolpeVox 🦊",
+          html: emailHtml({
+            titre: "Bienvenue sur VolpeVox",
+            corpsHtml: `
+              <p style="margin:0 0 12px;">Bonjour,</p>
+              <p style="margin:0 0 12px;">Bienvenue sur VolpeVox ! Merci de vous être inscrit(e).</p>
+              <p style="margin:0 0 12px;">L'application vous permet de dicter à l'oral la description d'un chantier, et de récupérer un devis rempli automatiquement, prêt à envoyer et à faire signer en ligne par votre client. Une fois signé, il se transforme en facture en un clic.</p>
+              <p style="margin:0 0 20px;">L'app est actuellement gratuite pendant notre phase de lancement.</p>
+              <p style="margin:0;">Une question, un souci, une remarque ? N'hésitez surtout pas à m'écrire directement sur WhatsApp.</p>
+            `,
+            boutonUrl: lienWhatsapp,
+            boutonTexte: "Écrire sur WhatsApp",
+          }),
+          attachments: await logoInline(),
+        });
+      } catch {
+        // ignore : un email de bienvenue rate ne doit jamais bloquer l'inscription
       }
     }
     return NextResponse.json({ ok: true });
