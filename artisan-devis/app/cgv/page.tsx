@@ -35,10 +35,12 @@ export default function Cgv() {
             <h2>3. Passage à une offre payante</h2>
             <p>
               Si VolpeVox devient payant, l'artisan en sera informé par email au moins 30 jours à l'avance, avec le
-              tarif et les conditions de l'offre proposée. Aucun paiement ne sera prélevé automatiquement : l'artisan
-              restera libre de souscrire ou non à l'offre payante. S'il ne souhaite pas souscrire, il pourra, pendant ce
-              délai, exporter les données et documents (devis, factures) qu'il a créés avec VolpeVox, notamment pour
-              satisfaire à ses obligations de conservation comptable.
+              tarif et les conditions de l'offre proposée. Les artisans inscrits pendant la phase de lancement
+              bénéficieront d'un tarif préférentiel pendant les 12 premiers mois de leur abonnement payant. Aucun
+              paiement ne sera prélevé automatiquement : l'artisan restera libre de souscrire ou non à l'offre payante.
+              S'il ne souhaite pas souscrire, il pourra, pendant ce délai, exporter les données et documents (devis,
+              factures) qu'il a créés avec VolpeVox, notamment pour satisfaire à ses obligations de conservation
+              comptable.
             </p>
           </>
         ) : (

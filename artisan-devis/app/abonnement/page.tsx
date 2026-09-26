@@ -107,8 +107,8 @@ export default function Abonnement() {
           </p>
           <p className="hint" style={{ margin: 0 }}>
             Tu as accès à tout, sans carte bancaire et sans engagement. Les artisans inscrits pendant le
-            lancement garderont un tarif préférentiel à vie le jour où VolpeVox deviendra payant — tu seras
-            prévenu bien à l&apos;avance.
+            lancement bénéficieront d&apos;un tarif préférentiel pendant 12 mois le jour où VolpeVox deviendra
+            payant — tu seras prévenu bien à l&apos;avance.
           </p>
 
           <ul className="abo-liste" style={{ marginTop: 16 }}>
