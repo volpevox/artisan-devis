@@ -40,7 +40,7 @@ export default function MesDevis() {
   // signe par le client) sans que l'artisan ait besoin de recharger la page.
   useDevisRealtime(artisanId, charger);
 
-  async function transformerEnFacture(id: string) {
+  async function transformerEnFacture(id: string, datePrestation: string) {
     setEnCours(id);
     const factureCreeeLe = new Date().toISOString();
 
@@ -56,7 +56,12 @@ export default function MesDevis() {
 
     const { error } = await supabase
       .from("devis")
-      .update({ est_facture: true, facture_creee_le: factureCreeeLe, numero_facture: numeroFacture })
+      .update({
+        est_facture: true,
+        facture_creee_le: factureCreeeLe,
+        numero_facture: numeroFacture,
+        date_prestation: datePrestation,
+      })
       .eq("id", id);
 
     setEnCours("");

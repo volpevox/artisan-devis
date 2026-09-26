@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
+import { PopupDatePrestation } from "./PopupDatePrestation";
 
 interface CarteDocumentProps {
   d: any;
   type: "devis" | "facture";
   enCours: string;
   message?: string;
-  onTransformerEnFacture?: (id: string) => void;
+  onTransformerEnFacture?: (id: string, datePrestation: string) => void;
   onEnvoyerFacture?: (id: string) => void;
   onMarquerPayee?: (id: string, moyenPaiement: string) => void;
   onAnnulerPaiement?: (id: string) => void;
@@ -35,6 +36,7 @@ export function CarteDocument({
   const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
   const [lienCopie, setLienCopie] = useState(false);
   const [confirmationSuppression, setConfirmationSuppression] = useState(false);
+  const [demandeDatePrestation, setDemandeDatePrestation] = useState(false);
   const b = badge(d.statut);
   const numero = type === "facture" ? d.numero_facture : d.numero_devis;
   const titre = type === "facture" ? "Facture" : "Devis";
@@ -113,7 +115,7 @@ export function CarteDocument({
           {lienCopie ? "Lien copié !" : "Partager"}
         </button>
         {type === "devis" && d.statut === "signe" && onTransformerEnFacture && (
-          <button className="btn-solid" onClick={() => onTransformerEnFacture(d.id)} disabled={enCours === d.id}>
+          <button className="btn-solid" onClick={() => setDemandeDatePrestation(true)} disabled={enCours === d.id}>
             Transformer en facture
           </button>
         )}
@@ -172,6 +174,18 @@ export function CarteDocument({
             Marquer comme payée
           </button>
         </div>
+      )}
+
+      {demandeDatePrestation && onTransformerEnFacture && (
+        <PopupDatePrestation
+          dateConnue={d.date_prestation}
+          enCours={enCours === d.id}
+          onValider={(date) => {
+            setDemandeDatePrestation(false);
+            onTransformerEnFacture(d.id, date);
+          }}
+          onAnnuler={() => setDemandeDatePrestation(false)}
+        />
       )}
 
       {message && <p className="message">{message}</p>}
