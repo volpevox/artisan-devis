@@ -184,6 +184,30 @@ canvas {
   color: var(--ink);
 }
 
+/* Etiquette "Accès lancement" a cote du logo, pendant le mode gratuit */
+.badge-lancement {
+  margin-left: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: rgba(221, 167, 66, 0.14);
+  color: var(--ink);
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* Tres petits ecrans : pas la place a cote du logo et des boutons */
+@media (max-width: 359px) {
+  .badge-lancement {
+    display: none;
+  }
+}
+
 .topbar-back {
   justify-self: start;
   background: none;

@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { useDevisSignesNonVus } from "@/lib/useDevisSignesNonVus";
 import { useFacturesNonVues } from "@/lib/useFacturesNonVues";
+import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 interface TopbarProps {
   onRetour?: () => void;
@@ -51,6 +52,9 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
           <Image src="/fox-icon.png" alt="" width={34} height={34} className="topbar-logo" aria-hidden="true" priority />
           <span className="brand-volpe">Volpe</span>
           <span className="brand-vox">Vox</span>
+          {/* Rappel discret que la gratuite est temporaire (voir CGV, article 2) ;
+              disparait tout seul quand on repasse en payant. */}
+          {MODE_GRATUIT && <span className="badge-lancement">Accès lancement</span>}
         </Link>
 
         <div className="topbar-right">
