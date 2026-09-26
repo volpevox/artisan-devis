@@ -146,7 +146,9 @@ canvas {
 .topbar {
   position: relative;
   display: grid;
-  grid-template-columns: 36px 1fr 36px;
+  /* colonne de droite "auto" : sur mobile elle porte 2 icones (parametres +
+     deconnexion) qui debordaient d'une colonne de 36px sur le logo */
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
   padding: 6px 20px 6px;
   margin: 0 calc(50% - 50vw) 20px;
@@ -199,6 +201,28 @@ canvas {
   text-transform: uppercase;
   white-space: nowrap;
   align-self: center;
+}
+
+/* Faute de place, l'etiquette se reduit a "Lancement" : sur les pages avec
+   fleche retour (jusqu'a 429px) et partout sous 375px. */
+@media (max-width: 429px) {
+  .topbar:not(.topbar--sans-retour) .badge-lancement-acces {
+    display: none;
+  }
+}
+
+@media (max-width: 374px) {
+  .badge-lancement-acces {
+    display: none;
+  }
+}
+
+/* Petits telephones, pages avec fleche retour : meme "Lancement" ne tient pas
+   (l'etiquette reste visible sur l'accueil) */
+@media (max-width: 389px) {
+  .topbar:not(.topbar--sans-retour) .badge-lancement {
+    display: none;
+  }
 }
 
 /* Tres petits ecrans : pas la place a cote du logo et des boutons */
