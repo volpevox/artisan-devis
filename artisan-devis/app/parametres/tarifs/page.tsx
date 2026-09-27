@@ -34,6 +34,118 @@ function libelleUnite(unite: string) {
   return unite === "forfait" ? "le forfait" : unite;
 }
 
+const MAJORATIONS = [
+  { champ: "majoration_nuit", libelle: "Nuit" },
+  { champ: "majoration_dimanche", libelle: "Dimanche" },
+  { champ: "majoration_ferie", libelle: "Jour férié" },
+] as const;
+
+type ChampMajoration = (typeof MAJORATIONS)[number]["champ"];
+
+// Pourcentages ajoutes au tarif (colonnes artisans.majoration_*, voir
+// supabase/majorations.sql). Bloc replie par defaut : la plupart des
+// artisans n'en ont pas besoin.
+function BlocMajorations({ artisanId }: { artisanId: string }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [valeurs, setValeurs] = useState<Record<ChampMajoration, string> | null>(null);
+  const [enCours, setEnCours] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!ouvert || valeurs) return;
+    supabase
+      .from("artisans")
+      .select("majoration_nuit, majoration_dimanche, majoration_ferie")
+      .eq("id", artisanId)
+      .single()
+      .then(({ data }) => {
+        setValeurs({
+          majoration_nuit: String(data?.majoration_nuit ?? 10).replace(".", ","),
+          majoration_dimanche: String(data?.majoration_dimanche ?? 10).replace(".", ","),
+          majoration_ferie: String(data?.majoration_ferie ?? 100).replace(".", ","),
+        });
+      });
+  }, [ouvert, valeurs, artisanId]);
+
+  async function enregistrer() {
+    if (!valeurs) return;
+    const nombres = Object.fromEntries(
+      MAJORATIONS.map(({ champ }) => [champ, enNombre(valeurs[champ])])
+    ) as Record<ChampMajoration, number>;
+    if (Object.values(nombres).some((n) => n < 0 || n > 500)) {
+      setMessage("Chaque majoration doit être entre 0 et 500 %.");
+      return;
+    }
+    setEnCours(true);
+    const { error } = await supabase.from("artisans").update(nombres).eq("id", artisanId);
+    setEnCours(false);
+    setMessage(error ? "Erreur : " + error.message : "Majorations enregistrées.");
+  }
+
+  return (
+    <div className="card" style={{ marginTop: 24 }}>
+      <button
+        type="button"
+        onClick={() => setOuvert((o) => !o)}
+        aria-expanded={ouvert}
+        style={{
+          display: "flex",
+          width: "100%",
+          justifyContent: "space-between",
+          alignItems: "center",
+          background: "none",
+          border: "none",
+          padding: 0,
+          color: "var(--text)",
+          fontSize: 15,
+          fontWeight: 600,
+          cursor: "pointer",
+        }}
+      >
+        <span>
+          Majorations <span style={{ fontWeight: 400, color: "var(--muted)" }}>(facultatif)</span>
+        </span>
+        <span aria-hidden="true" style={{ color: "var(--muted)" }}>
+          {ouvert ? "−" : "+"}
+        </span>
+      </button>
+
+      {ouvert &&
+        (!valeurs ? (
+          <p className="hint">Chargement...</p>
+        ) : (
+          <div style={{ marginTop: 14 }}>
+            <p className="hint" style={{ marginTop: 0 }}>
+              Pourcentage ajouté à ton tarif pour le travail de nuit, le dimanche ou un jour férié. Ils
+              s'additionnent : nuit + dimanche = +{enNombre(valeurs.majoration_nuit) + enNombre(valeurs.majoration_dimanche)} %.
+              Mets 0 si tu n'en veux pas.
+            </p>
+            <div className="champ champ-duo">
+              {MAJORATIONS.map(({ champ, libelle }) => (
+                <div key={champ}>
+                  <label className="champ-label">{libelle} (+ %)</label>
+                  <input
+                    className="field"
+                    inputMode="decimal"
+                    value={valeurs[champ]}
+                    onChange={(e) => {
+                      setMessage("");
+                      setValeurs({ ...valeurs, [champ]: e.target.value });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            {message && <p className="message">{message}</p>}
+            <button type="button" className="btn btn-primary btn-bloc" onClick={enregistrer} disabled={enCours}>
+              Enregistrer les majorations
+            </button>
+          </div>
+        ))}
+    </div>
+  );
+}
+
 export default function MesTarifs() {
   const { artisanId, loading: chargementSession } = useArtisanSession();
   const [tarifs, setTarifs] = useState<Tarif[]>([]);
@@ -260,6 +372,8 @@ export default function MesTarifs() {
           )}
         </div>
       )}
+
+      {artisanId && <BlocMajorations artisanId={artisanId} />}
     </main>
   );
 }
