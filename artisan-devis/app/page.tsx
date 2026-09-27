@@ -294,9 +294,9 @@ export default function Home() {
           modePaiement,
           lignes: lignes.map((l) => ({
             description: l.description,
-            quantite: l.quantite,
+            quantite: enNombre(l.quantite),
             unite: l.unite,
-            prixUnitaire: l.prixUnitaire,
+            prixUnitaire: enNombre(l.prixUnitaire),
           })),
         }),
       });

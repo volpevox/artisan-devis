@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 import { nomAffichageDocument } from "@/lib/nomAffichage";
+import { enNombre } from "@/lib/nombre";
 
 // Aperçu PDF d'un devis / d'une facture PAS ENCORE enregistré : on rend le
 // même document que /api/devis-pdf/[id], mais à partir des champs du
@@ -23,9 +24,9 @@ export async function POST(req: NextRequest) {
 
   const lignes = (Array.isArray(body.lignes) ? body.lignes : []).map((l: any) => ({
     description: l?.description || "",
-    quantite: Number(l?.quantite) || 0,
+    quantite: enNombre(l?.quantite ?? 0),
     unite: l?.unite || "forfait",
-    prixUnitaire: Number(l?.prixUnitaire) || 0,
+    prixUnitaire: enNombre(l?.prixUnitaire ?? 0),
   }));
 
   const datePrestation =
