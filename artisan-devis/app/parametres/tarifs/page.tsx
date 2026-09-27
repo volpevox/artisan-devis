@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { UNITES } from "@/lib/unites";
+import { enNombre } from "@/lib/nombre";
 
 // Carnet de prix de l'artisan (table prix_appris) : les tarifs appris tout
 // seuls a partir de ses devis, plus ceux qu'il saisit ici (fixe = true, que
@@ -70,7 +71,7 @@ export default function MesTarifs() {
   async function enregistrer() {
     if (!edition) return;
     const prestation = edition.prestation.trim();
-    const prix = Number(edition.prix.replace(",", ".").replace(/\s/g, ""));
+    const prix = enNombre(edition.prix);
     if (!prestation) {
       setMessage("Donne un nom à ce tarif (ex : Pose carrelage).");
       return;

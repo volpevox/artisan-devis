@@ -10,6 +10,7 @@ import { SplashEcran } from "@/components/SplashEcran";
 import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { UNITES } from "@/lib/unites";
+import { enNombre } from "@/lib/nombre";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
 const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
@@ -140,7 +141,7 @@ export default function Home() {
   const nomComplet = profilArtisan?.nom_complet || "";
   const paiementEnLigneDisponible = Boolean(profilArtisan?.stripe_paiement_actif);
 
-  const total = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
+  const total = lignes.reduce((s, l) => s + (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0), 0);
 
   // Nom affiche sur le document et dans les emails : la raison sociale prime
   // (client = entreprise), sinon "Prenom Nom". Un seul champ client_nom est
@@ -238,7 +239,7 @@ export default function Home() {
         prestation: l.prestation || "",
         quantite: String(l.quantite || 1),
         unite: l.unite || "forfait",
-        prixUnitaire: l.prixUnitaire ? (Math.round(Number(l.prixUnitaire) * 100) / 100).toString() : "",
+        prixUnitaire: l.prixUnitaire ? (Math.round(enNombre(l.prixUnitaire) * 100) / 100).toString() : "",
         prixPropose: Boolean(l.prixPropose),
       }));
 
@@ -424,10 +425,10 @@ export default function Home() {
         devis_id: devis.id,
         ordre: index,
         description: l.description,
-        quantite: Number(l.quantite),
+        quantite: enNombre(l.quantite),
         unite: l.unite,
-        prix_unitaire: Number(l.prixUnitaire),
-        total_ligne: (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0),
+        prix_unitaire: enNombre(l.prixUnitaire),
+        total_ligne: (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0),
       }))
     );
 
@@ -437,7 +438,7 @@ export default function Home() {
     }
 
     for (const l of lignes) {
-      await apprendrePrix(l.prestation, l.unite, Number(l.prixUnitaire));
+      await apprendrePrix(l.prestation, l.unite, enNombre(l.prixUnitaire));
     }
 
     setDevisId(devis.id);
@@ -479,10 +480,10 @@ export default function Home() {
           devis_id: devisId,
           ordre: index,
           description: l.description,
-          quantite: Number(l.quantite),
+          quantite: enNombre(l.quantite),
           unite: l.unite,
-          prix_unitaire: Number(l.prixUnitaire),
-          total_ligne: (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0),
+          prix_unitaire: enNombre(l.prixUnitaire),
+          total_ligne: (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0),
         }))
       );
     }
@@ -505,9 +506,9 @@ export default function Home() {
             clientAdresse,
             lignes: lignes.map((l) => ({
               description: l.description,
-              quantite: Number(l.quantite),
+              quantite: enNombre(l.quantite),
               unite: l.unite,
-              prixUnitaire: Number(l.prixUnitaire),
+              prixUnitaire: enNombre(l.prixUnitaire),
             })),
             prix: total,
             devisId,
@@ -834,10 +835,10 @@ export default function Home() {
         <p className="form-bloc-titre">{typeDocument === "facture" ? "Prestations facturées" : "Prestations"}</p>
         <div className="form-carte">
           {lignes.map((ligne, index) => {
-            const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
+            const totalLigne = (enNombre(ligne.quantite) || 0) * (enNombre(ligne.prixUnitaire) || 0);
             // En forfait (quantite 1) : juste Description + Prix. La quantite
             // reste visible si une ancienne ligne a un forfait x plusieurs.
-            const auForfait = ligne.unite === "forfait" && (Number(ligne.quantite) || 1) === 1;
+            const auForfait = ligne.unite === "forfait" && (enNombre(ligne.quantite) || 1) === 1;
             const uniteConnue = UNITES.some((u) => u.valeur === ligne.unite);
             const menuUnite = (
               <div>
