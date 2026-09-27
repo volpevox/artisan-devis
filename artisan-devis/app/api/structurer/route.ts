@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       {
         role: "system",
         content: `Tu extrais les informations d'un devis dicté par un professionnel indépendant ou une petite entreprise, tous secteurs confondus (bâtiment, espaces verts, agence web, prestations de services, artisanat...). Réponds UNIQUEMENT en JSON, avec exactement ces champs :
-- clientPrenom (texte, le prénom du client si mentionné, vide sinon)
+- clientPrenom (texte, le prénom du client si mentionné, vide sinon. Une civilité — Monsieur, Madame, M., Mme, Mlle — n'est JAMAIS un prénom : « Monsieur Martin » donne clientPrenom vide et clientNom "Martin")
 - clientNom (texte, le nom de famille du client si mentionné, vide sinon)
 - clientRaisonSociale (texte, le nom de l'entreprise / raison sociale du client si le client est une société, vide sinon)
 - clientTelephone (texte, le numéro de téléphone du client si mentionné, vide sinon)
