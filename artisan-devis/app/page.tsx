@@ -45,6 +45,17 @@ interface Ligne {
   prixPropose: boolean;
 }
 
+// Unites proposees dans le menu de chaque ligne (memes valeurs que celles
+// renvoyees par l'IA dans /api/structurer).
+const UNITES = [
+  { valeur: "forfait", libelle: "Forfait" },
+  { valeur: "heure", libelle: "Heure" },
+  { valeur: "jour", libelle: "Jour" },
+  { valeur: "m²", libelle: "m²" },
+  { valeur: "ml", libelle: "ml (mètre linéaire)" },
+  { valeur: "unité", libelle: "Unité" },
+];
+
 function ligneVide(): Ligne {
   return { description: "", prestation: "", quantite: "1", unite: "forfait", prixUnitaire: "", prixPropose: false };
 }
@@ -151,6 +162,14 @@ export default function Home() {
 
   function majLigne(index: number, champ: keyof Ligne, valeur: string | boolean) {
     setLignes((ls) => ls.map((l, i) => (i === index ? { ...l, [champ]: valeur } : l)));
+  }
+
+  // Repasser une ligne en forfait remet la quantite a 1 : la case quantite
+  // est cachee en forfait, elle ne doit pas multiplier le prix en douce.
+  function changerUnite(index: number, unite: string) {
+    setLignes((ls) =>
+      ls.map((l, i) => (i === index ? { ...l, unite, quantite: unite === "forfait" ? "1" : l.quantite } : l))
+    );
   }
 
   function ajouterLigne() {
@@ -820,6 +839,45 @@ export default function Home() {
         <div className="form-carte">
           {lignes.map((ligne, index) => {
             const totalLigne = (Number(ligne.quantite) || 0) * (Number(ligne.prixUnitaire) || 0);
+            // En forfait (quantite 1) : juste Description + Prix. La quantite
+            // reste visible si une ancienne ligne a un forfait x plusieurs.
+            const auForfait = ligne.unite === "forfait" && (Number(ligne.quantite) || 1) === 1;
+            const uniteConnue = UNITES.some((u) => u.valeur === ligne.unite);
+            const menuUnite = (
+              <div>
+                <label className="champ-label">Unité</label>
+                <select className="field" value={ligne.unite} onChange={(e) => changerUnite(index, e.target.value)}>
+                  {UNITES.map((u) => (
+                    <option key={u.valeur} value={u.valeur}>
+                      {u.libelle}
+                    </option>
+                  ))}
+                  {!uniteConnue && <option value={ligne.unite}>{ligne.unite}</option>}
+                </select>
+              </div>
+            );
+            const champPrix = (
+              <div>
+                <label className="champ-label">
+                  {auForfait ? "Prix (€)" : ligne.unite === "forfait" ? "Prix unitaire (€)" : `Prix par ${ligne.unite} (€)`}
+                </label>
+                <input
+                  className="field"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={ligne.prixUnitaire}
+                  onChange={(e) => {
+                    majLigne(index, "prixUnitaire", e.target.value);
+                    majLigne(index, "prixPropose", false);
+                  }}
+                  style={
+                    ligne.prixPropose
+                      ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" }
+                      : undefined
+                  }
+                />
+              </div>
+            );
             return (
               <div key={index} className="ligne-presta">
                 <div className="ligne-presta-tete">
@@ -854,68 +912,41 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="champ">
-                  <label className="champ-label">
-                    Type de prestation <span style={{ fontWeight: 400 }}>— pour mémoriser tes prix</span>
-                  </label>
-                  <input
-                    className="field"
-                    placeholder="Ex : peinture murs"
-                    value={ligne.prestation}
-                    onChange={(e) => majLigne(index, "prestation", e.target.value)}
-                  />
-                </div>
-
-                <div className="champ champ-duo">
-                  <div>
-                    <label className="champ-label">Quantité</label>
-                    <input
-                      className="field"
-                      inputMode="decimal"
-                      placeholder="1"
-                      value={ligne.quantite}
-                      onChange={(e) => majLigne(index, "quantite", e.target.value)}
-                    />
+                {auForfait ? (
+                  <div className="champ champ-duo">
+                    {champPrix}
+                    {menuUnite}
                   </div>
-                  <div>
-                    <label className="champ-label">Unité</label>
-                    <input
-                      className="field"
-                      placeholder="m², heure, forfait..."
-                      value={ligne.unite}
-                      onChange={(e) => majLigne(index, "unite", e.target.value)}
-                    />
+                ) : (
+                  <>
+                    <div className="champ champ-duo">
+                      <div>
+                        <label className="champ-label">Quantité</label>
+                        <input
+                          className="field"
+                          inputMode="decimal"
+                          placeholder="1"
+                          value={ligne.quantite}
+                          onChange={(e) => majLigne(index, "quantite", e.target.value)}
+                        />
+                      </div>
+                      {menuUnite}
+                    </div>
+                    <div className="champ">{champPrix}</div>
+                  </>
+                )}
+                {ligne.prixPropose && (
+                  <p className="hint-success" style={{ margin: "-4px 0 0" }}>
+                    Prix proposé automatiquement d'après tes anciens devis
+                  </p>
+                )}
+
+                {!auForfait && (
+                  <div className="ligne-presta-soustotal">
+                    <span>Sous-total</span>
+                    <strong>{totalLigne.toFixed(2)} €</strong>
                   </div>
-                </div>
-
-                <div className="champ">
-                  <label className="champ-label">Prix unitaire (€)</label>
-                  <input
-                    className="field"
-                    inputMode="decimal"
-                    placeholder="0,00"
-                    value={ligne.prixUnitaire}
-                    onChange={(e) => {
-                      majLigne(index, "prixUnitaire", e.target.value);
-                      majLigne(index, "prixPropose", false);
-                    }}
-                    style={
-                      ligne.prixPropose
-                        ? { borderColor: "var(--success)", boxShadow: "0 0 0 1px var(--success)" }
-                        : undefined
-                    }
-                  />
-                  {ligne.prixPropose && (
-                    <p className="hint-success" style={{ margin: "6px 0 0" }}>
-                      Prix proposé automatiquement d'après tes anciens devis
-                    </p>
-                  )}
-                </div>
-
-                <div className="ligne-presta-soustotal">
-                  <span>Sous-total</span>
-                  <strong>{totalLigne.toFixed(2)} €</strong>
-                </div>
+                )}
               </div>
             );
           })}
