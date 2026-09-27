@@ -340,6 +340,27 @@ export default function Parametres() {
       <div className="reglages-groupe">
         <p className="reglages-groupe-titre">Application</p>
         <div className="reglages-liste">
+          <Link href="/parametres/tarifs" className="reglages-item">
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M3.5 12.2V5a1.5 1.5 0 0 1 1.5-1.5h7.2a1.5 1.5 0 0 1 1 .44l7.4 7.4a1.5 1.5 0 0 1 0 2.12l-7.2 7.2a1.5 1.5 0 0 1-2.12 0l-7.4-7.4a1.5 1.5 0 0 1-.44-1.06Z"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                />
+                <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Mes tarifs</span>
+              <span className="reglages-item-sous">Tes prix, repris par l'IA quand tu dictes</span>
+            </span>
+            <span className="reglages-item-fin">
+              <Chevron />
+            </span>
+          </Link>
+
           <Link href="/parametres/ajout-ecran-accueil" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

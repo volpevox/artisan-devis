@@ -9,6 +9,7 @@ import { BanniereRodage } from "@/components/BanniereRodage";
 import { SplashEcran } from "@/components/SplashEcran";
 import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { UNITES } from "@/lib/unites";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
 const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
@@ -44,17 +45,6 @@ interface Ligne {
   prixUnitaire: string;
   prixPropose: boolean;
 }
-
-// Unites proposees dans le menu de chaque ligne (memes valeurs que celles
-// renvoyees par l'IA dans /api/structurer).
-const UNITES = [
-  { valeur: "forfait", libelle: "Forfait" },
-  { valeur: "heure", libelle: "Heure" },
-  { valeur: "jour", libelle: "Jour" },
-  { valeur: "m²", libelle: "m²" },
-  { valeur: "ml", libelle: "ml (mètre linéaire)" },
-  { valeur: "unité", libelle: "Unité" },
-];
 
 function ligneVide(): Ligne {
   return { description: "", prestation: "", quantite: "1", unite: "forfait", prixUnitaire: "", prixPropose: false };
@@ -346,7 +336,13 @@ export default function Home() {
       .eq("unite", uniteSaisie)
       .maybeSingle();
 
-    if (existant) {
+    if (existant?.fixe) {
+      // Tarif saisi a la main dans « Mes tarifs » : son prix ne bouge pas.
+      await supabase
+        .from("prix_appris")
+        .update({ nombre_utilisations: existant.nombre_utilisations + 1, updated_at: new Date().toISOString() })
+        .eq("id", existant.id);
+    } else if (existant) {
       const nouvelleMoyenne =
         Math.round(
           ((existant.prix_moyen * existant.nombre_utilisations + prixUnitaireNum) /

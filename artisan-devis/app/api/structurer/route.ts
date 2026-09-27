@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     .from("prix_appris")
     .select("prestation, unite, prix_moyen")
     .eq("artisan_id", artisan.id)
+    .order("fixe", { ascending: false })
     .order("nombre_utilisations", { ascending: false })
     .limit(50);
 
