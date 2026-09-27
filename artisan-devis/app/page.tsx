@@ -259,7 +259,7 @@ export default function Home() {
       const nomDocument = typeDocument === "facture" ? "Facture" : "Devis";
       setMessage(
         auMoinsUnPrixPropose
-          ? `${nomDocument} rempli automatiquement. Certains prix sont proposés d'après tes anciens devis, vérifie avant d'enregistrer.`
+          ? `${nomDocument} rempli automatiquement. Certains prix sont repris de ton carnet de tarifs, vérifie avant d'enregistrer.`
           : `${nomDocument} rempli automatiquement, vérifie avant d'enregistrer.`
       );
       setEtape("form");
@@ -934,7 +934,7 @@ export default function Home() {
                 )}
                 {ligne.prixPropose && (
                   <p className="hint-success" style={{ margin: "-4px 0 0" }}>
-                    Prix proposé automatiquement d'après tes anciens devis
+                    Prix repris de ton carnet de tarifs
                   </p>
                 )}
 
