@@ -1,4 +1,5 @@
 import { EnteteLegale } from "@/components/EnteteLegale";
+import { BoutonChoixCookies } from "@/components/BoutonChoixCookies";
 
 export const metadata = { title: "Confidentialité & cookies — VolpeVox" };
 
@@ -10,7 +11,7 @@ export default function Confidentialite() {
 
       <div className="card prose-legale">
         <p>
-          <em>Dernière mise à jour : 25 août 2026</em>
+          <em>Dernière mise à jour : 28 septembre 2026</em>
         </p>
 
         <h2>1. Responsable du traitement</h2>
@@ -61,7 +62,9 @@ export default function Confidentialite() {
           <li><strong>Vercel</strong> (hébergement de l'application, États-Unis) ;</li>
           <li><strong>OpenAI</strong> (transcription vocale Whisper et structuration du devis par IA, États-Unis) ;</li>
           <li><strong>Resend</strong> (envoi des emails) ;</li>
-          <li><strong>Stripe</strong> (paiement de l'abonnement et paiement en ligne des factures des clients de l'artisan).</li>
+          <li><strong>Stripe</strong> (paiement de l'abonnement et paiement en ligne des factures des clients de l'artisan) ;</li>
+          <li><strong>Google</strong> (mesure d'audience Google Analytics, uniquement si vous acceptez les cookies) ;</li>
+          <li><strong>Meta</strong> (mesure de l'efficacité de nos publicités Facebook / Instagram, uniquement si vous acceptez les cookies).</li>
         </ul>
         <p>
           Certains de ces prestataires sont situés hors de l'Union européenne (États-Unis) ; ils s'appuient sur des
@@ -91,10 +94,30 @@ export default function Confidentialite() {
 
         <h2>9. Cookies et stockage local</h2>
         <p>
-          VolpeVox n'utilise aucun cookie publicitaire ni traceur de mesure d'audience. L'application utilise
-          uniquement un stockage local sur votre appareil (localStorage), strictement nécessaire pour maintenir votre
-          connexion d'une visite à l'autre. Ce stockage technique, indispensable au fonctionnement du service, ne
-          nécessite pas de recueil de consentement préalable au titre de la réglementation « cookies ».
+          L'application utilise un stockage local sur votre appareil (localStorage), strictement nécessaire pour
+          maintenir votre connexion d'une visite à l'autre et retenir votre choix concernant les cookies. Ce stockage
+          technique ne nécessite pas votre consentement.
+        </p>
+        <p>
+          Avec votre accord uniquement (bandeau « Accepter / Refuser » affiché à votre première visite), nous
+          utilisons en plus :
+        </p>
+        <ul>
+          <li>
+            <strong>Google Analytics</strong> (Google) : mesure d'audience, pour savoir combien de personnes visitent
+            le site et s'inscrivent, et d'où elles viennent ;
+          </li>
+          <li>
+            <strong>le pixel Meta</strong> (Meta Platforms) : mesure de l'efficacité de nos publicités sur Facebook et
+            Instagram (savoir si une inscription fait suite à une publicité).
+          </li>
+        </ul>
+        <p>
+          Si vous refusez, aucun de ces traceurs n'est chargé et l'application fonctionne exactement de la même façon.
+          Ces cookies sont conservés au maximum 13 mois. Vous pouvez changer d'avis à tout moment :
+        </p>
+        <p>
+          <BoutonChoixCookies />
         </p>
 
         <div className="liens-legaux">

@@ -2460,3 +2460,47 @@ body:has(.splash-screen) .bottom-nav {
   color: var(--text);
   margin: 0 0 16px;
 }
+
+/* Bandeau cookies (components/Traceurs.tsx) : discret, ne bloque pas l'ecran.
+   Accepter et Refuser ont exactement le meme style (exigence CNIL). */
+.cookies-bandeau {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 60;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
+}
+
+.cookies-texte {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.cookies-texte a {
+  color: var(--ink);
+}
+
+.cookies-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cookies-actions .btn {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  /* au-dessus du menu du bas */
+  .cookies-bandeau {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+}
