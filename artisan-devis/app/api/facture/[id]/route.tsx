@@ -72,6 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         clientNom={devis.client_nom || ""}
         clientAdresse={devis.client_adresse}
         clientTelephone={devis.client_telephone}
+        clientSiren={devis.client_siren}
         lignes={(lignes || []).map((l) => ({
           description: l.description || "",
           quantite: l.quantite || 1,

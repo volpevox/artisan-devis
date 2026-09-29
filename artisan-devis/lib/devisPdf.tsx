@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, Image, StyleSheet, Font, Svg, Rect, Polygon, Line } from "@react-pdf/renderer";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "./mentionsDocuments";
+import { formaterSiren } from "./siren";
 
 // Memes polices que la webapp : Poppins (titres), Montserrat (texte),
 // Roboto (gros chiffres).
@@ -407,6 +408,7 @@ interface DevisPdfProps {
   clientNom: string;
   clientAdresse?: string | null;
   clientTelephone?: string | null;
+  clientSiren?: string | null;
   lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
@@ -424,6 +426,7 @@ export function DevisPDF({
   clientNom,
   clientAdresse,
   clientTelephone,
+  clientSiren,
   lignes,
   tauxTva,
   date,
@@ -583,6 +586,11 @@ export function DevisPDF({
               <Text style={styles.clientNom}>{clientNom}</Text>
               {clientAdresse ? <Text style={styles.clientInfo}>{clientAdresse}</Text> : null}
               {clientTelephone ? <Text style={styles.clientInfo}>Tél. {clientTelephone}</Text> : null}
+              {clientSiren ? <Text style={styles.clientInfo}>SIREN {formaterSiren(clientSiren)}</Text> : null}
+              {/* Categorie de l'operation, mention obligatoire de la reforme
+                  de la facturation electronique. Un artisan facture une
+                  prestation (main d'oeuvre, fournitures comprises). */}
+              {estFacture ? <Text style={styles.clientInfo}>Opération : prestation de services</Text> : null}
               {estFacture && datePrestation ? (
                 <Text style={styles.clientPrestation}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
               ) : null}

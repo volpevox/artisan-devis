@@ -11,6 +11,7 @@ import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { UNITES } from "@/lib/unites";
 import { enNombre } from "@/lib/nombre";
+import { normaliserSiren } from "@/lib/siren";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
 const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
@@ -96,6 +97,7 @@ export default function Home() {
   const [clientRaisonSociale, setClientRaisonSociale] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientTelephone, setClientTelephone] = useState("");
+  const [clientSiren, setClientSiren] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
   const [datePrestation, setDatePrestation] = useState("");
   const [dateAffichage, setDateAffichage] = useState("");
@@ -150,6 +152,12 @@ export default function Home() {
   const nomClientAffiche = (
     clientRaisonSociale.trim() || [clientPrenom.trim(), clientNom.trim()].filter(Boolean).join(" ")
   ).trim();
+
+  // SIREN du client : demande seulement quand le client est une entreprise
+  // (raison sociale remplie). Obligatoire sur les factures entre pros avec la
+  // reforme de la facturation electronique.
+  const sirenSaisi = clientRaisonSociale.trim() ? normaliserSiren(clientSiren) : null;
+  const sirenClient = sirenSaisi === "invalide" ? null : sirenSaisi;
 
   function majLigne(index: number, champ: keyof Ligne, valeur: string | boolean) {
     setLignes((ls) => ls.map((l, i) => (i === index ? { ...l, [champ]: valeur } : l)));
@@ -289,6 +297,7 @@ export default function Home() {
           type: typeDocument,
           clientNom: nomClientAffiche,
           clientTelephone: clientTelephone.trim() || null,
+          clientSiren: sirenClient,
           clientAdresse,
           datePrestation: datePrestation || null,
           modePaiement,
@@ -373,6 +382,10 @@ export default function Home() {
 
   async function envoyer() {
     const estFacture = typeDocument === "facture";
+    if (sirenSaisi === "invalide") {
+      setMessage("Le SIREN du client doit contenir 9 chiffres (ou le SIRET, 14 chiffres).");
+      return;
+    }
     setMessage("Enregistrement...");
     setLienSignature("");
 
@@ -408,6 +421,7 @@ export default function Home() {
         client_nom: nomClientAffiche,
         client_email: clientEmail.trim(),
         client_telephone: clientTelephone.trim() || null,
+        ...(sirenClient ? { client_siren: sirenClient } : {}),
         client_adresse: clientAdresse,
         total,
         ...infosDocument,
@@ -467,6 +481,7 @@ export default function Home() {
           client_nom: nomClientAffiche,
           client_email: clientEmail.trim(),
           client_telephone: clientTelephone.trim() || null,
+          ...(sirenClient ? { client_siren: sirenClient } : {}),
           client_adresse: clientAdresse,
           total,
           date_prestation: datePrestation || null,
@@ -503,6 +518,7 @@ export default function Home() {
             clientEmail: clientEmail.trim(),
             clientNom: nomClientAffiche,
             clientTelephone: clientTelephone.trim() || null,
+            clientSiren: sirenClient,
             clientAdresse,
             lignes: lignes.map((l) => ({
               description: l.description,
@@ -535,6 +551,7 @@ export default function Home() {
     setClientRaisonSociale("");
     setClientEmail("");
     setClientTelephone("");
+    setClientSiren("");
     setClientAdresse("");
     setDatePrestation("");
     setDateAffichage("");
@@ -747,6 +764,27 @@ export default function Home() {
               onChange={(e) => setClientRaisonSociale(e.target.value)}
             />
           </div>
+          {clientRaisonSociale.trim() ? (
+            <div className="champ">
+              <label className="champ-label" htmlFor="client-siren">
+                SIREN du client <span style={{ fontWeight: 400 }}>— obligatoire sur la facture</span>
+              </label>
+              <input
+                id="client-siren"
+                className="field"
+                inputMode="numeric"
+                autoCorrect="off"
+                placeholder="123 456 789"
+                value={clientSiren}
+                onChange={(e) => setClientSiren(e.target.value)}
+              />
+              {sirenSaisi === "invalide" ? (
+                <p style={{ margin: "6px 0 0", fontSize: 13, color: "#c0392b" }}>
+                  9 chiffres attendus (ou le SIRET, 14 chiffres).
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="champ">
             <label className="champ-label" htmlFor="client-email">Email du client</label>
             <input
