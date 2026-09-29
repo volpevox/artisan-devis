@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { useDevisRealtime } from "@/lib/useDevisRealtime";
-import { CarteDocument } from "@/components/CarteDocument";
+import { CarteDocument, euros } from "@/components/CarteDocument";
 
 export default function MesDevis() {
   const { artisanId, loading: chargementSession } = useArtisanSession();
@@ -94,11 +94,26 @@ export default function MesDevis() {
     setDevis((liste) => liste.filter((d) => d.id !== id));
   }
 
+  const enAttente = devis.filter((d) => d.statut === "envoye");
+
   return (
     <main className="page-shell page-shell--large">
       <Topbar />
 
       <h1 className="page-title">Devis</h1>
+
+      {enAttente.length > 0 && (
+        <div className="resume-docs">
+          <div>
+            <small>En attente de signature</small>
+            <strong>{euros(enAttente.reduce((s, d) => s + (Number(d.total) || 0), 0))}</strong>
+            <span>
+              {" "}
+              · {enAttente.length} devis
+            </span>
+          </div>
+        </div>
+      )}
 
       {(chargementSession || chargement) && <p className="message">Chargement...</p>}
       {!chargementSession && !chargement && devis.length === 0 && (

@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { useDevisRealtime } from "@/lib/useDevisRealtime";
-import { CarteDocument } from "@/components/CarteDocument";
+import { CarteDocument, euros } from "@/components/CarteDocument";
 
 export default function MesFactures() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
@@ -142,11 +142,39 @@ export default function MesFactures() {
     setFactures((liste) => liste.filter((d) => d.id !== id));
   }
 
+  // Resume : ce qui reste a encaisser, et ce qui est encaisse ce mois-ci
+  // (factures annulees par un avoir exclues).
+  const actives = factures.filter((d) => !d.avoir_numero);
+  const somme = (liste: any[]) => liste.reduce((s, d) => s + (Number(d.total) || 0), 0);
+  const aEncaisser = somme(actives.filter((d) => !d.payee_le));
+  const maintenant = new Date();
+  const encaisseCeMois = somme(
+    actives.filter((d) => {
+      if (!d.payee_le) return false;
+      const p = new Date(d.payee_le);
+      return p.getMonth() === maintenant.getMonth() && p.getFullYear() === maintenant.getFullYear();
+    })
+  );
+  const moisCourt = maintenant.toLocaleDateString("fr-FR", { month: "short" });
+
   return (
     <main className="page-shell page-shell--large">
       <Topbar />
 
       <h1 className="page-title">Factures</h1>
+
+      {actives.length > 0 && (
+        <div className="resume-docs">
+          <div>
+            <small>À encaisser</small>
+            <strong>{euros(aEncaisser)}</strong>
+          </div>
+          <div className="vert">
+            <small>Encaissé en {moisCourt}</small>
+            <strong>{euros(encaisseCeMois)}</strong>
+          </div>
+        </div>
+      )}
 
       {(chargementSession || chargement) && <p className="message">Chargement...</p>}
       {!chargementSession && !chargement && factures.length === 0 && (
