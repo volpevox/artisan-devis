@@ -11,6 +11,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ erreur: "Facture introuvable" }, { status: 404 });
   }
 
+  if (devis.avoir_numero) {
+    return NextResponse.json({ erreur: "Cette facture a été annulée" }, { status: 400 });
+  }
+
   if (devis.payee_le) {
     return NextResponse.json({ erreur: "Cette facture est déjà payée" }, { status: 400 });
   }

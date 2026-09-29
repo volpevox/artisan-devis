@@ -9,13 +9,19 @@ const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then(
   ssr: false,
 });
 
-export default function VoirPdf({ params }: { params: { id: string } }) {
+export default function VoirPdf({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { avoir?: string };
+}) {
   const router = useRouter();
 
   return (
     <div className="pdf-viewer-shell">
       <Topbar forcerRetour onRetour={() => router.back()} />
-      <VisionneusePdf url={`/api/devis-pdf/${params.id}`} />
+      <VisionneusePdf url={`/api/devis-pdf/${params.id}${searchParams.avoir === "1" ? "?avoir=1" : ""}`} />
     </div>
   );
 }

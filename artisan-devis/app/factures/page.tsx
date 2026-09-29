@@ -95,6 +95,35 @@ export default function MesFactures() {
     setMessages((m) => ({ ...m, [id]: "" }));
   }
 
+  async function annulerParAvoir(id: string) {
+    setEnCours(id);
+    setMessages((m) => ({ ...m, [id]: "Création de l'avoir..." }));
+
+    const res = await fetch(`/api/avoir/${id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+    });
+    const data = await res.json();
+
+    setEnCours("");
+
+    if (data.erreur) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + data.erreur }));
+      return;
+    }
+
+    const avoirCreeLe = new Date().toISOString();
+    setFactures((liste) =>
+      liste.map((d) => (d.id === id ? { ...d, avoir_numero: data.numero, avoir_cree_le: avoirCreeLe } : d))
+    );
+    setMessages((m) => ({
+      ...m,
+      [id]: data.envoye
+        ? `Avoir AV-${data.numero} créé et envoyé au client.`
+        : `Avoir AV-${data.numero} créé${data.erreurEnvoi ? " (l'email n'a pas pu partir : partage le PDF de l'avoir)" : " (pas d'email client : partage le PDF de l'avoir)"}.`,
+    }));
+  }
+
   async function supprimer(id: string) {
     setEnCours(id);
 
@@ -135,6 +164,7 @@ export default function MesFactures() {
           onMarquerPayee={marquerPayee}
           onAnnulerPaiement={annulerPaiement}
           onSupprimer={supprimer}
+          onAnnulerParAvoir={annulerParAvoir}
         />
       ))}
     </main>

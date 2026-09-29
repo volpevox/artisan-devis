@@ -30,6 +30,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const tauxTva = profil?.taux_tva ?? 20;
   const estFacture = Boolean(devis.est_facture);
+  // ?avoir=1 : l'avoir qui annule cette facture (memes lignes, en negatif).
+  const estAvoir = estFacture && Boolean(devis.avoir_numero) && req.nextUrl.searchParams.get("avoir") === "1";
 
   const pdfBuffer = await renderToBuffer(
     <DevisPDF
@@ -57,15 +59,16 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         description: l.description || "",
         quantite: l.quantite || 1,
         unite: l.unite || "forfait",
-        prixUnitaire: l.prix_unitaire || 0,
+        prixUnitaire: estAvoir ? -(l.prix_unitaire || 0) : l.prix_unitaire || 0,
       }))}
       tauxTva={tauxTva}
-      date={new Date(estFacture ? devis.facture_creee_le : devis.created_at)}
+      date={new Date(estAvoir ? devis.avoir_cree_le : estFacture ? devis.facture_creee_le : devis.created_at)}
       signatureUrl={devis.signature_url}
       signeLe={devis.signe_le ? new Date(devis.signe_le) : null}
       lieuSignature={devis.lieu_signature}
-      type={estFacture ? "facture" : "devis"}
-      numero={estFacture ? devis.numero_facture : devis.numero_devis}
+      type={estAvoir ? "avoir" : estFacture ? "facture" : "devis"}
+      numero={estAvoir ? devis.avoir_numero : estFacture ? devis.numero_facture : devis.numero_devis}
+      avoirDe={estAvoir ? { numero: devis.numero_facture, date: new Date(devis.facture_creee_le) } : null}
       paiement={{
         payeeLe: devis.payee_le ? new Date(devis.payee_le) : null,
         moyenPaiement: devis.moyen_paiement || null,
@@ -77,7 +80,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return new NextResponse(pdfBuffer, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${estFacture ? "facture" : "devis"}-${devis.client_nom || params.id}.pdf"`,
+      "Content-Disposition": `inline; filename="${estAvoir ? "avoir" : estFacture ? "facture" : "devis"}-${devis.client_nom || params.id}.pdf"`,
       "Cache-Control": "no-store",
     },
   });

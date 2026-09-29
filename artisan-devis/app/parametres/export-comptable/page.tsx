@@ -15,7 +15,9 @@ const PERIODES: { cle: ClePeriode; libelle: string }[] = [
 ];
 
 interface LigneExport {
-  numero: number | null;
+  // "12" pour une facture, "AV-3" pour un avoir (montants en negatif).
+  numero: string | null;
+  estAvoir?: boolean;
   dateFacture: string | null;
   datePrestation: string | null;
   client: string;
@@ -96,7 +98,7 @@ function champ(texte: string) {
 
 function construireCsv(lignes: LigneExport[], taux: number) {
   const entete = [
-    "Numéro de facture",
+    "Numéro de facture / avoir",
     "Date de la facture",
     "Date de la prestation",
     "Client",
@@ -119,7 +121,7 @@ function construireCsv(lignes: LigneExport[], taux: number) {
       String(taux).replace(".", ","),
       montantFr(l.tva),
       montantFr(l.ttc),
-      l.paye ? "Payée" : "Impayée",
+      l.estAvoir ? "Avoir" : l.paye ? "Payée" : "Impayée",
       formaterDateFr(l.datePaiement),
       champ(l.moyenPaiement || ""),
     ].join(";")
@@ -190,25 +192,35 @@ export default function ExportComptable() {
 
     const { data, error } = await supabase
       .from("devis")
-      .select("numero_facture, facture_creee_le, date_prestation, client_nom, total, payee_le, moyen_paiement")
+      .select("*")
       .eq("artisan_id", artisanId)
       .eq("est_facture", true)
       .gte("facture_creee_le", debutDuJour(bornes.debut).toISOString())
       .lte("facture_creee_le", bornes.fin.toISOString())
       .order("facture_creee_le", { ascending: true });
 
+    // Avoirs crees sur la periode (ils peuvent annuler une facture d'une
+    // periode precedente) : une ligne en negatif chacun.
+    const { data: avoirs, error: erreurAvoirs } = await supabase
+      .from("devis")
+      .select("*")
+      .eq("artisan_id", artisanId)
+      .not("avoir_numero", "is", null)
+      .gte("avoir_cree_le", debutDuJour(bornes.debut).toISOString())
+      .lte("avoir_cree_le", bornes.fin.toISOString());
+
     setEnCours(false);
 
-    if (error) {
-      setMessage("Erreur : " + error.message);
+    if (error || erreurAvoirs) {
+      setMessage("Erreur : " + (error || erreurAvoirs)?.message);
       return;
     }
 
-    const lignes: LigneExport[] = (data || []).map((d) => {
+    const lignesFactures: LigneExport[] = (data || []).map((d) => {
       const ht = Number(d.total) || 0;
       const tva = (ht * taux) / 100;
       return {
-        numero: d.numero_facture ?? null,
+        numero: d.numero_facture != null ? String(d.numero_facture) : null,
         dateFacture: d.facture_creee_le,
         datePrestation: d.date_prestation,
         client: d.client_nom || "",
@@ -220,6 +232,28 @@ export default function ExportComptable() {
         moyenPaiement: d.moyen_paiement,
       };
     });
+
+    const lignesAvoirs: LigneExport[] = (avoirs || []).map((d) => {
+      const ht = -(Number(d.total) || 0);
+      const tva = (ht * taux) / 100;
+      return {
+        numero: `AV-${d.avoir_numero}`,
+        estAvoir: true,
+        dateFacture: d.avoir_cree_le,
+        datePrestation: d.date_prestation,
+        client: `${d.client_nom || ""} (annule facture ${d.numero_facture ?? ""})`,
+        ht,
+        tva,
+        ttc: ht + tva,
+        paye: false,
+        datePaiement: null,
+        moyenPaiement: null,
+      };
+    });
+
+    const lignes = [...lignesFactures, ...lignesAvoirs].sort(
+      (a, b) => new Date(a.dateFacture || 0).getTime() - new Date(b.dateFacture || 0).getTime()
+    );
 
     setResultat({ lignes, debut: bornes.debut, fin: bornes.fin });
   }

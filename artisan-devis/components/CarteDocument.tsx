@@ -12,6 +12,7 @@ interface CarteDocumentProps {
   onMarquerPayee?: (id: string, moyenPaiement: string) => void;
   onAnnulerPaiement?: (id: string) => void;
   onSupprimer?: (id: string) => void;
+  onAnnulerParAvoir?: (id: string) => void;
 }
 
 const MOYENS_PAIEMENT = ["Carte bancaire", "Virement bancaire", "Chèque", "Espèces"];
@@ -32,14 +33,21 @@ export function CarteDocument({
   onMarquerPayee,
   onAnnulerPaiement,
   onSupprimer,
+  onAnnulerParAvoir,
 }: CarteDocumentProps) {
   const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
   const [lienCopie, setLienCopie] = useState(false);
   const [confirmationSuppression, setConfirmationSuppression] = useState(false);
+  const [confirmationAvoir, setConfirmationAvoir] = useState(false);
   const [demandeDatePrestation, setDemandeDatePrestation] = useState(false);
   const b = badge(d.statut);
   const numero = type === "facture" ? d.numero_facture : d.numero_devis;
   const titre = type === "facture" ? "Facture" : "Devis";
+  // Facture deja envoyee : elle ne se supprime plus, elle s'annule par un
+  // avoir (pas de trou dans la numerotation ; en 2027 elle sera deja chez le
+  // fisc). Non envoyee : suppression possible (erreur, doublon).
+  const factureEnvoyee = type === "facture" && Boolean(d.facture_envoyee_le);
+  const annulee = type === "facture" && Boolean(d.avoir_numero);
 
   async function partager() {
     const url = `${window.location.origin}/api/devis-pdf/${d.id}`;
@@ -76,7 +84,9 @@ export function CarteDocument({
         )}
       </div>
 
-      <p className="doc-card-total">{d.total} €</p>
+      <p className="doc-card-total" style={annulee ? { textDecoration: "line-through", opacity: 0.55 } : undefined}>
+        {d.total} €
+      </p>
 
       {d.statut === "signe" && d.signe_le && (
         <p className="doc-card-statut-ligne" style={{ color: "var(--success)" }}>
@@ -92,11 +102,18 @@ export function CarteDocument({
         </p>
       )}
 
+      {annulee && (
+        <p className="doc-card-statut-ligne" style={{ color: "var(--danger)" }}>
+          ✕ Annulée par l'avoir AV-{d.avoir_numero}
+          {d.avoir_cree_le ? ` le ${new Date(d.avoir_cree_le).toLocaleDateString("fr-FR")}` : ""}
+        </p>
+      )}
+
       {type === "facture" && d.payee_le && (
         <p className="doc-card-statut-ligne" style={{ color: "var(--success)" }}>
           ✓ Payée le {new Date(d.payee_le).toLocaleDateString("fr-FR")}
           {d.moyen_paiement ? ` par ${d.moyen_paiement}` : ""}
-          {onAnnulerPaiement && (
+          {onAnnulerPaiement && !annulee && (
             <button
               onClick={() => onAnnulerPaiement(d.id)}
               style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 11, textDecoration: "underline", cursor: "pointer", padding: 0, marginLeft: 8 }}
@@ -111,6 +128,11 @@ export function CarteDocument({
         <a className="btn-ghost" href={`/devis-pdf/${d.id}`}>
           {type === "facture" ? "Voir la facture (PDF)" : d.statut === "signe" ? "Voir le PDF signé" : "Voir le devis (PDF)"}
         </a>
+        {annulee && (
+          <a className="btn-ghost" href={`/devis-pdf/${d.id}?avoir=1`}>
+            Voir l'avoir (PDF)
+          </a>
+        )}
         <button className="btn-ghost" onClick={partager}>
           {lienCopie ? "Lien copié !" : "Partager"}
         </button>
@@ -119,12 +141,17 @@ export function CarteDocument({
             Transformer en facture
           </button>
         )}
-        {type === "facture" && onEnvoyerFacture && (
+        {type === "facture" && !annulee && onEnvoyerFacture && (
           <button className="btn-solid" onClick={() => onEnvoyerFacture(d.id)} disabled={enCours === d.id || !d.client_email}>
             {d.facture_envoyee_le ? "Renvoyer la facture" : "Envoyer la facture par email"}
           </button>
         )}
-        {onSupprimer && !confirmationSuppression && (
+        {factureEnvoyee && !annulee && onAnnulerParAvoir && !confirmationAvoir && (
+          <button className="btn-ghost btn-danger" onClick={() => setConfirmationAvoir(true)} disabled={enCours === d.id}>
+            Annuler par un avoir
+          </button>
+        )}
+        {onSupprimer && !factureEnvoyee && !confirmationSuppression && (
           <button
             className="btn-ghost btn-danger"
             onClick={() => setConfirmationSuppression(true)}
@@ -139,7 +166,7 @@ export function CarteDocument({
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
           <span style={{ fontSize: 13, color: "var(--danger)", fontWeight: 600 }}>
             {type === "facture"
-              ? "Supprimer cette facture définitivement ? Une facture est une pièce comptable que la loi t'oblige à conserver (environ 10 ans) : ne la supprime que si elle n'aurait jamais dû être créée (erreur, doublon)."
+              ? "Supprimer cette facture définitivement ? Elle n'a pas encore été envoyée au client : à faire seulement en cas d'erreur ou de doublon."
               : "Supprimer ce devis définitivement ?"}
           </span>
           <button
@@ -156,7 +183,30 @@ export function CarteDocument({
         </div>
       )}
 
-      {type === "facture" && !d.payee_le && onMarquerPayee && (
+      {confirmationAvoir && onAnnulerParAvoir && (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
+          <span style={{ fontSize: 13, color: "var(--danger)", fontWeight: 600 }}>
+            Annuler cette facture ? Un avoir (la même facture en négatif) sera créé
+            {d.client_email ? " et envoyé au client" : ""}. C'est définitif.
+          </span>
+          <button
+            className="btn-solid"
+            style={{ background: "var(--danger)" }}
+            onClick={() => {
+              setConfirmationAvoir(false);
+              onAnnulerParAvoir(d.id);
+            }}
+            disabled={enCours === d.id}
+          >
+            Oui, créer l'avoir
+          </button>
+          <button className="btn-ghost" onClick={() => setConfirmationAvoir(false)} disabled={enCours === d.id}>
+            Retour
+          </button>
+        </div>
+      )}
+
+      {type === "facture" && !annulee && !d.payee_le && onMarquerPayee && (
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
           <select
             className="field"

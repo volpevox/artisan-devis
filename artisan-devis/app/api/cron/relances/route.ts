@@ -66,6 +66,8 @@ export async function GET(req: NextRequest) {
 
   for (const facture of facturesEnAttente || []) {
     if (!facture.client_email) continue;
+    // Facture annulee par un avoir : plus rien a reclamer.
+    if (facture.avoir_numero) continue;
     if (relancesCoupees.has(facture.artisan_id)) continue;
     const joursEcoules = (maintenant - new Date(facture.facture_envoyee_le).getTime()) / UN_JOUR_MS;
 

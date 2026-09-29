@@ -287,7 +287,16 @@ function SignerContenu() {
 
             {estFacture && (
               <div style={{ marginTop: 16 }}>
-                {devis.payee_le ? (
+                {devis.avoir_numero ? (
+                  <>
+                    <p style={{ margin: "0 0 8px", color: "var(--muted)" }}>
+                      Cette facture a été annulée (avoir AV-{devis.avoir_numero}).
+                    </p>
+                    <a href={`/api/devis-pdf/${devisId}?avoir=1`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
+                      Télécharger l'avoir
+                    </a>
+                  </>
+                ) : devis.payee_le ? (
                   <p style={{ margin: 0, color: "var(--success)" }}>
                     ✓ Payée le {new Date(devis.payee_le).toLocaleDateString("fr-FR")}
                   </p>

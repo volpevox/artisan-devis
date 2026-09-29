@@ -415,7 +415,9 @@ interface DevisPdfProps {
   signatureUrl?: string | null;
   signeLe?: Date | null;
   lieuSignature?: string | null;
-  type?: "devis" | "facture";
+  type?: "devis" | "facture" | "avoir";
+  // Avoir : la facture qu'il annule (numero + date).
+  avoirDe?: { numero: number | null; date: Date } | null;
   numero?: number | null;
   paiement?: { payeeLe: Date | null; moyenPaiement: string | null } | null;
   datePrestation?: Date | null;
@@ -437,12 +439,16 @@ export function DevisPDF({
   numero,
   paiement,
   datePrestation,
+  avoirDe,
 }: DevisPdfProps) {
   const totalHT = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
-  const estFacture = type === "facture";
-  const motDocument = estFacture ? "Facture" : "Devis";
+  // Un avoir suit la mise en page d'une facture (montants en negatif, passes
+  // tels quels dans les lignes), sans parcours, paiement ni penalites.
+  const estAvoir = type === "avoir";
+  const estFacture = type === "facture" || estAvoir;
+  const motDocument = estAvoir ? "Avoir" : estFacture ? "Facture" : "Devis";
 
   // Facture : "Fait a" (ville de l'artisan) en haut. Devis : le lieu de
   // signature du client est indique dans le cadre de signature.
@@ -476,12 +482,16 @@ export function DevisPDF({
     : 0;
 
   const mentions = [
-    entreprise.conditionsPaiement ? { titre: "Conditions de paiement", texte: entreprise.conditionsPaiement } : null,
+    entreprise.conditionsPaiement && !estAvoir
+      ? { titre: "Conditions de paiement", texte: entreprise.conditionsPaiement }
+      : null,
     entreprise.assurancePro ? { titre: "Assurance professionnelle", texte: entreprise.assurancePro } : null,
     entreprise.mediateurConso ? { titre: "Médiation de la consommation", texte: entreprise.mediateurConso } : null,
   ].filter((m): m is { titre: string; texte: string } => m !== null);
 
-  const noteMontant = estFacture
+  const noteMontant = estAvoir
+    ? "Montant remboursé ou déduit"
+    : estFacture
     ? paiement?.payeeLe
       ? "Réglée — merci !"
       : tauxTva > 0
@@ -534,7 +544,9 @@ export function DevisPDF({
 
           <View style={styles.titreBloc}>
             <Text style={styles.titre}>{motDocument}</Text>
-            <Text style={styles.titreNumero}>N° {numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")}</Text>
+            <Text style={styles.titreNumero}>
+              N° {estAvoir ? `AV-${numero}` : numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")}
+            </Text>
             <Text style={styles.titreMeta}>
               {lieuFaitA ? `Fait à ${lieuFaitA}, le ` : ""}
               {formaterDate(date)}
@@ -547,6 +559,7 @@ export function DevisPDF({
         </Svg>
 
         <View style={styles.contenu}>
+          {!estAvoir ? (
           <View style={styles.parcours}>
             <View style={styles.parcoursTrait} />
             {etapeActive > 0 ? (
@@ -577,11 +590,12 @@ export function DevisPDF({
               );
             })}
           </View>
+          ) : null}
 
           <View style={styles.cartes}>
             <View style={styles.carteClient}>
               <Text style={styles.etiquette}>
-                {motDocument} adressé{estFacture ? "e" : ""} à
+                {motDocument} adressé{estFacture && !estAvoir ? "e" : ""} à
               </Text>
               <Text style={styles.clientNom}>{clientNom}</Text>
               {clientAdresse ? <Text style={styles.clientInfo}>{clientAdresse}</Text> : null}
@@ -591,13 +605,18 @@ export function DevisPDF({
                   de la facturation electronique. Un artisan facture une
                   prestation (main d'oeuvre, fournitures comprises). */}
               {estFacture ? <Text style={styles.clientInfo}>Opération : prestation de services</Text> : null}
+              {estAvoir && avoirDe ? (
+                <Text style={styles.clientPrestation}>
+                  Annule la facture n° {avoirDe.numero ?? "—"} du {formaterDate(avoirDe.date)}
+                </Text>
+              ) : null}
               {estFacture && datePrestation ? (
                 <Text style={styles.clientPrestation}>Prestation réalisée le {formaterDate(datePrestation)}</Text>
               ) : null}
             </View>
             <View style={styles.carteMontant}>
               <Text style={[styles.etiquette, styles.etiquetteClaire]}>
-                {estFacture ? "Total de la facture" : "Montant du devis"}
+                {estAvoir ? "Montant de l'avoir" : estFacture ? "Total de la facture" : "Montant du devis"}
               </Text>
               <View>
                 <Text style={styles.montantValeur}>{euros(totalTTC)}</Text>
@@ -665,7 +684,11 @@ export function DevisPDF({
             </Text>
           ) : null}
 
-          {estFacture && paiement?.payeeLe ? (
+          {estAvoir ? (
+            <Text style={styles.bandeauInfo}>
+              Cet avoir annule intégralement la facture n° {avoirDe?.numero ?? "—"}.
+            </Text>
+          ) : estFacture && paiement?.payeeLe ? (
             <Text style={styles.acquittee}>
               Facture acquittée le {formaterDate(paiement.payeeLe)}
               {paiement.moyenPaiement ? ` par ${paiement.moyenPaiement}` : ""}
@@ -685,7 +708,7 @@ export function DevisPDF({
             </View>
           ) : null}
 
-          {estFacture ? (
+          {estAvoir ? null : estFacture ? (
             <>
               <View style={styles.mentionLegale} wrap={false}>
                 <Text style={styles.mentionTexte}>{entreprise.penalitesRetard || MENTION_PENALITES_RETARD_DEFAUT}</Text>
