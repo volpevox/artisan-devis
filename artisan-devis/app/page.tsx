@@ -73,6 +73,14 @@ function chiffresVersAffichage(chiffres: string) {
 // phrase "toute faite" qu'il invente (generique de sous-titres, "merci
 // d'avoir regarde"...). On refuse ces cas plutot que d'ouvrir le formulaire
 // avec un texte qui n'a jamais ete dicte.
+const MESSAGE_RIEN_ENTENDU =
+  "Je n'ai rien entendu. Appuie sur le micro et décris ta prestation à voix haute, près du téléphone.";
+
+// Volume (pic, de 0 a 1) en dessous duquel l'enregistrement est considere
+// comme vide. Une voix normale depasse largement 0,1 ; le bruit de fond d'une
+// piece calme reste vers 0,01.
+const SEUIL_SILENCE = 0.03;
+
 function rienDicte(texte: string, dureeMs: number) {
   const t = (texte || "").trim().toLowerCase();
   if (!t) return true;
@@ -150,7 +158,11 @@ export default function Home() {
   const chunksRef = useRef<Blob[]>([]);
   const debutEnregistrementRef = useRef(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const voixBufferRef = useRef<AudioBuffer | null>(null);
+  const voixRef = useRef<HTMLAudioElement | null>(null);
+  const mesureVolumeRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const volumeMaxRef = useRef(0);
+  const mesuresVolumeRef = useRef(0);
+  const silenceDetecteRef = useRef(false);
 
   // Infos issues du profil deja charge par useArtisanSession (plus de requete
   // a la table artisans propre a cet ecran).
@@ -207,64 +219,76 @@ export default function Home() {
     setLignes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== index) : ls));
   }
 
-  // Voix « je n'ai rien entendu ». Sur iPhone, un son ne peut partir
-  // qu'apres un toucher de l'ecran, or la voix est jouee plus tard (apres la
-  // transcription). On passe donc par Web Audio : le contexte audio est
-  // debloque au toucher du micro (demarrer ET arreter), le mp3 est decode a
-  // l'avance, puis joue au besoin sans nouveau geste.
-  function preparerVoixRienEntendu() {
+  // Voix « je n'ai rien entendu ». L'iPhone refuse tout son qui ne part pas
+  // pendant un toucher de l'ecran : on mesure donc le volume du micro PENDANT
+  // l'enregistrement, et si rien n'a ete capte, la voix est jouee au toucher
+  // « arreter » lui-meme (sans attendre la transcription).
+  function lireVoixRienEntendu() {
     try {
-      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!Ctx) return;
-      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
-      const ctx = audioCtxRef.current;
-      ctx.resume().catch(() => {});
-      // Son vide d'un echantillon : c'est lui qui debloque l'audio sur iOS.
-      const vide = ctx.createBufferSource();
-      vide.buffer = ctx.createBuffer(1, 1, 22050);
-      vide.connect(ctx.destination);
-      vide.start(0);
-      if (!voixBufferRef.current) {
-        fetch("/sons/rien-entendu.mp3")
-          .then((r) => r.arrayBuffer())
-          .then((donnees) => new Promise<AudioBuffer>((ok, ko) => ctx.decodeAudioData(donnees, ok, ko)))
-          .then((buffer) => {
-            voixBufferRef.current = buffer;
-          })
-          .catch(() => {});
-      }
+      const session = (navigator as any).audioSession;
+      if (session) session.type = "playback";
+      if (!voixRef.current) voixRef.current = new Audio("/sons/rien-entendu.mp3");
+      voixRef.current.currentTime = 0;
+      voixRef.current.play().catch(() => {});
     } catch {
       // Pas de son possible : le message ecrit suffit.
     }
   }
 
-  function direRienEntendu() {
-    const ctx = audioCtxRef.current;
-    const buffer = voixBufferRef.current;
-    if (!ctx || !buffer) return;
-    try {
-      // iOS 17+ : joue meme telephone en mode silencieux (comme une video),
-      // et sort du mode « enregistrement » laisse par le micro.
-      const session = (navigator as any).audioSession;
-      if (session) session.type = "playback";
-      ctx.resume().then(() => {
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(ctx.destination);
-        source.start(0);
-      });
-    } catch {
-      // ignore
-    }
+  function arreterMesureVolume() {
+    if (mesureVolumeRef.current) clearInterval(mesureVolumeRef.current);
+    mesureVolumeRef.current = null;
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
   }
 
   async function demarrerMicro() {
     // Rend la main au micro si la voix a mis la session audio en lecture.
     const sessionAudio = (navigator as any).audioSession;
     if (sessionAudio) sessionAudio.type = "auto";
-    preparerVoixRienEntendu();
+    // Prechargement de la voix (pendant le toucher, pour iOS).
+    if (!voixRef.current) {
+      voixRef.current = new Audio("/sons/rien-entendu.mp3");
+      voixRef.current.preload = "auto";
+      voixRef.current.load();
+    }
+    silenceDetecteRef.current = false;
+    volumeMaxRef.current = 0;
+    mesuresVolumeRef.current = 0;
+    let ctx: AudioContext | null = null;
+    try {
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      if (Ctx) {
+        ctx = new Ctx();
+        ctx.resume().catch(() => {});
+        audioCtxRef.current = ctx;
+      }
+    } catch {
+      ctx = null;
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
+
+    // Mesure du volume capte (pic), 10 fois par seconde.
+    if (ctx) {
+      try {
+        const analyseur = ctx.createAnalyser();
+        analyseur.fftSize = 2048;
+        ctx.createMediaStreamSource(stream).connect(analyseur);
+        const echantillons = new Float32Array(analyseur.fftSize);
+        mesureVolumeRef.current = setInterval(() => {
+          if (ctx?.state !== "running") return;
+          analyseur.getFloatTimeDomainData(echantillons);
+          let pic = 0;
+          for (let i = 0; i < echantillons.length; i++) pic = Math.max(pic, Math.abs(echantillons[i]));
+          volumeMaxRef.current = Math.max(volumeMaxRef.current, pic);
+          mesuresVolumeRef.current += 1;
+        }, 100);
+      } catch {
+        // Mesure impossible : on s'en remet a la transcription.
+      }
+    }
 
     const recorder = new MediaRecorder(stream);
     mediaRecorderRef.current = recorder;
@@ -275,6 +299,9 @@ export default function Home() {
     recorder.onstop = async () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
+
+      // Silence deja detecte (et annonce) au toucher « arreter ».
+      if (silenceDetecteRef.current) return;
 
       const dureeMs = Date.now() - debutEnregistrementRef.current;
       const blob = new Blob(chunksRef.current, { type: "audio/webm" });
@@ -296,10 +323,9 @@ export default function Home() {
       }
 
       if (rienDicte(data.texte, dureeMs)) {
-        direRienEntendu();
-        setMessage(
-          "Je n'ai rien entendu. Appuie sur le micro et décris ta prestation à voix haute, près du téléphone."
-        );
+        // Hors toucher : la voix peut etre bloquee sur iPhone, le message reste.
+        lireVoixRienEntendu();
+        setMessage(MESSAGE_RIEN_ENTENDU);
         return;
       }
 
@@ -403,8 +429,19 @@ export default function Home() {
   }
 
   function arreterMicro() {
-    preparerVoixRienEntendu();
+    // Silence seulement si la mesure a vraiment tourne (au moins une demi-
+    // seconde) et que rien n'a depasse un volume de voix basse.
+    const silence = mesuresVolumeRef.current >= 5 && volumeMaxRef.current < SEUIL_SILENCE;
+    arreterMesureVolume();
+    silenceDetecteRef.current = silence;
     mediaRecorderRef.current?.stop();
+    if (silence) {
+      // Micro coupe tout de suite : sur iPhone, le son sortirait sinon par
+      // l'ecouteur (comme un appel), presque inaudible.
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      lireVoixRienEntendu();
+      setMessage(MESSAGE_RIEN_ENTENDU);
+    }
     setEnregistrement(false);
   }
 
