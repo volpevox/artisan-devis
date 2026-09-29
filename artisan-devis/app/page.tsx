@@ -46,6 +46,14 @@ interface Ligne {
   unite: string;
   prixUnitaire: string;
   prixPropose: boolean;
+  // Prix absent apres la dictee : le resume affiche une case pour le saisir
+  // (fige a la dictee, pour que la case ne disparaisse pas pendant la frappe).
+  prixManquant?: boolean;
+}
+
+// Montant a la francaise pour le resume : 1 234,50 €
+function euros(n: number) {
+  return `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 }
 
 function ligneVide(): Ligne {
@@ -91,6 +99,11 @@ function rienDicte(texte: string, dureeMs: number) {
 export default function Home() {
   const { session, artisanId, profilArtisan, loading } = useArtisanSession();
   const [etape, setEtape] = useState<"voice" | "form">("voice");
+  // Apres une dictee : resume compact (client, lignes, total) au lieu du
+  // formulaire complet, qui reste accessible via « Modifier les détails ».
+  const [vueResume, setVueResume] = useState(false);
+  // Ligne du resume ouverte pour modification (une seule a la fois).
+  const [ligneOuverte, setLigneOuverte] = useState<number | null>(null);
   const [typeDocument, setTypeDocument] = useState<"devis" | "facture">("devis");
   const [clientPrenom, setClientPrenom] = useState("");
   const [clientNom, setClientNom] = useState("");
@@ -171,6 +184,19 @@ export default function Home() {
     );
   }
 
+  // Resume : ouvrir une ligne referme la precedente (en la validant).
+  function ouvrirLigne(index: number) {
+    if (ligneOuverte !== null) fermerLigne(ligneOuverte);
+    setLigneOuverte(index);
+  }
+
+  // A la fermeture, la case « Prix » du resume ne reste que si le prix est
+  // toujours vide.
+  function fermerLigne(index: number) {
+    setLignes((ls) => ls.map((l, i) => (i === index ? { ...l, prixManquant: !enNombre(l.prixUnitaire) } : l)));
+    setLigneOuverte(null);
+  }
+
   function ajouterLigne() {
     setLignes((ls) => [...ls, ligneVide()]);
   }
@@ -236,6 +262,7 @@ export default function Home() {
       if (donnees.clientRaisonSociale) setClientRaisonSociale(donnees.clientRaisonSociale);
       if (donnees.clientTelephone) setClientTelephone(donnees.clientTelephone);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
+      if (donnees.clientEmail) setClientEmail(String(donnees.clientEmail).toLowerCase().replace(/\s/g, ""));
       // Retro-compat : ancienne reponse IA avec un seul champ "client".
       if (donnees.client && !donnees.clientNom && !donnees.clientPrenom && !donnees.clientRaisonSociale) {
         setClientNom(donnees.client);
@@ -249,6 +276,7 @@ export default function Home() {
         unite: l.unite || "forfait",
         prixUnitaire: l.prixUnitaire ? (Math.round(enNombre(l.prixUnitaire) * 100) / 100).toString() : "",
         prixPropose: Boolean(l.prixPropose),
+        prixManquant: !l.prixUnitaire,
       }));
 
       // Redicter depuis le formulaire ajoute a ce qui est deja rempli au
@@ -261,6 +289,18 @@ export default function Home() {
         });
       } else {
         setLignes(nouvellesLignes);
+        setVueResume(true);
+      }
+
+      // Facture dictee : date de prestation = aujourd'hui par defaut
+      // (modifiable dans « Modifier les détails »), comme a la conversion
+      // devis -> facture.
+      if (typeDocument === "facture") {
+        const d = new Date();
+        const jj = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        setDatePrestation((ancien) => ancien || `${d.getFullYear()}-${mm}-${jj}`);
+        setDateAffichage((ancien) => ancien || `${jj}/${mm}/${d.getFullYear()}`);
       }
 
       const auMoinsUnPrixPropose = lignesRecues.some((l: any) => l.prixPropose);
@@ -558,6 +598,8 @@ export default function Home() {
     setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
     setLignes([ligneVide()]);
     setDevisEnregistre(false);
+    setVueResume(false);
+    setLigneOuverte(null);
     setEtape("voice");
   }
 
@@ -652,8 +694,8 @@ export default function Home() {
                 {enregistrement
                   ? "Je vous écoute, appuyez pour arrêter"
                   : typeDocument === "facture"
-                    ? "Appuyez et décrivez la prestation déjà réalisée"
-                    : "Appuyez et décrivez votre prestation"}
+                    ? "Appuyez et dictez votre facture"
+                    : "Appuyez et dictez votre devis"}
               </span>
 
               <button
@@ -671,10 +713,31 @@ export default function Home() {
               ))}
             </div>
 
-            {message && <p className="message">{message}</p>}
+            {message ? (
+              <p className="message">{message}</p>
+            ) : (
+              !enregistrement && (
+                <div className="dictee-guide">
+                  <div className="dictee-guide-bulles">
+                    <span>👤 Pour qui</span>
+                    <span>🔧 Quoi</span>
+                    <span>💶 Combien</span>
+                  </div>
+                  <p className="dictee-guide-exemple">
+                    « Pour Madame Martin, 12 rue des Lilas à Lyon : peinture du salon, 25 m² à 30 euros. »
+                  </p>
+                </div>
+              )
+            )}
           </div>
 
-          <button className="voice-skip" onClick={() => setEtape("form")}>
+          <button
+            className="voice-skip"
+            onClick={() => {
+              setVueResume(false);
+              setEtape("form");
+            }}
+          >
             {typeDocument === "facture" ? "Remplir la facture manuellement" : "Remplir le devis manuellement"}
           </button>
         </div>
@@ -712,7 +775,7 @@ export default function Home() {
           type="button"
           className={`form-mic-btn${enregistrement ? " recording" : ""}`}
           onClick={enregistrement ? arreterMicro : demarrerMicro}
-          aria-label={enregistrement ? "Arrêter la dictée" : "Redicter la prestation"}
+          aria-label={enregistrement ? "Arrêter la dictée" : "Compléter en dictant"}
         >
           {iconeMicro}
         </button>
@@ -724,9 +787,208 @@ export default function Home() {
         </div>
       </div>
       <p className="form-mic-label">
-        {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Redicter la prestation"}
+        {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Compléter en dictant"}
       </p>
 
+      {vueResume ? (
+        <div className="form-bloc">
+          <div className="form-carte resume-carte">
+            {/* Nom seul (ex : « Monsieur Martin ») ou rien dicte : il s'affiche
+                dans la case « Nom du client » ci-dessous, pas en double ici. */}
+            {clientPrenom.trim() || clientRaisonSociale.trim() ? (
+              <p className="resume-client-nom">{nomClientAffiche}</p>
+            ) : (
+              <div className="champ">
+                <label className="champ-label" htmlFor="resume-nom">Nom du client</label>
+                <input
+                  id="resume-nom"
+                  className="field"
+                  placeholder="Ex : Mme Martin"
+                  value={clientNom}
+                  onChange={(e) => setClientNom(e.target.value)}
+                />
+              </div>
+            )}
+            {(clientAdresse.trim() || clientTelephone.trim()) && (
+              <p className="resume-client-info">
+                {[clientAdresse.trim(), clientTelephone.trim()].filter(Boolean).join(" · ")}
+              </p>
+            )}
+            {typeDocument === "facture" && (
+              <p className="resume-client-info">
+                Prestation réalisée le {dateAffichage || "—"} ·{" "}
+                {MODES_PAIEMENT_FACTURE.find((m) => m.valeur === modePaiement)?.libelle}
+              </p>
+            )}
+
+            <div className="resume-cases">
+              <div className="champ">
+                <label className="champ-label" htmlFor="resume-email">
+                  Email du client <span style={{ fontWeight: 400 }}>— pour lui envoyer</span>
+                </label>
+                <input
+                  id="resume-email"
+                  className="field"
+                  type="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  placeholder="marie.dupont@email.fr"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
+                />
+              </div>
+            </div>
+
+            <div className="resume-lignes">
+              {lignes.map((ligne, index) => {
+                const qte = enNombre(ligne.quantite) || 0;
+                const prix = enNombre(ligne.prixUnitaire) || 0;
+                const auForfait = ligne.unite === "forfait" && (qte || 1) === 1;
+
+                if (index === ligneOuverte) {
+                  return (
+                    <div key={index} className="resume-edition">
+                      <div className="champ">
+                        <label className="champ-label">Désignation</label>
+                        <textarea
+                          className="field"
+                          rows={2}
+                          placeholder="Ex : Peinture du salon"
+                          value={ligne.description}
+                          onChange={(e) => majLigne(index, "description", e.target.value)}
+                        />
+                      </div>
+                      <div className="champ champ-duo">
+                        {!auForfait && (
+                          <div>
+                            <label className="champ-label">Quantité</label>
+                            <input
+                              className="field"
+                              inputMode="decimal"
+                              value={ligne.quantite}
+                              onChange={(e) => majLigne(index, "quantite", e.target.value)}
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <label className="champ-label">Unité</label>
+                          <select className="field" value={ligne.unite} onChange={(e) => changerUnite(index, e.target.value)}>
+                            {UNITES.map((u) => (
+                              <option key={u.valeur} value={u.valeur}>
+                                {u.libelle}
+                              </option>
+                            ))}
+                            {!UNITES.some((u) => u.valeur === ligne.unite) && (
+                              <option value={ligne.unite}>{ligne.unite}</option>
+                            )}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="champ-label">{auForfait ? "Prix (€)" : `€ / ${ligne.unite}`}</label>
+                          <input
+                            className="field"
+                            inputMode="decimal"
+                            placeholder="0,00"
+                            value={ligne.prixUnitaire}
+                            onChange={(e) => {
+                              majLigne(index, "prixUnitaire", e.target.value);
+                              majLigne(index, "prixPropose", false);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="resume-edition-actions">
+                        {lignes.length > 1 ? (
+                          <button
+                            type="button"
+                            className="ligne-presta-suppr"
+                            aria-label="Supprimer cette ligne"
+                            onClick={() => {
+                              supprimerLigne(index);
+                              setLigneOuverte(null);
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                              <path
+                                d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.7 12a1 1 0 0 1-1 1H8.7a1 1 0 0 1-1-1L7 7"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        ) : (
+                          <span />
+                        )}
+                        <button type="button" className="btn btn-primary" onClick={() => fermerLigne(index)}>
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={index}
+                    className="resume-ligne resume-ligne--touchable"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => ouvrirLigne(index)}
+                    onKeyDown={(e) => e.key === "Enter" && ouvrirLigne(index)}
+                  >
+                    <div className="resume-ligne-texte">
+                      <span>{ligne.description || "Prestation"}</span>
+                      {!auForfait && prix > 0 && (
+                        <span className="resume-ligne-detail">
+                          {qte.toLocaleString("fr-FR")}{" "}
+                          {qte > 1 && ["heure", "jour", "unité"].includes(ligne.unite) ? `${ligne.unite}s` : ligne.unite} ×{" "}
+                          {euros(prix)}
+                        </span>
+                      )}
+                      {ligne.prixPropose && <span className="resume-ligne-carnet">Prix de ton carnet</span>}
+                    </div>
+                    {ligne.prixManquant ? (
+                      <input
+                        className="field resume-ligne-prix"
+                        inputMode="decimal"
+                        placeholder={auForfait ? "Prix €" : `€ / ${ligne.unite}`}
+                        aria-label="Prix"
+                        value={ligne.prixUnitaire}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onChange={(e) => majLigne(index, "prixUnitaire", e.target.value)}
+                      />
+                    ) : (
+                      <strong className="resume-ligne-montant">{euros(qte * prix)}</strong>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {ligneOuverte === null && (
+              <div className="resume-pied">
+                <span>Touche une ligne pour la modifier</span>
+                <button
+                  type="button"
+                  className="resume-ajouter"
+                  onClick={() => {
+                    ajouterLigne();
+                    setLigneOuverte(lignes.length);
+                  }}
+                >
+                  + Ajouter une ligne
+                </button>
+              </div>
+            )}
+          </div>
+          <button type="button" className="voice-skip resume-modifier" onClick={() => setVueResume(false)}>
+            Modifier les détails
+          </button>
+        </div>
+      ) : (
+      <>
       <div className="form-bloc">
         <p className="form-bloc-titre">Client</p>
         <div className="form-carte">
@@ -991,6 +1253,8 @@ export default function Home() {
           </button>
         </div>
       </div>
+      </>
+      )}
 
       <div className="form-bloc">
         <div className="total-bloc">
@@ -1001,7 +1265,7 @@ export default function Home() {
               TVA ajoutée sur {typeDocument === "facture" ? "la facture" : "le devis"} final
             </span>
           </span>
-          <span className="total-bloc-montant">{total.toFixed(2)} €</span>
+          <span className="total-bloc-montant">{euros(total)}</span>
         </div>
 
         <button

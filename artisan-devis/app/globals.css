@@ -2504,3 +2504,168 @@ body:has(.splash-screen) .bottom-nav {
     bottom: calc(78px + env(safe-area-inset-bottom));
   }
 }
+
+/* ---- Dictee : guide « Pour qui / Quoi / Combien » sous le micro ---- */
+.dictee-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 340px;
+}
+
+.dictee-guide-bulles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dictee-guide-bulles span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(221, 167, 66, 0.08);
+}
+
+.dictee-guide-exemple {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* ---- Resume apres dictee (au lieu du formulaire complet) ---- */
+.resume-client-nom {
+  margin: 0 0 4px;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.resume-client-info {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.resume-cases {
+  margin-top: 12px;
+}
+
+.resume-lignes {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.resume-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.resume-ligne:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.resume-ligne-texte {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.resume-ligne-detail {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.resume-ligne-carnet {
+  font-size: 12px;
+  color: var(--success);
+}
+
+.resume-ligne-montant {
+  flex-shrink: 0;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.resume-ligne input.resume-ligne-prix {
+  flex: 0 0 110px;
+  width: 110px;
+  margin: 0;
+  text-align: right;
+  border-color: var(--warning);
+}
+
+.resume-modifier {
+  display: block;
+  margin: 10px auto 0;
+}
+
+.resume-ligne--touchable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.resume-ligne--touchable:active {
+  opacity: 0.7;
+}
+
+/* Ligne du resume ouverte pour modification */
+.resume-edition {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid rgba(221, 167, 66, 0.45);
+  border-radius: 12px;
+  background: rgba(221, 167, 66, 0.05);
+}
+
+.resume-edition .champ {
+  margin-bottom: 10px;
+}
+
+.resume-edition-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resume-edition-actions .btn {
+  padding: 8px 22px;
+}
+
+.resume-pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.resume-ajouter {
+  flex-shrink: 0;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}

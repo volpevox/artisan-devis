@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
 - clientRaisonSociale (texte, le nom de l'entreprise / raison sociale du client si le client est une société, vide sinon)
 - clientTelephone (texte, le numéro de téléphone du client si mentionné, vide sinon)
 - clientAdresse (texte, l'adresse du client si mentionnée, vide sinon)
+- clientEmail (texte, l'adresse email du client si elle est dictée, reconstituée sans espaces : « arobase » ou « at » = @, « point » = ., « tiret » = -, « tiret du bas » = _ ; ex : « marie point dupont arobase gmail point com » = marie.dupont@gmail.com. Vide si aucun email n'est dicté ; n'en invente jamais)
 - lignes (tableau d'objets) : une entrée par prestation DISTINCTE mentionnée dans la dictée. Si la dictée ne décrit qu'une seule prestation, renvoie un tableau avec une seule entrée. Ne sépare en plusieurs lignes que des tâches réellement différentes (pas un simple découpage artificiel d'une même tâche). EXCEPTION : une même prestation réalisée dans des conditions différentes (de jour, de nuit, un dimanche, un jour férié) donne une ligne par condition, avec sa propre quantité (ex : "120 heures de nuit et 16 heures un dimanche" = 2 lignes). Chaque entrée contient :
   - description (texte, le descriptif de cette prestation tel que dicté)
   - prestation (texte court désignant le type de prestation, sans détail de quantité, ex: "Peinture", "Tonte de pelouse", "Création de site web", "Dépannage informatique", "Consulting"). Reprends le nom exact d'une prestation du carnet seulement si c'est vraiment la même prestation ; sinon, nomme-la d'après la dictée (ex : "Main-d'œuvre" n'est pas "Agent de sécurité"))
@@ -67,6 +68,14 @@ Règles pour prixCarnet : ne reprends un prix du carnet que si la prestation de 
     if (!Array.isArray(donnees.lignes) || donnees.lignes.length === 0) {
       donnees.lignes = [ligneParDefaut];
     }
+    // Malgre la consigne, l'IA met parfois « Madame » en prenom : la civilite
+    // passe devant le nom (« Mme Martin ») au lieu d'etre un faux prenom.
+    const civilites: Record<string, string> = { madame: "Mme", mme: "Mme", monsieur: "M.", "m.": "M.", mademoiselle: "Mlle", mlle: "Mlle" };
+    const civilite = civilites[String(donnees.clientPrenom || "").trim().toLowerCase()];
+    if (civilite) {
+      donnees.clientPrenom = "";
+      donnees.clientNom = [civilite, donnees.clientNom].filter(Boolean).join(" ");
+    }
     // Choix du prix (dicte > carnet) et majorations faits ici, pas par l'IA.
     donnees.lignes = donnees.lignes.map((l: any) => finaliserLigneIA(l, artisan));
     return NextResponse.json(donnees);
@@ -77,6 +86,7 @@ Règles pour prixCarnet : ne reprends un prix du carnet que si la prestation de 
       clientRaisonSociale: "",
       clientTelephone: "",
       clientAdresse: "",
+      clientEmail: "",
       lignes: [ligneParDefaut],
     });
   }
