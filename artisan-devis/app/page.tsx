@@ -149,6 +149,7 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const debutEnregistrementRef = useRef(0);
+  const audioRienEntenduRef = useRef<HTMLAudioElement | null>(null);
 
   // Infos issues du profil deja charge par useArtisanSession (plus de requete
   // a la table artisans propre a cet ecran).
@@ -205,7 +206,40 @@ export default function Home() {
     setLignes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== index) : ls));
   }
 
+  // Voix « je n'ai rien entendu ». Sur iPhone, un son ne peut etre joue
+  // qu'apres un geste de l'utilisateur : on « deverrouille » le lecteur au
+  // toucher du micro (lecture muette aussitot arretee), pour pouvoir le
+  // lancer plus tard, apres la transcription.
+  function preparerVoixRienEntendu() {
+    try {
+      if (!audioRienEntenduRef.current) audioRienEntenduRef.current = new Audio("/sons/rien-entendu.mp3");
+      const audio = audioRienEntenduRef.current;
+      audio.muted = true;
+      audio
+        .play()
+        .then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.muted = false;
+        })
+        .catch(() => {
+          audio.muted = false;
+        });
+    } catch {
+      // Pas de son possible : le message ecrit suffit.
+    }
+  }
+
+  function direRienEntendu() {
+    const audio = audioRienEntenduRef.current;
+    if (!audio) return;
+    audio.muted = false;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
   async function demarrerMicro() {
+    preparerVoixRienEntendu();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
 
@@ -239,6 +273,7 @@ export default function Home() {
       }
 
       if (rienDicte(data.texte, dureeMs)) {
+        direRienEntendu();
         setMessage(
           "Je n'ai rien entendu. Appuie sur le micro et décris ta prestation à voix haute, près du téléphone."
         );
@@ -263,6 +298,31 @@ export default function Home() {
       if (donnees.clientTelephone) setClientTelephone(donnees.clientTelephone);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
       if (donnees.clientEmail) setClientEmail(String(donnees.clientEmail).toLowerCase().replace(/\s/g, ""));
+
+      // Client deja connu (meme nom qu'un ancien devis/facture) : on reprend
+      // ses coordonnees pour les cases que la dictee a laissees vides.
+      const nomDicte = (
+        (donnees.clientRaisonSociale || "").trim() ||
+        [donnees.clientPrenom, donnees.clientNom].map((x: string) => (x || "").trim()).filter(Boolean).join(" ")
+      ).trim();
+      let clientConnu = false;
+      if (nomDicte && artisanId) {
+        const { data: anciens } = await supabase
+          .from("devis")
+          .select("client_email, client_telephone, client_adresse, client_siren")
+          .eq("artisan_id", artisanId)
+          .ilike("client_nom", nomDicte.replace(/[%_\\]/g, (c: string) => `\\${c}`))
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const ancien = anciens?.[0];
+        if (ancien) {
+          clientConnu = Boolean(ancien.client_email || ancien.client_telephone || ancien.client_adresse);
+          if (ancien.client_email) setClientEmail((a) => a || ancien.client_email);
+          if (ancien.client_telephone) setClientTelephone((a) => a || ancien.client_telephone);
+          if (ancien.client_adresse) setClientAdresse((a) => a || ancien.client_adresse);
+          if (ancien.client_siren) setClientSiren((a) => a || ancien.client_siren);
+        }
+      }
       // Retro-compat : ancienne reponse IA avec un seul champ "client".
       if (donnees.client && !donnees.clientNom && !donnees.clientPrenom && !donnees.clientRaisonSociale) {
         setClientNom(donnees.client);
@@ -306,9 +366,10 @@ export default function Home() {
       const auMoinsUnPrixPropose = lignesRecues.some((l: any) => l.prixPropose);
       const nomDocument = typeDocument === "facture" ? "Facture" : "Devis";
       setMessage(
-        auMoinsUnPrixPropose
+        (auMoinsUnPrixPropose
           ? `${nomDocument} rempli automatiquement. Certains prix sont repris de ton carnet de tarifs, vérifie avant d'enregistrer.`
-          : `${nomDocument} rempli automatiquement, vérifie avant d'enregistrer.`
+          : `${nomDocument} rempli automatiquement, vérifie avant d'enregistrer.`) +
+          (clientConnu ? " Client déjà connu : ses coordonnées ont été reprises." : "")
       );
       setEtape("form");
     };
