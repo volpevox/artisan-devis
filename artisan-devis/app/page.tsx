@@ -79,7 +79,7 @@ const MESSAGE_RIEN_ENTENDU =
 // Volume (pic, de 0 a 1) en dessous duquel l'enregistrement est considere
 // comme vide. Une voix normale depasse largement 0,1 ; le bruit de fond d'une
 // piece calme reste vers 0,01.
-const SEUIL_SILENCE = 0.03;
+const SEUIL_SILENCE = 0.02;
 
 function rienDicte(texte: string, dureeMs: number) {
   const t = (texte || "").trim().toLowerCase();
@@ -276,6 +276,12 @@ export default function Home() {
         const analyseur = ctx.createAnalyser();
         analyseur.fftSize = 2048;
         ctx.createMediaStreamSource(stream).connect(analyseur);
+        // Safari ne fait tourner l'analyse que si elle mene a la sortie
+        // audio : on la branche sur le haut-parleur avec un volume a zero.
+        const muet = ctx.createGain();
+        muet.gain.value = 0;
+        analyseur.connect(muet);
+        muet.connect(ctx.destination);
         const echantillons = new Float32Array(analyseur.fftSize);
         mesureVolumeRef.current = setInterval(() => {
           if (ctx?.state !== "running") return;
@@ -431,7 +437,11 @@ export default function Home() {
   function arreterMicro() {
     // Silence seulement si la mesure a vraiment tourne (au moins une demi-
     // seconde) et que rien n'a depasse un volume de voix basse.
-    const silence = mesuresVolumeRef.current >= 5 && volumeMaxRef.current < SEUIL_SILENCE;
+    // Un volume EXACTEMENT nul n'est jamais un vrai silence (un micro capte
+    // toujours un peu de bruit de fond) : c'est une mesure qui n'a pas marche,
+    // on laisse alors la transcription decider.
+    const silence =
+      mesuresVolumeRef.current >= 5 && volumeMaxRef.current > 0 && volumeMaxRef.current < SEUIL_SILENCE;
     arreterMesureVolume();
     silenceDetecteRef.current = silence;
     mediaRecorderRef.current?.stop();
