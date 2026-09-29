@@ -149,7 +149,8 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const debutEnregistrementRef = useRef(0);
-  const audioRienEntenduRef = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const voixBufferRef = useRef<AudioBuffer | null>(null);
 
   // Infos issues du profil deja charge par useArtisanSession (plus de requete
   // a la table artisans propre a cet ecran).
@@ -206,39 +207,61 @@ export default function Home() {
     setLignes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== index) : ls));
   }
 
-  // Voix « je n'ai rien entendu ». Sur iPhone, un son ne peut etre joue
-  // qu'apres un geste de l'utilisateur : on « deverrouille » le lecteur au
-  // toucher du micro (lecture muette aussitot arretee), pour pouvoir le
-  // lancer plus tard, apres la transcription.
+  // Voix « je n'ai rien entendu ». Sur iPhone, un son ne peut partir
+  // qu'apres un toucher de l'ecran, or la voix est jouee plus tard (apres la
+  // transcription). On passe donc par Web Audio : le contexte audio est
+  // debloque au toucher du micro (demarrer ET arreter), le mp3 est decode a
+  // l'avance, puis joue au besoin sans nouveau geste.
   function preparerVoixRienEntendu() {
     try {
-      if (!audioRienEntenduRef.current) audioRienEntenduRef.current = new Audio("/sons/rien-entendu.mp3");
-      const audio = audioRienEntenduRef.current;
-      audio.muted = true;
-      audio
-        .play()
-        .then(() => {
-          audio.pause();
-          audio.currentTime = 0;
-          audio.muted = false;
-        })
-        .catch(() => {
-          audio.muted = false;
-        });
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      ctx.resume().catch(() => {});
+      // Son vide d'un echantillon : c'est lui qui debloque l'audio sur iOS.
+      const vide = ctx.createBufferSource();
+      vide.buffer = ctx.createBuffer(1, 1, 22050);
+      vide.connect(ctx.destination);
+      vide.start(0);
+      if (!voixBufferRef.current) {
+        fetch("/sons/rien-entendu.mp3")
+          .then((r) => r.arrayBuffer())
+          .then((donnees) => new Promise<AudioBuffer>((ok, ko) => ctx.decodeAudioData(donnees, ok, ko)))
+          .then((buffer) => {
+            voixBufferRef.current = buffer;
+          })
+          .catch(() => {});
+      }
     } catch {
       // Pas de son possible : le message ecrit suffit.
     }
   }
 
   function direRienEntendu() {
-    const audio = audioRienEntenduRef.current;
-    if (!audio) return;
-    audio.muted = false;
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
+    const ctx = audioCtxRef.current;
+    const buffer = voixBufferRef.current;
+    if (!ctx || !buffer) return;
+    try {
+      // iOS 17+ : joue meme telephone en mode silencieux (comme une video),
+      // et sort du mode « enregistrement » laisse par le micro.
+      const session = (navigator as any).audioSession;
+      if (session) session.type = "playback";
+      ctx.resume().then(() => {
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+      });
+    } catch {
+      // ignore
+    }
   }
 
   async function demarrerMicro() {
+    // Rend la main au micro si la voix a mis la session audio en lecture.
+    const sessionAudio = (navigator as any).audioSession;
+    if (sessionAudio) sessionAudio.type = "auto";
     preparerVoixRienEntendu();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
@@ -380,6 +403,7 @@ export default function Home() {
   }
 
   function arreterMicro() {
+    preparerVoixRienEntendu();
     mediaRecorderRef.current?.stop();
     setEnregistrement(false);
   }
