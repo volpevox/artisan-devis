@@ -153,7 +153,6 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const debutEnregistrementRef = useRef(0);
-  const voixRef = useRef<HTMLAudioElement | null>(null);
 
   // Infos issues du profil deja charge par useArtisanSession (plus de requete
   // a la table artisans propre a cet ecran).
@@ -210,59 +209,7 @@ export default function Home() {
     setLignes((ls) => (ls.length > 1 ? ls.filter((_, i) => i !== index) : ls));
   }
 
-  // Voix « je n'ai rien entendu ». L'iPhone refuse un son lance hors d'un
-  // toucher de l'ecran, or on ne sait qu'apres la transcription si rien n'a
-  // ete dit. Astuce : au toucher « arreter », la voix demarre en boucle SANS
-  // SON (autorise pendant le toucher) ; apres la transcription on remet le
-  // son si rien n'a ete entendu, sinon on l'arrete.
-  function lancerVoixMuette() {
-    try {
-      if (!voixRef.current) voixRef.current = new Audio("/sons/rien-entendu.mp3?v=2");
-      const voix = voixRef.current;
-      voix.muted = true;
-      voix.loop = true;
-      voix.currentTime = 0;
-      voix.play().catch(() => {});
-    } catch {
-      // Pas de son possible : le message ecrit suffit.
-    }
-  }
-
-  function direRienEntendu() {
-    const voix = voixRef.current;
-    if (!voix) return;
-    try {
-      // iOS 17+ : sortie haut-parleur (pas l'ecouteur laisse par le micro).
-      const session = (navigator as any).audioSession;
-      if (session) session.type = "playback";
-      voix.loop = false;
-      voix.currentTime = 0;
-      voix.muted = false;
-      if (voix.paused) voix.play().catch(() => {});
-    } catch {
-      // ignore
-    }
-  }
-
-  function couperVoix() {
-    const voix = voixRef.current;
-    if (!voix) return;
-    voix.pause();
-    voix.loop = false;
-    voix.muted = false;
-  }
-
   async function demarrerMicro() {
-    // Rend la main au micro si la voix a mis la session audio en lecture.
-    const sessionAudio = (navigator as any).audioSession;
-    if (sessionAudio) sessionAudio.type = "auto";
-    couperVoix();
-    // Prechargement de la voix (pendant le toucher, pour iOS).
-    if (!voixRef.current) {
-      voixRef.current = new Audio("/sons/rien-entendu.mp3?v=2");
-      voixRef.current.preload = "auto";
-      voixRef.current.load();
-    }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
@@ -293,18 +240,15 @@ export default function Home() {
       const data = await res.json();
 
       if (data.erreur) {
-        couperVoix();
         setMessage("Erreur : " + data.erreur);
         return;
       }
 
       if (rienDicte(data.texte, dureeMs)) {
-        direRienEntendu();
         setMessage(MESSAGE_RIEN_ENTENDU);
         return;
       }
 
-      couperVoix();
       setMessage(typeDocument === "facture" ? "Analyse de la facture en cours..." : "Analyse du devis en cours...");
 
       const resStructure = await fetch("/api/structurer", {
@@ -405,7 +349,6 @@ export default function Home() {
   }
 
   function arreterMicro() {
-    lancerVoixMuette();
     mediaRecorderRef.current?.stop();
     setEnregistrement(false);
   }
