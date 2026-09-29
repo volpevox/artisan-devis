@@ -227,7 +227,7 @@ export default function Home() {
     try {
       const session = (navigator as any).audioSession;
       if (session) session.type = "playback";
-      if (!voixRef.current) voixRef.current = new Audio("/sons/rien-entendu.mp3");
+      if (!voixRef.current) voixRef.current = new Audio("/sons/rien-entendu.mp3?v=2");
       voixRef.current.currentTime = 0;
       voixRef.current.play().catch(() => {});
     } catch {
@@ -248,7 +248,7 @@ export default function Home() {
     if (sessionAudio) sessionAudio.type = "auto";
     // Prechargement de la voix (pendant le toucher, pour iOS).
     if (!voixRef.current) {
-      voixRef.current = new Audio("/sons/rien-entendu.mp3");
+      voixRef.current = new Audio("/sons/rien-entendu.mp3?v=2");
       voixRef.current.preload = "auto";
       voixRef.current.load();
     }
