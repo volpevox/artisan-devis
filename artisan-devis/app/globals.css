@@ -1532,10 +1532,14 @@ body:has(.splash-screen) .bottom-nav {
 }
 
 .bienvenue-video {
-  width: 100%;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 52vh;
+  aspect-ratio: 9 / 16;
+  margin: 0 auto 18px;
   border-radius: 14px;
-  background: #000;
-  margin-bottom: 18px;
+  background: #0b1a2e;
 }
 
 .bienvenue-etapes {

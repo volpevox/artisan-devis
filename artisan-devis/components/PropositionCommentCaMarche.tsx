@@ -16,9 +16,9 @@ import { AideEcranAccueil, estSurEcranAccueil } from "./AideEcranAccueil";
 // tourne dans un onglet navigateur (pas deja installee), etape
 // "ecran-accueil" (comment ajouter VolpeVox a l'ecran d'accueil).
 
-// Video tuto (a venir) : mettre ici son adresse (ex. "/tuto.mp4" dans
-// public/) pour l'afficher sur l'ecran de bienvenue. Vide = pas de video.
-const VIDEO_TUTO_URL = "";
+// Video tuto affichee sur l'ecran de bienvenue (fichier dans public/).
+// Vide = pas de video.
+const VIDEO_TUTO_URL = "/tuto.mp4";
 
 export function PropositionCommentCaMarche() {
   const [variante, setVariante] = useState<"abonne" | "gratuit" | null>(null);
@@ -83,7 +83,7 @@ export function PropositionCommentCaMarche() {
             </span>
 
             {VIDEO_TUTO_URL ? (
-              <video className="bienvenue-video" src={VIDEO_TUTO_URL} controls playsInline preload="metadata" />
+              <video className="bienvenue-video" src={VIDEO_TUTO_URL} poster="/tuto-apercu.jpg" controls playsInline preload="metadata" />
             ) : null}
 
             <ol className="bienvenue-etapes">
