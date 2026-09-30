@@ -3520,3 +3520,141 @@ h1 + .lien-archives {
 .fiche-visite-exemple {
   margin-top: 14px;
 }
+
+/* Comment ca marche : chapitres en cartes « ticket » */
+.ccm-entete {
+  padding: 16px 16px 14px 18px;
+}
+
+.ccm-entete-titre {
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ccm-entete-texte {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.ccm-chapitre {
+  padding: 16px 14px 4px 16px;
+}
+
+.ccm-chapitre-etiquette {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.fiche--ok .ccm-chapitre-etiquette {
+  color: var(--success);
+}
+
+.ccm-chapitre-titre {
+  margin: 2px 0 14px;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ccm-chapitre .ccm-etape:last-child .ccm-etape-corps {
+  padding-bottom: 14px;
+}
+
+.fiche--ok .ccm-numero {
+  background: var(--success);
+}
+
+/* Reforme facture electronique */
+.ccm-reforme {
+  padding-bottom: 16px;
+}
+
+.ccm-reforme .ccm-chapitre-etiquette {
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 6px;
+}
+
+.ccm-reforme-texte {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.ccm-reforme-dates {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ccm-reforme-dates > div {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+}
+
+.ccm-reforme-dates strong {
+  display: block;
+  font-family: var(--font-roboto), sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+
+.ccm-reforme-dates span {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.ccm-reforme-dates b,
+.ccm-reforme-liste b {
+  color: var(--text);
+}
+
+.ccm-reforme-cas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ccm-reforme-cas > div {
+  padding-left: 12px;
+  border-left: 2px solid var(--ink);
+}
+
+.ccm-reforme-cas-titre {
+  margin: 0 0 3px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.ccm-reforme-liste {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.ccm-reforme-liste li {
+  margin-bottom: 6px;
+}
+
+.ccm-reforme-liste b.vert {
+  color: var(--success);
+}
