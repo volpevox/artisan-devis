@@ -3658,3 +3658,45 @@ h1 + .lien-archives {
 .ccm-reforme-liste b.vert {
   color: var(--success);
 }
+
+/* Confirmation apres envoi d'un devis / d'une facture (on reste sur le document) */
+.envoi-confirme {
+  padding: 14px 14px 14px 16px;
+  border-radius: 16px;
+  background: var(--success-bg);
+  border: 1px solid rgba(62, 213, 152, 0.45);
+  border-left: 4px solid var(--success);
+}
+
+.envoi-confirme-titre {
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.envoi-confirme-texte {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.envoi-confirme-lien {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.envoi-confirme-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.envoi-confirme-actions .btn {
+  flex: 1;
+  text-align: center;
+}

@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
@@ -125,6 +126,7 @@ export default function Home() {
   const [devisEnregistre, setDevisEnregistre] = useState(false);
   const [devisId, setDevisId] = useState("");
   const [lienSignature, setLienSignature] = useState("");
+  const [envoiConfirme, setEnvoiConfirme] = useState<{ email: string; nom: string } | null>(null);
   // Ecran d'accueil anime (logo + slogan) : uniquement en mode "app
   // installee" (standalone), et UNE SEULE FOIS par session (au lancement de
   // l'appli), pas a chaque retour sur la page dictee via le menu du bas. Dans
@@ -614,8 +616,19 @@ export default function Home() {
         .eq("id", devisId);
     }
 
+    // On reste sur le document envoye, avec une confirmation claire (plutot
+    // que de revenir d'un coup sur le micro) ; « Nouveau devis » repart a zero.
     setLienSignature(`${window.location.origin}/signer/${devisId}`);
-    setMessage(estFacture ? "Facture envoyée au client !" : "Devis envoyé au client !");
+    setEnvoiConfirme({ email: clientEmail.trim(), nom: nomClientAffiche });
+    setMessage("");
+  }
+
+  // Remet la dictee a zero pour un nouveau document.
+  function nouveauDocument() {
+    setEnvoiConfirme(null);
+    setLienSignature("");
+    setMessage("");
+    setDevisId("");
     setClientPrenom("");
     setClientNom("");
     setClientRaisonSociale("");
@@ -788,7 +801,7 @@ export default function Home() {
 
   return (
     <main className="page-shell">
-      <Topbar forcerRetour onRetour={() => setEtape("voice")} />
+      <Topbar forcerRetour onRetour={() => (envoiConfirme ? nouveauDocument() : setEtape("voice"))} />
 
       <h1 className="page-title">{typeDocument === "facture" ? "Nouvelle facture" : "Nouveau devis"}</h1>
 
@@ -1308,7 +1321,35 @@ export default function Home() {
           {apercuEnCours ? "Génération de l'aperçu..." : "Prévisualiser en PDF"}
         </button>
 
-        {!devisEnregistre ? (
+        {envoiConfirme ? (
+          <div className="envoi-confirme">
+            <p className="envoi-confirme-titre">
+              ✓ {typeDocument === "facture" ? "Facture envoyée" : "Devis envoyé"}
+              {envoiConfirme.nom ? ` à ${envoiConfirme.nom}` : ""}
+            </p>
+            <p className="envoi-confirme-texte">
+              {typeDocument === "facture"
+                ? `Ton client l'a reçue par email${envoiConfirme.email ? ` (${envoiConfirme.email})` : ""}. S'il ne règle pas, il sera relancé automatiquement.`
+                : `Ton client l'a reçu par email${envoiConfirme.email ? ` (${envoiConfirme.email})` : ""}, avec le lien pour signer. Tu seras prévenu dès qu'il signe.`}
+            </p>
+            {lienSignature && (
+              <p className="envoi-confirme-lien">
+                {typeDocument === "facture" ? "Lien de suivi" : "Lien de signature"} (déjà dans l'email) :{" "}
+                <a href={lienSignature} target="_blank" rel="noreferrer">
+                  {lienSignature}
+                </a>
+              </p>
+            )}
+            <div className="envoi-confirme-actions">
+              <Link href={typeDocument === "facture" ? "/factures" : "/devis"} className="btn btn-outline">
+                {typeDocument === "facture" ? "Mes factures" : "Mes devis"}
+              </Link>
+              <button type="button" className="btn btn-primary" onClick={nouveauDocument}>
+                {typeDocument === "facture" ? "Nouvelle facture" : "Nouveau devis"}
+              </button>
+            </div>
+          </div>
+        ) : !devisEnregistre ? (
           <button className="btn btn-primary btn-bloc" onClick={envoyer}>
             {typeDocument === "facture" ? "Enregistrer la facture" : "Enregistrer le devis"}
           </button>
@@ -1321,7 +1362,7 @@ export default function Home() {
         {message && <p className="message">{message}</p>}
       </div>
 
-      {lienSignature && (
+      {lienSignature && !envoiConfirme && (
         <div className="card">
           <p className="hint" style={{ margin: "0 0 6px" }}>
             {typeDocument === "facture" ? "Lien de suivi (déjà inclus dans l'email) :" : "Lien de signature (déjà inclus dans l'email) :"}
