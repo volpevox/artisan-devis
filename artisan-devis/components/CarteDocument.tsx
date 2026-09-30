@@ -1,6 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { PopupDatePrestation } from "./PopupDatePrestation";
+import { chargerPdf, preparerVisionneuse, urlApiPdf } from "@/lib/prechargementPdf";
+
+// Lien vers la visionneuse : le PDF est demande au serveur des que le doigt
+// touche le bouton, pendant que la page change.
+function prechargerSiPdf(lien: string) {
+  if (lien.startsWith("/devis-pdf/")) chargerPdf(urlApiPdf(lien)).catch(() => {});
+}
 
 interface CarteDocumentProps {
   d: any;
@@ -60,6 +68,11 @@ export function CarteDocument({
   const annulee = estFacture && Boolean(d.avoir_numero);
   const payee = estFacture && Boolean(d.payee_le);
   const lienPdf = `/devis-pdf/${d.id}`;
+
+  // Visionneuse PDF chargee en tache de fond pendant qu'on regarde la liste.
+  useEffect(() => {
+    preparerVisionneuse();
+  }, []);
 
   // Menu « ··· » : se ferme en touchant ailleurs.
   useEffect(() => {
@@ -222,9 +235,13 @@ export function CarteDocument({
       {confirmation === "" && (
         <div className="carte-doc-actions">
           {principale.lien ? (
-            <a className={principale.pleine ? "carte-doc-principal" : "carte-doc-secondaire"} href={principale.lien}>
+            <Link
+              className={principale.pleine ? "carte-doc-principal" : "carte-doc-secondaire"}
+              href={principale.lien}
+              onPointerDown={() => prechargerSiPdf(principale.lien!)}
+            >
               {principale.texte}
-            </a>
+            </Link>
           ) : (
             <button
               type="button"
@@ -251,9 +268,15 @@ export function CarteDocument({
         <div className="carte-doc-menu" role="menu">
           {elementsMenu.map((el) =>
             el.lien ? (
-              <a key={el.texte} role="menuitem" href={el.lien} className={el.rouge ? "rouge" : ""}>
+              <Link
+                key={el.texte}
+                role="menuitem"
+                href={el.lien}
+                className={el.rouge ? "rouge" : ""}
+                onPointerDown={() => prechargerSiPdf(el.lien!)}
+              >
                 {el.texte}
-              </a>
+              </Link>
             ) : (
               <button
                 key={el.texte}

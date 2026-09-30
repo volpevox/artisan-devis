@@ -1,7 +1,9 @@
 "use client";
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
+import { chargerPdf } from "@/lib/prechargementPdf";
 
 // pdf.js s'appuie sur des API navigateur (Worker, Canvas) absentes cote
 // serveur : le composant doit etre charge uniquement cote client.
@@ -17,11 +19,18 @@ export default function VoirPdf({
   searchParams: { avoir?: string };
 }) {
   const router = useRouter();
+  const url = `/api/devis-pdf/${params.id}${searchParams.avoir === "1" ? "?avoir=1" : ""}`;
+
+  // Le PDF est demande tout de suite, en parallele du chargement de la
+  // visionneuse (s'il n'a pas deja ete demande au toucher du bouton).
+  useEffect(() => {
+    chargerPdf(url).catch(() => {});
+  }, [url]);
 
   return (
     <div className="pdf-viewer-shell">
       <Topbar forcerRetour onRetour={() => router.back()} />
-      <VisionneusePdf url={`/api/devis-pdf/${params.id}${searchParams.avoir === "1" ? "?avoir=1" : ""}`} />
+      <VisionneusePdf url={url} />
     </div>
   );
 }

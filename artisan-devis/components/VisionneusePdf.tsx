@@ -1,8 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
+import { chargerPdf, oublierPdf } from "@/lib/prechargementPdf";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Moteur pdf.js servi par l'appli (copie par scripts/copier-worker-pdf.js).
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
@@ -34,7 +36,27 @@ export function VisionneusePdf({ url }: { url: string }) {
   const [largeur, setLargeur] = useState(0);
   const [nombrePages, setNombrePages] = useState(0);
   const [erreur, setErreur] = useState(false);
+  // PDF recupere via chargerPdf : souvent deja en route (demande des le
+  // toucher du bouton « Voir »), donc pret plus tot qu'avec file={url}.
+  const [fichier, setFichier] = useState<{ data: Uint8Array } | null>(null);
   const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    let actif = true;
+    setFichier(null);
+    setErreur(false);
+    chargerPdf(url)
+      .then((buffer) => {
+        oublierPdf(url);
+        if (actif) setFichier({ data: new Uint8Array(buffer) });
+      })
+      .catch(() => {
+        if (actif) setErreur(true);
+      });
+    return () => {
+      actif = false;
+    };
+  }, [url]);
   const zoomRef = useRef(1);
   // Defilement a appliquer une fois le PDF redessine a la nouvelle taille.
   const defilementVise = useRef<{ x: number; y: number } | null>(null);
@@ -181,8 +203,14 @@ export function VisionneusePdf({ url }: { url: string }) {
           </div>
         ) : (
           <div ref={contenuRef} className="pdf-viewer-contenu">
+            {!fichier && (
+              <p className="message" style={{ textAlign: "center", marginTop: 24 }}>
+                Chargement du document...
+              </p>
+            )}
+            {fichier && (
             <Document
-              file={url}
+              file={fichier}
               onLoadSuccess={({ numPages }) => setNombrePages(numPages)}
               onLoadError={() => setErreur(true)}
               loading={<p className="message" style={{ textAlign: "center", marginTop: 24 }}>Chargement du document...</p>}
@@ -201,6 +229,7 @@ export function VisionneusePdf({ url }: { url: string }) {
                   />
                 ))}
             </Document>
+            )}
           </div>
         )}
       </div>

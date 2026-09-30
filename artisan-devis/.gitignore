@@ -7,3 +7,6 @@ node_modules
 .vercel
 .env*.local
 !.env.example
+
+# Copie automatique du moteur pdf.js (scripts/copier-worker-pdf.js)
+public/pdf.worker.min.js
