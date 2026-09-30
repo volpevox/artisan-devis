@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, Image, StyleSheet, Font, Svg, Rect, Polygon, Line } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "./mentionsDocuments";
 import { formaterSiren } from "./siren";
 
@@ -36,15 +36,16 @@ Font.registerHyphenationCallback((mot) => [mot]);
 
 const LOGO_VOLPEVOX = "https://app.volpevox.fr/fox-icon.png";
 
-// Identite VolpeVox : bleu nuit + or, sur fond blanc imprimable.
-const NUIT = "#152238";
-const NUIT_DOUX = "#24344f";
+// Identite VolpeVox : bleu clair du renard (onde du logo) + or, sur fond
+// blanc imprimable. Textes sombres pour rester lisibles a l'impression.
+const BLEU = "#0b2a5b";
 const OR = "#d4af37";
-const OR_TEXTE = "#a9790f";
+const OR_TEXTE = "#8f6508";
 const CREME = "#fbf7ec";
-const TEXTE = "#1f2a3b";
-const MUTED = "#6b7280";
-const MUTED_CLAIR = "#aab4c3";
+const ENCRE = "#0f1a2b";
+const TEXTE = "#111827";
+const MUTED = "#374151";
+const SUR_BLEU = "#dbe4f0";
 const LIGNE = "#e8eaee";
 const ZEBRE = "#f8f9fb";
 const VERT = "#1f9d64";
@@ -52,37 +53,17 @@ const VERT = "#1f9d64";
 const styles = StyleSheet.create({
   page: { fontFamily: "Montserrat", fontSize: 9.5, color: TEXTE, backgroundColor: "#ffffff", paddingBottom: 70 },
 
-  // --- Bandeau d'en-tete bleu nuit ---
+  // --- Bandeau d'en-tete bleu, bord bas droit souligne d'or ---
   bandeau: {
-    backgroundColor: NUIT,
-    paddingTop: 0,
-    paddingBottom: 22,
+    backgroundColor: BLEU,
+    height: 96,
     paddingHorizontal: 34,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    borderBottomWidth: 2.5,
+    borderColor: OR,
   },
-  onde: { position: "absolute", top: 0, left: 0 },
-
-  // --- Parcours Devis -> Signe -> Facture -> Regle ---
-  parcours: { flexDirection: "row", marginTop: 2, marginBottom: 16, position: "relative" },
-  parcoursTrait: { position: "absolute", top: 5, left: "12.5%", right: "12.5%", height: 1.5, backgroundColor: LIGNE },
-  parcoursTraitFait: { position: "absolute", top: 5, left: "12.5%", height: 1.5, backgroundColor: OR },
-  etape: { flex: 1, alignItems: "center" },
-  pastilleEtape: { width: 11, height: 11, borderRadius: 6, borderWidth: 1.5, borderColor: LIGNE, backgroundColor: "#ffffff" },
-  pastilleFaite: { borderColor: NUIT, backgroundColor: NUIT },
-  pastilleActive: { borderColor: OR, backgroundColor: OR },
-  etapeTexte: {
-    fontFamily: "Poppins",
-    fontWeight: 600,
-    fontSize: 6.8,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    color: MUTED_CLAIR,
-    marginTop: 5,
-  },
-  etapeTexteFaite: { color: NUIT },
-  etapeTexteActive: { color: OR_TEXTE },
   marque: { flexDirection: "row", alignItems: "center", gap: 14, maxWidth: "60%" },
   logoPuce: {
     width: 64,
@@ -93,16 +74,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoImage: { width: 56, height: 56, objectFit: "contain" },
-  logoInitiales: { fontFamily: "Poppins", fontWeight: 700, fontSize: 22, color: NUIT },
-  marqueNom: { fontFamily: "Poppins", fontWeight: 600, fontSize: 14, color: "#ffffff" },
-  marqueMeta: { fontSize: 8.5, color: MUTED_CLAIR, marginTop: 4, lineHeight: 1.4 },
+  logoInitiales: { fontFamily: "Poppins", fontWeight: 700, fontSize: 22, color: BLEU },
+  marqueNom: { fontFamily: "Poppins", fontWeight: 700, fontSize: 14, color: "#ffffff" },
+  marqueMeta: { fontSize: 8.5, fontWeight: 600, color: SUR_BLEU, marginTop: 4, lineHeight: 1.4 },
 
   titreBloc: { alignItems: "flex-end" },
   titre: { fontFamily: "Poppins", fontWeight: 800, fontSize: 30, color: OR, letterSpacing: 3, textTransform: "uppercase" },
-  titreMeta: { fontSize: 8.5, color: MUTED_CLAIR, marginTop: 2 },
-  titreNumero: { fontFamily: "Roboto", fontWeight: 500, fontSize: 10, color: "#ffffff", marginTop: 4, lineHeight: 1.2 },
+  titreMeta: { fontSize: 8.5, fontWeight: 600, color: SUR_BLEU, marginTop: 2 },
+  titreNumero: { fontFamily: "Roboto", fontWeight: 700, fontSize: 10, color: "#ffffff", marginTop: 4, lineHeight: 1.2 },
 
-  contenu: { paddingHorizontal: 34, paddingTop: 8 },
+  contenu: { paddingHorizontal: 34, paddingTop: 22 },
 
   // --- Cartes client / montant ---
   cartes: { flexDirection: "row", gap: 14 },
@@ -116,7 +97,7 @@ const styles = StyleSheet.create({
   },
   carteMontant: {
     flex: 1,
-    backgroundColor: NUIT,
+    backgroundColor: BLEU,
     borderRadius: 6,
     padding: 11,
     justifyContent: "space-between",
@@ -131,17 +112,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   etiquetteClaire: { color: OR },
-  clientNom: { fontFamily: "Poppins", fontWeight: 600, fontSize: 13, color: NUIT },
-  clientInfo: { fontSize: 9, color: MUTED, marginTop: 3 },
-  clientPrestation: { fontSize: 9, color: TEXTE, marginTop: 8, fontWeight: 600 },
+  clientNom: { fontFamily: "Poppins", fontWeight: 700, fontSize: 13, color: ENCRE },
+  clientInfo: { fontSize: 9, fontWeight: 500, color: MUTED, marginTop: 3 },
+  clientPrestation: { fontSize: 9, color: TEXTE, marginTop: 8, fontWeight: 700 },
   montantValeur: { fontFamily: "Roboto", fontWeight: 700, fontSize: 21, color: "#ffffff", lineHeight: 1.1 },
-  montantNote: { fontSize: 8, color: MUTED_CLAIR, marginTop: 4 },
+  montantNote: { fontSize: 8, fontWeight: 600, color: SUR_BLEU, marginTop: 4 },
 
   // --- Tableau des lignes ---
   tableau: { marginTop: 16 },
   tableEntete: {
     flexDirection: "row",
-    backgroundColor: NUIT,
+    backgroundColor: BLEU,
     borderRadius: 4,
     paddingVertical: 8,
     paddingHorizontal: 10,
@@ -168,7 +149,7 @@ const styles = StyleSheet.create({
   colQuantite: { width: "15%", textAlign: "right" },
   colPrixUnitaire: { width: "17%", textAlign: "right" },
   colTotal: { width: "18%", textAlign: "right" },
-  description: { fontSize: 9.5, color: TEXTE, lineHeight: 1.35 },
+  description: { fontSize: 9.5, fontWeight: 500, color: TEXTE, lineHeight: 1.35 },
   pastille: {
     alignSelf: "flex-start",
     marginTop: 4,
@@ -183,7 +164,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   chiffre: { fontFamily: "Roboto", fontWeight: 500, fontSize: 9.5, color: TEXTE, lineHeight: 1.2 },
-  chiffreFort: { fontFamily: "Roboto", fontWeight: 700, fontSize: 9.5, color: NUIT, lineHeight: 1.2 },
+  chiffreFort: { fontFamily: "Roboto", fontWeight: 700, fontSize: 9.5, color: ENCRE, lineHeight: 1.2 },
 
   // --- Totaux ---
   totaux: { alignSelf: "flex-end", width: 240, marginTop: 10 },
@@ -194,7 +175,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     color: MUTED,
   },
-  libelleTotal: { fontSize: 9.5, lineHeight: 1.3 },
+  libelleTotal: { fontSize: 9.5, fontWeight: 600, color: MUTED, lineHeight: 1.3 },
   noteTva: {
     fontSize: 8.5,
     color: TEXTE,
@@ -209,7 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: NUIT,
+    backgroundColor: BLEU,
     borderRadius: 6,
     paddingVertical: 11,
     paddingHorizontal: 16,
@@ -232,7 +213,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderColor: "rgba(212,175,55,0.5)",
   },
-  totalTTCLabel: { fontFamily: "Poppins", fontWeight: 600, fontSize: 8.5, color: OR, letterSpacing: 1.4 },
+  totalTTCLabel: { fontFamily: "Poppins", fontWeight: 700, fontSize: 8.5, color: OR, letterSpacing: 1.4 },
   totalTTCValeur: { fontFamily: "Roboto", fontWeight: 700, fontSize: 17, color: "#ffffff", lineHeight: 1.1 },
 
   bandeauInfo: {
@@ -242,8 +223,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: CREME,
     fontSize: 9,
-    fontWeight: 600,
-    color: NUIT,
+    fontWeight: 700,
+    color: ENCRE,
     textAlign: "center",
   },
   acquittee: {
@@ -272,7 +253,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 3,
   },
-  mentionTexte: { fontSize: 8.5, color: MUTED, lineHeight: 1.45 },
+  mentionTexte: { fontSize: 8.5, fontWeight: 500, color: MUTED, lineHeight: 1.45 },
   mentionLegale: {
     marginTop: 14,
     padding: 10,
@@ -280,7 +261,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: LIGNE,
   },
-  merci: { marginTop: 14, fontFamily: "Poppins", fontWeight: 600, fontSize: 10, color: NUIT },
+  merci: { marginTop: 14, fontFamily: "Poppins", fontWeight: 600, fontSize: 10, color: ENCRE },
 
   // --- Signature (devis) ---
   signature: { flexDirection: "row", gap: 18, marginTop: 18 },
@@ -320,22 +301,12 @@ const styles = StyleSheet.create({
     borderColor: LIGNE,
     alignItems: "center",
   },
-  piedLegal: { fontSize: 7.5, color: MUTED, textAlign: "center", lineHeight: 1.4 },
+  piedLegal: { fontSize: 7.5, fontWeight: 500, color: MUTED, textAlign: "center", lineHeight: 1.4 },
   piedMarque: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 },
   piedLogo: { width: 11, height: 11 },
   piedTexte: { fontSize: 7, color: MUTED },
-  piedTexteMarque: { fontFamily: "Poppins", fontWeight: 600, color: NUIT },
+  piedTexteMarque: { fontFamily: "Poppins", fontWeight: 600, color: ENCRE },
   filigrane: { position: "absolute", right: -40, bottom: 40, width: 230, height: 230, opacity: 0.045 },
-});
-
-// Onde sonore (rappel du logo VolpeVox) : barres dorees de hauteurs
-// variees, toujours les memes d'un document a l'autre.
-const LARGEUR_PAGE = 595.28;
-const HAUTEUR_BANDEAU = 104;
-const HAUTEUR_ONDE = 16;
-const BARRES = Array.from({ length: 132 }, (_, i) => {
-  const h = 2 + (HAUTEUR_ONDE - 2) * Math.abs(Math.sin(i * 0.37) * Math.cos(i * 0.11 + 0.6));
-  return { x: 34 + i * 4, h };
 });
 
 function formaterDate(date: Date) {
@@ -445,7 +416,7 @@ export function DevisPDF({
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
   // Un avoir suit la mise en page d'une facture (montants en negatif, passes
-  // tels quels dans les lignes), sans parcours, paiement ni penalites.
+  // tels quels dans les lignes), sans paiement ni penalites.
   const estAvoir = type === "avoir";
   const estFacture = type === "facture" || estAvoir;
   const motDocument = estAvoir ? "Avoir" : estFacture ? "Facture" : "Devis";
@@ -467,19 +438,6 @@ export function DevisPDF({
   ]
     .filter(Boolean)
     .join("  ·  ");
-
-  // Parcours : ou en est ce document. Facture dictee directement (sans
-  // devis signe) : le parcours commence a la prestation.
-  const ETAPES = estFacture
-    ? signeLe
-      ? ["Devis", "Signé", "Facturé", "Réglé"]
-      : ["Prestation", "Facturé", "Réglé"]
-    : ["Devis", "Signé", "Facturé", "Réglé"];
-  const etapeActive = estFacture
-    ? ETAPES.indexOf(paiement?.payeeLe ? "Réglé" : "Facturé")
-    : signeLe
-    ? 1
-    : 0;
 
   const mentions = [
     entreprise.conditionsPaiement && !estAvoir
@@ -508,21 +466,7 @@ export function DevisPDF({
       <Page size="A4" style={styles.page}>
         <Image src={LOGO_VOLPEVOX} style={styles.filigrane} fixed />
 
-        <View style={[styles.bandeau, { height: HAUTEUR_BANDEAU }]}>
-          <Svg style={styles.onde} width={LARGEUR_PAGE} height={HAUTEUR_BANDEAU}>
-            {BARRES.map((b, i) => (
-              <Rect
-                key={i}
-                x={b.x}
-                y={HAUTEUR_BANDEAU - 6 - HAUTEUR_ONDE / 2 - b.h / 2}
-                width={1.8}
-                height={b.h}
-                rx={0.9}
-                fill={OR}
-                opacity={0.4}
-              />
-            ))}
-          </Svg>
+        <View style={styles.bandeau}>
           <View style={styles.marque}>
             <View style={styles.logoPuce}>
               {entreprise.logoUrl ? (
@@ -553,45 +497,8 @@ export function DevisPDF({
             </Text>
           </View>
         </View>
-        <Svg width={LARGEUR_PAGE} height={22} style={{ marginTop: -1 }}>
-          <Polygon points={`0,0 ${LARGEUR_PAGE},0 ${LARGEUR_PAGE},5 0,21`} fill={NUIT} />
-          <Line x1={0} y1={21.5} x2={LARGEUR_PAGE} y2={5.5} stroke={OR} strokeWidth={2.2} />
-        </Svg>
 
         <View style={styles.contenu}>
-          {!estAvoir ? (
-          <View style={styles.parcours}>
-            <View style={styles.parcoursTrait} />
-            {etapeActive > 0 ? (
-              <View style={[styles.parcoursTraitFait, { width: `${(etapeActive / (ETAPES.length - 1)) * 75}%` }]} />
-            ) : null}
-            {ETAPES.map((etape, i) => {
-              const faite = i < etapeActive;
-              const active = i === etapeActive;
-              return (
-                <View style={styles.etape} key={etape}>
-                  <View
-                    style={[
-                      styles.pastilleEtape,
-                      ...(faite ? [styles.pastilleFaite] : []),
-                      ...(active ? [styles.pastilleActive] : []),
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.etapeTexte,
-                      ...(faite ? [styles.etapeTexteFaite] : []),
-                      ...(active ? [styles.etapeTexteActive] : []),
-                    ]}
-                  >
-                    {etape}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-          ) : null}
-
           <View style={styles.cartes}>
             <View style={styles.carteClient}>
               <Text style={styles.etiquette}>
@@ -627,7 +534,7 @@ export function DevisPDF({
 
           <View style={styles.tableau}>
             <View style={styles.tableEntete}>
-              <Text style={[styles.tableEnteteTexte, styles.colNum]}>#</Text>
+              <Text style={[styles.tableEnteteTexte, styles.colNum, { color: "#ffffff" }]}>#</Text>
               <Text style={[styles.tableEnteteTexte, styles.colDescription]}>Désignation</Text>
               <Text style={[styles.tableEnteteTexte, styles.colQuantite]}>Qté</Text>
               <Text style={[styles.tableEnteteTexte, styles.colPrixUnitaire]}>Prix unit. HT</Text>
