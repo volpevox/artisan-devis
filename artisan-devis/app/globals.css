@@ -3263,3 +3263,256 @@ h1 + .lien-archives {
 .resume-docs > div.vert strong {
   color: var(--success);
 }
+
+/* ------------------------------------------------------------------
+   Profil et Parametres dans l'identite des cartes « ticket »
+   (meme bord colore selon l'etat que .carte-doc)
+   ------------------------------------------------------------------ */
+.fiche {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--ink);
+  border-radius: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.fiche--ok {
+  border-left-color: var(--success);
+}
+
+.fiche--neutre {
+  border-left-color: var(--border);
+}
+
+/* Pastille d'etat (Complet / A completer / Facultatif / Active...) */
+.pastille-etat {
+  flex: none;
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ink);
+  background: rgba(221, 167, 66, 0.12);
+  border: 1px solid rgba(221, 167, 66, 0.45);
+}
+
+.pastille-etat.ok {
+  color: var(--success);
+  background: var(--success-bg);
+  border-color: rgba(62, 213, 152, 0.45);
+}
+
+.pastille-etat.neutre {
+  color: var(--muted);
+  background: transparent;
+  border-color: var(--border);
+}
+
+/* --- Carte de visite en tete du profil --- */
+.fiche-visite {
+  padding: 16px 14px 14px 16px;
+}
+
+.fiche-visite-haut {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.fiche-visite-logo {
+  flex: none;
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 21px;
+  color: #0b2a5b;
+}
+
+.fiche-visite-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.fiche-visite-nom {
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+
+.fiche-visite-meta {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.fiche-visite-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.fiche-visite-legal span {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-family: var(--font-roboto), sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* --- Rubriques repliables du profil --- */
+.fiche-rubrique > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px 13px 14px;
+  cursor: pointer;
+}
+
+.fiche-rubrique > summary::-webkit-details-marker {
+  display: none;
+}
+
+.fiche-rubrique-icone {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(221, 167, 66, 0.12);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fiche--ok .fiche-rubrique-icone {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.fiche--neutre .fiche-rubrique-icone {
+  background: rgba(147, 160, 179, 0.12);
+  color: var(--muted);
+}
+
+.fiche-rubrique-icone svg {
+  width: 19px;
+  height: 19px;
+}
+
+.fiche-rubrique-corps {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fiche-rubrique-titre {
+  display: block;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.fiche-rubrique-resume {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fiche-rubrique-chevron {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+
+.fiche-rubrique[open] .fiche-rubrique-chevron {
+  transform: rotate(90deg);
+}
+
+.fiche-rubrique-contenu {
+  padding: 4px 14px 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+/* --- Parametres : carte compte + listes en style ticket --- */
+.fiche-compte {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 14px 16px 16px;
+}
+
+.fiche-compte-avatar {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.fiche-compte-corps {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fiche-compte-nom {
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 16.5px;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+
+.fiche-compte-email {
+  margin: 1px 0 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.reglages-liste {
+  border-left: 4px solid var(--ink);
+  border-radius: 16px;
+}
+
+.reglages-liste--neutre {
+  border-left-color: var(--border);
+}
+
+.reglages-item-icone {
+  border-radius: 50%;
+}

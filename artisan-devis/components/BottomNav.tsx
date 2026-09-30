@@ -90,7 +90,7 @@ export function BottomNav() {
             strokeLinejoin="round"
           />
         </svg>
-        <span>Mon profil</span>
+        <span>Mon compte</span>
       </Link>
     </nav>
   );

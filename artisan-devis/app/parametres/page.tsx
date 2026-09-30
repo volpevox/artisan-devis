@@ -16,6 +16,16 @@ import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 
+// "Moreau Carrelage" -> "MC" (avatar de la carte compte).
+function initiales(nom: string) {
+  return nom
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((mot) => mot[0]?.toUpperCase())
+    .join("");
+}
+
 function Chevron() {
   return (
     <svg className="reglages-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -254,6 +264,16 @@ export default function Parametres() {
 
       <h1 className="page-title">Paramètres</h1>
 
+      {/* --- Carte compte (identite des cartes « ticket ») --- */}
+      <div className="fiche fiche-compte">
+        <div className="fiche-compte-avatar">{initiales(nomEntreprise || nomComplet) || "?"}</div>
+        <div className="fiche-compte-corps">
+          <p className="fiche-compte-nom">{nomEntreprise || nomComplet || "Mon compte"}</p>
+          {session?.user?.email ? <p className="fiche-compte-email">{session.user.email}</p> : null}
+          <span className="pastille-etat ok">{MODE_GRATUIT ? "Accès lancement · Gratuit" : "Abonnement actif"}</span>
+        </div>
+      </div>
+
       {/* --- Compte --- */}
       <div className="reglages-groupe">
         <p className="reglages-groupe-titre">Compte</p>
@@ -289,7 +309,7 @@ export default function Parametres() {
                 <span className="reglages-item-sous">Voir mon espace Stripe</span>
               </span>
               <span className="reglages-item-fin">
-                <span className="reglages-item-statut">Activé</span>
+                <span className="pastille-etat ok">Activé</span>
                 <Chevron />
               </span>
             </a>
@@ -308,10 +328,11 @@ export default function Parametres() {
                     ? "Ouverture de Stripe..."
                     : stripeAccountId
                     ? "Reprendre l'inscription Stripe"
-                    : "Connecter Stripe (sans commission)"}
+                    : "Tes clients paient par carte"}
                 </span>
               </span>
               <span className="reglages-item-fin">
+                <span className="pastille-etat">À connecter</span>
                 <Chevron />
               </span>
             </button>
@@ -340,27 +361,6 @@ export default function Parametres() {
       <div className="reglages-groupe">
         <p className="reglages-groupe-titre">Application</p>
         <div className="reglages-liste">
-          <Link href="/parametres/tarifs" className="reglages-item">
-            <span className="reglages-item-icone">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M3.5 12.2V5a1.5 1.5 0 0 1 1.5-1.5h7.2a1.5 1.5 0 0 1 1 .44l7.4 7.4a1.5 1.5 0 0 1 0 2.12l-7.2 7.2a1.5 1.5 0 0 1-2.12 0l-7.4-7.4a1.5 1.5 0 0 1-.44-1.06Z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                />
-                <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.6" />
-              </svg>
-            </span>
-            <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Mes tarifs</span>
-              <span className="reglages-item-sous">Tes prix, repris par l'IA quand tu dictes</span>
-            </span>
-            <span className="reglages-item-fin">
-              <Chevron />
-            </span>
-          </Link>
-
           <Link href="/parametres/ajout-ecran-accueil" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -557,7 +557,7 @@ export default function Parametres() {
       {/* --- Informations légales --- */}
       <div className="reglages-groupe">
         <p className="reglages-groupe-titre">Informations légales</p>
-        <div className="reglages-liste">
+        <div className="reglages-liste reglages-liste--neutre">
           <Link href="/parametres/comment-ca-marche" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -618,7 +618,7 @@ export default function Parametres() {
       {/* --- Mes données --- */}
       <div className="reglages-groupe">
         <p className="reglages-groupe-titre">Mes données</p>
-        <div className="reglages-liste">
+        <div className="reglages-liste reglages-liste--neutre">
           <a
             href={messageDonnees("Bonjour, je souhaite demander l'export de mes données VolpeVox.")}
             target="_blank"

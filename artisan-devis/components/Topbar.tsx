@@ -111,7 +111,7 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
               {facturesNonVues > 0 && <span className="badge-point" />}
             </Link>
             <Link href="/profil" onClick={() => setOuvert(false)}>
-              Mon profil
+              Mon compte
             </Link>
             <Link href="/parametres" onClick={() => setOuvert(false)}>
               Paramètres
