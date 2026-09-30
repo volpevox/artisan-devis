@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { IconeOeil } from "@/components/IconeOeil";
+import { erreurAuthEnFrancais } from "@/lib/erreursAuth";
 
 export default function ChangerMotDePasse() {
   const { session, loading: chargementSession } = useArtisanSession();
@@ -56,7 +57,7 @@ export default function ChangerMotDePasse() {
     setEnCours(false);
 
     if (error) {
-      setMessage("Erreur : " + error.message);
+      setMessage(erreurAuthEnFrancais(error));
       return;
     }
 
@@ -86,7 +87,7 @@ export default function ChangerMotDePasse() {
     setEnCours(false);
 
     if (error) {
-      setMessage("Erreur : " + error.message);
+      setMessage(erreurAuthEnFrancais(error));
       return;
     }
 

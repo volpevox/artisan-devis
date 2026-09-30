@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { IconeOeil } from "@/components/IconeOeil";
+import { erreurAuthEnFrancais } from "@/lib/erreursAuth";
 
 export default function ReinitialiserMotDePasse() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function ReinitialiserMotDePasse() {
     setChargement(false);
 
     if (error) {
-      setMessage("Erreur : " + error.message);
+      setMessage(erreurAuthEnFrancais(error));
       return;
     }
 

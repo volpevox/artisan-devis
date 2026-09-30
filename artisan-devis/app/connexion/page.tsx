@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { IconeOeil } from "@/components/IconeOeil";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
 import { trackEvent } from "@/lib/analytics";
+import { erreurAuthEnFrancais } from "@/lib/erreursAuth";
 
 function ConnexionContenu() {
   // Le bouton "Demarrer mon essai gratuit" de la landing page pointe vers
@@ -26,6 +27,9 @@ function ConnexionContenu() {
   const [motDePasse, setMotDePasse] = useState("");
   const [afficherMotDePasse, setAfficherMotDePasse] = useState(false);
   const [message, setMessage] = useState("");
+  // Message positif (email envoye, compte cree) affiche en vert, sinon en
+  // rouge comme une erreur.
+  const [messageOk, setMessageOk] = useState(false);
   const [chargement, setChargement] = useState(false);
   const [conditionsAcceptees, setConditionsAcceptees] = useState(false);
 
@@ -40,7 +44,8 @@ function ConnexionContenu() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) {
-      setMessage("Erreur : " + error.message);
+      setMessageOk(false);
+      setMessage(erreurAuthEnFrancais(error));
       setChargement(false);
     }
   }
@@ -50,6 +55,7 @@ function ConnexionContenu() {
     setMessage("");
 
     if (mode === "inscription" && !conditionsAcceptees) {
+      setMessageOk(false);
       setMessage("Merci d'accepter les conditions d'utilisation et la politique de confidentialité pour continuer.");
       return;
     }
@@ -64,10 +70,12 @@ function ConnexionContenu() {
       setChargement(false);
 
       if (error) {
-        setMessage("Erreur : " + error.message);
+        setMessageOk(false);
+        setMessage(erreurAuthEnFrancais(error));
         return;
       }
 
+      setMessageOk(true);
       setMessage("Email envoyé ! Vérifie ta boîte mail (et tes spams) pour choisir un nouveau mot de passe.");
       return;
     }
@@ -76,7 +84,8 @@ function ConnexionContenu() {
       const { data, error } = await supabase.auth.signUp({ email, password: motDePasse });
 
       if (error) {
-        setMessage("Erreur : " + error.message);
+        setMessageOk(false);
+        setMessage(erreurAuthEnFrancais(error));
         setChargement(false);
         return;
       }
@@ -141,6 +150,7 @@ function ConnexionContenu() {
         // le popup affiche la variante "premier mois offert".
         window.location.href = accesGratuit ? "/profil?bienvenue=gratuit" : "/abonnement";
       } else {
+        setMessageOk(true);
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");
         setChargement(false);
       }
@@ -150,7 +160,8 @@ function ConnexionContenu() {
     const { error } = await supabase.auth.signInWithPassword({ email, password: motDePasse });
 
     if (error) {
-      setMessage("Erreur : " + error.message);
+      setMessageOk(false);
+      setMessage(erreurAuthEnFrancais(error));
       setChargement(false);
       return;
     }
@@ -163,17 +174,29 @@ function ConnexionContenu() {
   return (
     <main className="page-shell connexion-shell">
       <div style={{ textAlign: "center", marginBottom: 22 }}>
-        <Image src="/fox-icon.png" alt="" aria-hidden="true" width={84} height={84} className="connexion-logo" priority />
+        <Image src="/fox-icon.png" alt="" aria-hidden="true" width={354} height={360} className="connexion-logo" priority unoptimized />
         <p className="connexion-brand">
           <span className="brand-volpe">Volpe</span>
           <span className="brand-vox">Vox</span>
         </p>
+        <p className="connexion-accroche">Tes devis à la voix.</p>
       </div>
 
-      <div className="card">
-        <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 16, color: "var(--ink)" }}>
-          {mode === "connexion" ? "Se connecter" : mode === "inscription" ? "Créer un compte" : "Mot de passe oublié"}
+      <div className="card connexion-carte">
+        <h2 className="connexion-titre">
+          {mode === "connexion" ? "Content de te revoir" : mode === "inscription" ? "Crée ton compte" : "Mot de passe oublié"}
         </h2>
+        {mode === "inscription" ? (
+          <span className="connexion-pastille">
+            {MODE_GRATUIT ? "Gratuit · sans carte bancaire" : "14 jours d'essai gratuit"}
+          </span>
+        ) : (
+          <p className="connexion-sous-titre">
+            {mode === "connexion"
+              ? "Connecte-toi pour retrouver tes devis et factures."
+              : "On t'envoie un lien pour choisir un nouveau mot de passe."}
+          </p>
+        )}
 
         {mode !== "oubli" && (
           <>
@@ -210,7 +233,7 @@ function ConnexionContenu() {
               }}
             >
               <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
-              ou
+              ou avec ton email
               <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
             </div>
           </>
@@ -295,7 +318,7 @@ function ConnexionContenu() {
           )}
         </form>
 
-        {message && <p className="message">{message}</p>}
+        {message && <p className={messageOk ? "connexion-message connexion-message--ok" : "connexion-message"}>{message}</p>}
 
         <p style={{ marginTop: 16, fontSize: 13.5, textAlign: "center" }}>
           {mode === "connexion" ? (

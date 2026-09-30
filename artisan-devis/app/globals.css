@@ -1077,14 +1077,15 @@ body:has(.splash-screen) .bottom-nav {
   display: none;
 }
 
-/* Ecran de connexion / inscription : contenu centre verticalement. */
+/* Ecran de connexion / inscription : contenu en haut de l ecran. */
 .connexion-shell {
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: calc(28px + env(safe-area-inset-top));
 }
 
 .connexion-logo {
-  width: 84px;
-  height: 84px;
+  width: 124px;
+  height: 124px;
   object-fit: contain;
   display: block;
   margin: 0 auto;
@@ -1119,6 +1120,69 @@ body:has(.splash-screen) .bottom-nav {
   }
 }
 
+.connexion-accroche {
+  margin: 4px 0 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--muted);
+  opacity: 0;
+  animation: connexion-brand-in 0.5s ease 0.55s forwards;
+}
+
+/* Carte de connexion dans le style « ticket » des cartes devis/factures. */
+.connexion-carte {
+  border-left: 4px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.connexion-titre {
+  margin: 0;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.connexion-sous-titre {
+  margin: 4px 0 18px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.connexion-message {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(229, 72, 77, 0.5);
+  background: rgba(229, 72, 77, 0.12);
+  color: #ff8a8d;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.connexion-message--ok {
+  border-color: rgba(52, 199, 123, 0.5);
+  background: rgba(52, 199, 123, 0.12);
+  color: var(--success);
+}
+
+.connexion-pastille {
+  display: inline-block;
+  margin: 8px 0 18px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 199, 123, 0.5);
+  background: rgba(52, 199, 123, 0.12);
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .splash-logo {
   width: 190px;
   height: 190px;
@@ -1144,14 +1208,14 @@ body:has(.splash-screen) .bottom-nav {
   }
 }
 
+/* Seule l aura pulse : agrandir le logo (transform: scale) le rendait flou,
+   le telephone etirant l image au lieu de la redessiner. */
 @keyframes splash-logo-respire {
   0%,
   100% {
-    transform: scale(1);
     filter: drop-shadow(0 0 14px rgba(221, 167, 66, 0.38));
   }
   50% {
-    transform: scale(1.045);
     filter: drop-shadow(0 0 32px rgba(221, 167, 66, 0.68));
   }
 }
@@ -1174,9 +1238,9 @@ body:has(.splash-screen) .bottom-nav {
 }
 
 .splash-sub {
-  font-family: var(--font-roboto), sans-serif;
-  font-weight: 500;
-  font-size: 14px;
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 600;
+  font-size: 17px;
   color: var(--text);
   text-align: center;
   margin: 4px 0 0;
@@ -1190,11 +1254,11 @@ body:has(.splash-screen) .bottom-nav {
 }
 
 .splash-ligne-1 {
-  animation-delay: 0.7s;
+  animation-delay: 1.1s;
 }
 
 .splash-ligne-2 {
-  animation-delay: 1.45s;
+  animation-delay: 1.7s;
 }
 
 @keyframes splash-write {
@@ -1203,32 +1267,44 @@ body:has(.splash-screen) .bottom-nav {
   }
 }
 
-.splash-tap {
-  margin-top: 14px;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0;
-  animation:
-    splash-tap-in 0.6s ease 2.5s forwards,
-    splash-tap-pulse 1.8s ease-in-out 3.1s infinite;
-}
-
 @keyframes splash-tap-in {
   to {
     opacity: 1;
   }
 }
 
-@keyframes splash-tap-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
+/* Onde sonore doree sous le renard : les barres montent une a une puis
+   « parlent » en boucle. */
+.splash-onde {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  margin-top: -6px;
+}
+
+.splash-onde span {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: scaleY(0);
+  animation:
+    splash-onde-in 0.4s ease forwards,
+    splash-onde-parle 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes splash-onde-in {
+  to {
+    transform: scaleY(1);
   }
-  50% {
-    opacity: 1;
+}
+
+@keyframes splash-onde-parle {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.35);
   }
 }
 
@@ -1243,7 +1319,7 @@ body:has(.splash-screen) .bottom-nav {
   letter-spacing: 0.5px;
   color: var(--muted);
   opacity: 0;
-  animation: splash-tap-in 0.6s ease 2.9s forwards;
+  animation: splash-tap-in 0.6s ease 1.9s forwards;
 }
 
 @media (max-width: 640px) {
@@ -1258,8 +1334,8 @@ body:has(.splash-screen) .bottom-nav {
   }
 
   .splash-logo {
-    width: 260px;
-    height: 260px;
+    width: 220px;
+    height: 220px;
   }
 
   .bottom-nav {
