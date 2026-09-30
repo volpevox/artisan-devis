@@ -101,23 +101,64 @@ body {
   flex-direction: column;
 }
 
-.pdf-viewer-zone {
+.pdf-viewer-cadre {
   flex: 1 1 auto;
-  overflow-x: hidden;
-  overflow-y: auto;
+  position: relative;
+  min-height: 0;
+}
+
+/* Zoom gere par VisionneusePdf : on laisse le defilement a un doigt au
+   navigateur, le pincement est intercepte par le composant. */
+.pdf-viewer-zone {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
-  touch-action: auto;
+  touch-action: pan-x pan-y;
   background: #525659;
 }
 
+.pdf-viewer-contenu {
+  width: max-content;
+  min-width: 100%;
+}
+
 .pdf-viewer-page {
+  width: max-content;
   margin: 10px auto;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .pdf-viewer-page canvas {
   display: block;
-  max-width: 100%;
+}
+
+.pdf-viewer-zoom {
+  position: absolute;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pdf-viewer-zoom button {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(221, 167, 66, 0.6);
+  background: rgba(13, 27, 42, 0.88);
+  color: var(--or);
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.pdf-viewer-zoom button:disabled {
+  opacity: 0.35;
 }
 
 a {
