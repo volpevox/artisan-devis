@@ -6,6 +6,7 @@ import { Topbar } from "@/components/Topbar";
 import { PropositionCommentCaMarche } from "@/components/PropositionCommentCaMarche";
 import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "@/lib/mentionsDocuments";
+import { RechercheEntreprise, type InfosEntreprise } from "@/components/RechercheEntreprise";
 
 export default function Profil() {
   const router = useRouter();
@@ -38,6 +39,9 @@ export default function Profil() {
   const numeroFactureCharge = useRef(1);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(true);
+  // Ecran de depart (profil incomplet) : la TVA est une question simple,
+  // sans reponse par defaut, pour que l'artisan la choisisse vraiment.
+  const [tvaChoix, setTvaChoix] = useState<"" | "non" | "oui">("");
 
   useEffect(() => {
     // Sans abonnement, la ligne "artisans" n'existe pas encore (voir
@@ -88,6 +92,29 @@ export default function Profil() {
     }
     charger();
   }, [artisanId]);
+
+  // Pre-remplissage depuis l'annuaire des entreprises (ecran de depart).
+  function remplirDepuisAnnuaire(infos: InfosEntreprise) {
+    if (infos.nomComplet) setNomComplet(infos.nomComplet);
+    setNomEntreprise(infos.nomEntreprise);
+    if (infos.adresse) setAdresse(infos.adresse);
+    if (infos.codePostal) setCodePostal(infos.codePostal);
+    if (infos.ville) setVille(infos.ville);
+    if (infos.siret) setSiret(infos.siret);
+  }
+
+  function choisirTva(choix: "non" | "oui") {
+    setTvaChoix(choix);
+    setTauxTva(choix === "non" ? "0" : "20");
+  }
+
+  function demarrer() {
+    if (!tvaChoix) {
+      setMessage("Dis-nous si tu factures la TVA.");
+      return;
+    }
+    enregistrer();
+  }
 
   function choisirLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const fichier = e.target.files?.[0] || null;
@@ -201,6 +228,124 @@ export default function Profil() {
       <main className="page-shell">
         <Topbar />
         <p className="message">Chargement...</p>
+      </main>
+    );
+  }
+
+  // Premiere visite (profil incomplet) : ecran de depart court, seulement les
+  // infos obligatoires sur un devis, pre-remplies depuis l'annuaire des
+  // entreprises. Le reste (logo, IBAN, mentions...) se complete plus tard
+  // dans le profil complet ci-dessous.
+  if (etaitIncomplet) {
+    return (
+      <main className="page-shell">
+        <Topbar />
+        <PropositionCommentCaMarche />
+
+        <h1 className="page-title">Tes infos</h1>
+        <p className="hint" style={{ margin: "0 0 16px" }}>
+          Elles apparaissent en haut de tes devis et factures. Ça prend une minute.
+        </p>
+
+        <div className="form-bloc">
+          <p className="form-bloc-titre">1. Trouve ton entreprise</p>
+          <div className="form-carte">
+            <RechercheEntreprise onChoisir={remplirDepuisAnnuaire} />
+            <p className="champ-aide">On remplit ton adresse et ton SIRET depuis l'annuaire officiel des entreprises.</p>
+          </div>
+        </div>
+
+        <div className="form-bloc">
+          <p className="form-bloc-titre">2. Vérifie</p>
+          <div className="form-carte">
+            <div className="champ">
+              <label className="champ-label" htmlFor="d-nom">
+                Nom et prénom <span className="obligatoire">*</span>
+              </label>
+              <input id="d-nom" className="field" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
+            </div>
+            <div className="champ">
+              <label className="champ-label" htmlFor="d-entreprise">
+                Nom de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif)</span>
+              </label>
+              <input
+                id="d-entreprise"
+                className="field"
+                value={nomEntreprise}
+                onChange={(e) => setNomEntreprise(e.target.value)}
+              />
+            </div>
+            <div className="champ">
+              <label className="champ-label" htmlFor="d-tel">
+                Téléphone <span className="obligatoire">*</span>
+              </label>
+              <input id="d-tel" className="field" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+            </div>
+            <div className="champ">
+              <label className="champ-label" htmlFor="d-siret">
+                SIRET <span className="obligatoire">*</span>
+              </label>
+              <input id="d-siret" className="field" inputMode="numeric" value={siret} onChange={(e) => setSiret(e.target.value)} />
+            </div>
+            <div className="champ">
+              <label className="champ-label" htmlFor="d-adresse">
+                Adresse <span className="obligatoire">*</span>
+              </label>
+              <input id="d-adresse" className="field" value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+            </div>
+            <div className="champ champ-duo">
+              <div style={{ flex: "1 1 40%" }}>
+                <label className="champ-label" htmlFor="d-cp">
+                  Code postal <span className="obligatoire">*</span>
+                </label>
+                <input id="d-cp" className="field" inputMode="numeric" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+              </div>
+              <div style={{ flex: "1 1 60%" }}>
+                <label className="champ-label" htmlFor="d-ville">
+                  Ville <span className="obligatoire">*</span>
+                </label>
+                <input id="d-ville" className="field" value={ville} onChange={(e) => setVille(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-bloc">
+          <p className="form-bloc-titre">3. Tu factures la TVA ?</p>
+          <div className="form-carte">
+            <div className="choix-tva">
+              <button type="button" className={tvaChoix === "non" ? "actif" : ""} onClick={() => choisirTva("non")}>
+                <strong>Non</strong>
+                <small>Franchise en base (micro-entreprise)</small>
+              </button>
+              <button type="button" className={tvaChoix === "oui" ? "actif" : ""} onClick={() => choisirTva("oui")}>
+                <strong>Oui</strong>
+                <small>Je facture la TVA</small>
+              </button>
+            </div>
+            {tvaChoix === "oui" && (
+              <div className="champ" style={{ marginTop: 14 }}>
+                <label className="champ-label" htmlFor="d-tva">
+                  Taux habituel
+                </label>
+                <select id="d-tva" className="field" value={tauxTva} onChange={(e) => setTauxTva(e.target.value)}>
+                  <option value="20">20 % — Taux normal</option>
+                  <option value="10">10 % — Travaux de rénovation</option>
+                  <option value="5.5">5,5 % — Rénovation énergétique</option>
+                  <option value="2.1">2,1 % — Taux particulier</option>
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button className="btn btn-primary btn-bloc" onClick={demarrer}>
+          C'est parti →
+        </button>
+        {message && <p className="message" style={{ textAlign: "center" }}>{message}</p>}
+        <p className="hint" style={{ textAlign: "center", margin: "12px 0 24px" }}>
+          Logo, IBAN, assurance… tu pourras les ajouter plus tard dans ton profil.
+        </p>
       </main>
     );
   }

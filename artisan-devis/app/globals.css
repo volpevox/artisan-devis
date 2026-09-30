@@ -1410,6 +1410,93 @@ body:has(.splash-screen) .bottom-nav {
   width: 100%;
 }
 
+/* Ecran de depart du profil : recherche dans l'annuaire des entreprises */
+.recherche-entreprise-liste {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.recherche-entreprise-liste button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  background: var(--card-bg);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.recherche-entreprise-liste button:last-child {
+  border-bottom: none;
+}
+
+.recherche-entreprise-liste strong {
+  display: block;
+  font-size: 14px;
+}
+
+.recherche-entreprise-liste small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.recherche-entreprise-ok {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3ed598;
+}
+
+/* Question TVA de l'ecran de depart : deux gros boutons */
+.choix-tva {
+  display: flex;
+  gap: 10px;
+}
+
+.choix-tva button {
+  flex: 1;
+  padding: 14px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.choix-tva button.actif {
+  border-color: var(--ink);
+  background: rgba(221, 167, 66, 0.12);
+}
+
+.choix-tva strong {
+  display: block;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 17px;
+}
+
+.choix-tva button.actif strong {
+  color: var(--ink);
+}
+
+.choix-tva small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
 /* Ecran de bienvenue apres inscription (PropositionCommentCaMarche) */
 .bienvenue {
   display: flex;
