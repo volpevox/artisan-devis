@@ -16,6 +16,11 @@ import { MODE_GRATUIT } from "@/lib/modeGratuit";
 
 const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 
+// Lien partage par « Recommander VolpeVox » : la page d'accueil du site
+// (qui presente l'outil), marquee pour reperer ces visites dans Google
+// Analytics.
+const LIEN_RECOMMANDATION = "https://volpevox.fr/?utm_source=recommandation&utm_medium=partage";
+
 // "Moreau Carrelage" -> "MC" (avatar de la carte compte).
 function initiales(nom: string) {
   return nom
@@ -55,6 +60,27 @@ export default function Parametres() {
 
   const [copieEnvois, setCopieEnvois] = useState(false);
   const [copieEnCours, setCopieEnCours] = useState(false);
+
+  const [lienRecoCopie, setLienRecoCopie] = useState(false);
+
+  // Partage natif du telephone (WhatsApp, SMS...) avec un message pret ;
+  // a defaut (ordinateur), le message est copie.
+  async function recommander() {
+    const texte = MODE_GRATUIT
+      ? "Salut ! J'utilise VolpeVox pour mes devis et factures : je dicte le chantier et le devis se fait tout seul. C'est gratuit en ce moment, teste :"
+      : "Salut ! J'utilise VolpeVox pour mes devis et factures : je dicte le chantier et le devis se fait tout seul. Teste :";
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: texte, url: LIEN_RECOMMANDATION });
+      } catch {
+        // Menu de partage ferme sans rien choisir : rien a faire.
+      }
+      return;
+    }
+    await navigator.clipboard.writeText(`${texte} ${LIEN_RECOMMANDATION}`);
+    setLienRecoCopie(true);
+    setTimeout(() => setLienRecoCopie(false), 3000);
+  }
 
   useEffect(() => {
     if (!artisanId) return;
@@ -271,6 +297,30 @@ export default function Parametres() {
           <p className="fiche-compte-nom">{nomEntreprise || nomComplet || "Mon compte"}</p>
           {session?.user?.email ? <p className="fiche-compte-email">{session.user.email}</p> : null}
           <span className="pastille-etat ok">{MODE_GRATUIT ? "Accès lancement · Gratuit" : "Abonnement actif"}</span>
+        </div>
+      </div>
+
+      {/* --- Recommander (bouche-a-oreille entre artisans) --- */}
+      <div className="reglages-groupe">
+        <div className="reglages-liste">
+          <button type="button" className="reglages-item" onClick={recommander}>
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="9" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M2.5 20c.9-3.4 3.3-5.2 6.5-5.2s5.6 1.8 6.5 5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <path d="M18.5 8v6M15.5 11h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Recommander VolpeVox à un collègue</span>
+              <span className="reglages-item-sous">
+                {lienRecoCopie ? "✓ Message copié, colle-le où tu veux" : "Envoie-lui le lien par WhatsApp ou SMS"}
+              </span>
+            </span>
+            <span className="reglages-item-fin">
+              <Chevron />
+            </span>
+          </button>
         </div>
       </div>
 

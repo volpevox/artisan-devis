@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionCommentCaMarche } from "@/components/PropositionCommentCaMarche";
@@ -422,6 +423,9 @@ export default function Profil() {
         <p className={`carte-doc-statut ${prochaine ? "or" : "vert"}`} style={{ margin: "4px 0 0" }}>
           {prochaine ? prochaine.conseil : "✓ Tes documents sont complets."}
         </p>
+        <Link href="/exemple-devis" className="carte-doc-secondaire fiche-visite-exemple">
+          📄 Voir un exemple de devis
+        </Link>
       </div>
 
       <FicheRubrique
