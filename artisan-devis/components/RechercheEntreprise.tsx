@@ -21,11 +21,16 @@ interface Resultat {
   infos: InfosEntreprise;
 }
 
-// "DECINES-CHARPIEU" -> "Decines-Charpieu" (l'annuaire est en majuscules).
+// Petits mots laisses en minuscules (sauf en debut) : "Rue des Artisans".
+const PETITS_MOTS = new Set(["de", "des", "du", "la", "le", "les", "et", "d", "l", "à", "au", "aux", "en", "sur", "sous"]);
+
+// "8 RUE DES ARTISANS" -> "8 Rue des Artisans" (l'annuaire est en majuscules).
 function casse(texte: string | null | undefined) {
   return (texte || "")
     .toLowerCase()
-    .replace(/(^|[\s\-'’])([a-zà-öø-ÿ])/g, (_, sep, l) => sep + l.toUpperCase())
+    .replace(/(^|[\s\-'’])([a-zà-öø-ÿ]+)/g, (tout, sep, mot, position) =>
+      position > 0 && PETITS_MOTS.has(mot) ? tout : sep + mot[0].toUpperCase() + mot.slice(1)
+    )
     .trim();
 }
 
