@@ -1531,15 +1531,36 @@ body:has(.splash-screen) .bottom-nav {
   margin-bottom: 18px;
 }
 
-.bienvenue-video {
+.bienvenue-video-bouton {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.video-tuto-fond {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+
+.video-tuto-lecteur {
   display: block;
   width: auto;
   max-width: 100%;
-  height: 52vh;
+  height: calc(100% - 80px);
   aspect-ratio: 9 / 16;
-  margin: 0 auto 18px;
   border-radius: 14px;
   background: #0b1a2e;
+}
+
+.video-tuto-fermer {
+  min-width: 160px;
 }
 
 .bienvenue-etapes {

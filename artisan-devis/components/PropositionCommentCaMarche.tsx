@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { AideEcranAccueil, estSurEcranAccueil } from "./AideEcranAccueil";
+import { LecteurVideoTuto } from "./VideoTuto";
 
 // Affichee juste apres une inscription reussie. Deux variantes selon le
 // parametre "bienvenue" ajoute a l'URL par app/connexion/page.tsx :
@@ -16,13 +17,10 @@ import { AideEcranAccueil, estSurEcranAccueil } from "./AideEcranAccueil";
 // tourne dans un onglet navigateur (pas deja installee), etape
 // "ecran-accueil" (comment ajouter VolpeVox a l'ecran d'accueil).
 
-// Video tuto affichee sur l'ecran de bienvenue (fichier dans public/).
-// Vide = pas de video.
-const VIDEO_TUTO_URL = "/tuto.mp4";
-
 export function PropositionCommentCaMarche() {
   const [variante, setVariante] = useState<"abonne" | "gratuit" | null>(null);
   const [etape, setEtape] = useState<"bienvenue" | "ecran-accueil">("bienvenue");
+  const [videoOuverte, setVideoOuverte] = useState(false);
 
   useEffect(() => {
     const valeur = new URLSearchParams(window.location.search).get("bienvenue");
@@ -82,9 +80,14 @@ export function PropositionCommentCaMarche() {
               {gratuit ? "Gratuit · sans carte bancaire" : "Ton abonnement est actif"}
             </span>
 
-            {VIDEO_TUTO_URL ? (
-              <video className="bienvenue-video" src={VIDEO_TUTO_URL} poster="/tuto-apercu.jpg" controls playsInline preload="metadata" />
-            ) : null}
+            <button
+              type="button"
+              className="btn btn-outline bienvenue-video-bouton"
+              onClick={() => setVideoOuverte(true)}
+            >
+              ▶ Voir la vidéo (1 min)
+            </button>
+            {videoOuverte ? <LecteurVideoTuto onFermer={() => setVideoOuverte(false)} /> : null}
 
             <ol className="bienvenue-etapes">
               <li>

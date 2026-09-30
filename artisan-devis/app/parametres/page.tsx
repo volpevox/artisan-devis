@@ -13,6 +13,7 @@ import {
   pushMarquerActive,
 } from "@/lib/pushClient";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
+import { LecteurVideoTuto } from "@/components/VideoTuto";
 
 const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 
@@ -62,6 +63,7 @@ export default function Parametres() {
   const [copieEnCours, setCopieEnCours] = useState(false);
 
   const [lienRecoCopie, setLienRecoCopie] = useState(false);
+  const [videoOuverte, setVideoOuverte] = useState(false);
 
   // Partage natif du telephone (WhatsApp, SMS...) avec un message pret ;
   // a defaut (ordinateur), le message est copie.
@@ -630,6 +632,23 @@ export default function Parametres() {
               <Chevron />
             </span>
           </Link>
+
+          <button type="button" className="reglages-item" onClick={() => setVideoOuverte(true)}>
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M10 8.5v7l5.5-3.5z" fill="currentColor" />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Vidéo tuto</span>
+              <span className="reglages-item-sous">VolpeVox en une minute</span>
+            </span>
+            <span className="reglages-item-fin">
+              <Chevron />
+            </span>
+          </button>
+          {videoOuverte ? <LecteurVideoTuto onFermer={() => setVideoOuverte(false)} /> : null}
 
           {[
             { href: "/mentions-legales", label: "Mentions légales" },
