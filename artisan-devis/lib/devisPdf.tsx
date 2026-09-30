@@ -1,40 +1,57 @@
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "./mentionsDocuments";
 import { formaterSiren } from "./siren";
+import fs from "fs";
+import path from "path";
 
 // Memes polices que la webapp : Poppins (titres), Montserrat (texte),
-// Roboto (gros chiffres).
+// Roboto (gros chiffres). Fichiers stockes dans lib/polices (et embarques
+// dans les fonctions Vercel via next.config.js) : avant, chaque demarrage a
+// froid du serveur les retelechargeait depuis Google Fonts (~0,5 s de plus
+// sur l ouverture d un PDF).
+function police(nom: string) {
+  return path.join(process.cwd(), "lib", "polices", `${nom}.ttf`);
+}
 Font.register({
   family: "Poppins",
   fonts: [
-    { src: "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6V1s.ttf", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7V1s.ttf", fontWeight: 700 },
-    { src: "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4V1s.ttf", fontWeight: 800 },
+    { src: police("Poppins-600"), fontWeight: 600 },
+    { src: police("Poppins-700"), fontWeight: 700 },
+    { src: police("Poppins-800"), fontWeight: 800 },
   ],
 });
 
 Font.register({
   family: "Montserrat",
   fonts: [
-    { src: "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Ew-.ttf", fontWeight: 500 },
-    { src: "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCu170w-.ttf", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-.ttf", fontWeight: 700 },
+    { src: police("Montserrat-400"), fontWeight: 400 },
+    { src: police("Montserrat-500"), fontWeight: 500 },
+    { src: police("Montserrat-600"), fontWeight: 600 },
+    { src: police("Montserrat-700"), fontWeight: 700 },
   ],
 });
 
 Font.register({
   family: "Roboto",
   fonts: [
-    { src: "https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bWmT.ttf", fontWeight: 500 },
-    { src: "https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjammT.ttf", fontWeight: 700 },
+    { src: police("Roboto-500"), fontWeight: 500 },
+    { src: police("Roboto-700"), fontWeight: 700 },
   ],
 });
 
 // Pas de cesure automatique au milieu des mots.
 Font.registerHyphenationCallback((mot) => [mot]);
 
-const LOGO_VOLPEVOX = "https://app.volpevox.fr/fox-icon.png";
+// Renard VolpeVox (filigrane + pied de page) lu sur le disque plutot que
+// telecharge depuis le site a chaque PDF. Secours : l adresse du site.
+function chargerLogoVolpeVox() {
+  try {
+    return { data: fs.readFileSync(path.join(process.cwd(), "public", "fox-icon.png")), format: "png" as const };
+  } catch {
+    return "https://app.volpevox.fr/fox-icon.png";
+  }
+}
+const LOGO_VOLPEVOX = chargerLogoVolpeVox();
 
 // Identite VolpeVox : bleu clair du renard (onde du logo) + or, sur fond
 // blanc imprimable. Textes sombres pour rester lisibles a l'impression.

@@ -10,17 +10,15 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createAdminSupabase();
-  const { data: devis } = await supabase.from("devis").select("*").eq("id", params.id).maybeSingle();
+  // Devis et lignes lus en parallele (un aller-retour vers la base de moins).
+  const [{ data: devis }, { data: lignes }] = await Promise.all([
+    supabase.from("devis").select("*").eq("id", params.id).maybeSingle(),
+    supabase.from("lignes_devis").select("*").eq("devis_id", params.id).order("ordre", { ascending: true }),
+  ]);
 
   if (!devis) {
     return NextResponse.json({ erreur: "Devis introuvable" }, { status: 404 });
   }
-
-  const { data: lignes } = await supabase
-    .from("lignes_devis")
-    .select("*")
-    .eq("devis_id", params.id)
-    .order("ordre", { ascending: true });
 
   const { data: profil } = await supabase
     .from("artisans")

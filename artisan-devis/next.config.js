@@ -8,6 +8,13 @@ const nextConfig = {
     config.resolve.alias.canvas = false;
     return config;
   },
+  // Polices et renard du PDF lus sur le disque par lib/devisPdf.tsx : on les
+  // embarque explicitement dans les fonctions serveur qui fabriquent des PDF.
+  experimental: {
+    outputFileTracingIncludes: {
+      "/api/**/*": ["./lib/polices/**/*", "./public/fox-icon.png"],
+    },
+  },
 };
 
 module.exports = nextConfig;
