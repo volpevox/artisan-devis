@@ -12,6 +12,7 @@ export default function MesFactures() {
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string>("");
   const [messages, setMessages] = useState<Record<string, string>>({});
+  const [voirArchives, setVoirArchives] = useState(false);
 
   async function charger() {
     const { data } = await supabase
@@ -82,7 +83,13 @@ export default function MesFactures() {
   async function annulerPaiement(id: string) {
     setEnCours(id);
 
-    const { error } = await supabase.from("devis").update({ payee_le: null, moyen_paiement: null }).eq("id", id);
+    // Une facture archivee redevenue impayee revient dans la liste principale,
+    // pour ne pas oublier de l'encaisser.
+    const facture = factures.find((d) => d.id === id);
+    const changements: Record<string, null> = { payee_le: null, moyen_paiement: null };
+    if (facture?.archivee_le && !facture.avoir_numero) changements.archivee_le = null;
+
+    const { error } = await supabase.from("devis").update(changements).eq("id", id);
 
     setEnCours("");
 
@@ -91,8 +98,24 @@ export default function MesFactures() {
       return;
     }
 
-    setFactures((liste) => liste.map((d) => (d.id === id ? { ...d, payee_le: null, moyen_paiement: null } : d)));
+    setFactures((liste) => liste.map((d) => (d.id === id ? { ...d, ...changements } : d)));
     setMessages((m) => ({ ...m, [id]: "" }));
+  }
+
+  async function archiver(id: string, archiver: boolean) {
+    setEnCours(id);
+    const archiveeLe = archiver ? new Date().toISOString() : null;
+
+    const { error } = await supabase.from("devis").update({ archivee_le: archiveeLe }).eq("id", id);
+
+    setEnCours("");
+
+    if (error) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + error.message }));
+      return;
+    }
+
+    setFactures((liste) => liste.map((d) => (d.id === id ? { ...d, archivee_le: archiveeLe } : d)));
   }
 
   async function annulerParAvoir(id: string) {
@@ -157,13 +180,25 @@ export default function MesFactures() {
   );
   const moisCourt = maintenant.toLocaleDateString("fr-FR", { month: "short" });
 
+  // Archives : simple rangement, les totaux ci-dessus comptent toutes les
+  // factures (archivees comprises).
+  const archivees = factures.filter((d) => d.archivee_le);
+  const enCoursListe = factures.filter((d) => !d.archivee_le);
+  const affichees = voirArchives ? archivees : enCoursListe;
+
   return (
     <main className="page-shell page-shell--large">
       <Topbar />
 
-      <h1 className="page-title">Factures</h1>
+      <h1 className="page-title">{voirArchives ? "Factures archivées" : "Factures"}</h1>
 
-      {actives.length > 0 && (
+      {voirArchives && (
+        <button type="button" className="lien-archives" onClick={() => setVoirArchives(false)}>
+          ← Retour aux factures
+        </button>
+      )}
+
+      {!voirArchives && actives.length > 0 && (
         <div className="resume-docs">
           <div>
             <small>À encaisser</small>
@@ -180,8 +215,11 @@ export default function MesFactures() {
       {!chargementSession && !chargement && factures.length === 0 && (
         <p className="message">Aucune facture pour l'instant.</p>
       )}
+      {!chargementSession && !chargement && factures.length > 0 && affichees.length === 0 && (
+        <p className="message">{voirArchives ? "Aucune facture archivée." : "Aucune facture en cours : tout est rangé."}</p>
+      )}
 
-      {factures.map((d) => (
+      {affichees.map((d) => (
         <CarteDocument
           key={d.id}
           d={d}
@@ -193,8 +231,15 @@ export default function MesFactures() {
           onAnnulerPaiement={annulerPaiement}
           onSupprimer={supprimer}
           onAnnulerParAvoir={annulerParAvoir}
+          onArchiver={archiver}
         />
       ))}
+
+      {!voirArchives && archivees.length > 0 && (
+        <button type="button" className="lien-archives" onClick={() => setVoirArchives(true)}>
+          🗄 Voir les archives ({archivees.length})
+        </button>
+      )}
     </main>
   );
 }

@@ -13,6 +13,7 @@ interface CarteDocumentProps {
   onAnnulerPaiement?: (id: string) => void;
   onSupprimer?: (id: string) => void;
   onAnnulerParAvoir?: (id: string) => void;
+  onArchiver?: (id: string, archiver: boolean) => void;
 }
 
 const MOYENS_PAIEMENT = ["Carte bancaire", "Virement bancaire", "Chèque", "Espèces"];
@@ -39,6 +40,7 @@ export function CarteDocument({
   onAnnulerPaiement,
   onSupprimer,
   onAnnulerParAvoir,
+  onArchiver,
 }: CarteDocumentProps) {
   const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
   const [lienCopie, setLienCopie] = useState(false);
@@ -163,6 +165,15 @@ export function CarteDocument({
   }
   if (payee && !annulee && onAnnulerPaiement) {
     elementsMenu.push({ texte: "↺ Annuler le paiement", action: () => onAnnulerPaiement(d.id) });
+  }
+  // Archivage (rangement) : seulement une facture terminee, reglee ou
+  // annulee -- une facture impayee archivee risquerait d'etre oubliee.
+  if (estFacture && onArchiver) {
+    if (d.archivee_le) {
+      elementsMenu.push({ texte: "↩ Désarchiver", action: () => onArchiver(d.id, false) });
+    } else if (payee || annulee) {
+      elementsMenu.push({ texte: "🗄 Archiver", action: () => onArchiver(d.id, true) });
+    }
   }
   if (factureEnvoyee && !annulee && onAnnulerParAvoir) {
     elementsMenu.push({ texte: "⊘ Annuler par un avoir", action: () => setConfirmation("avoir"), rouge: true });

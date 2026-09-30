@@ -3007,6 +3007,28 @@ body:has(.splash-screen) .bottom-nav {
   gap: 8px;
 }
 
+/* Lien discret vers / depuis les factures archivees */
+.lien-archives {
+  display: block;
+  margin: 18px auto 8px;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+h1 + .lien-archives {
+  margin: -6px 0 14px;
+  padding: 4px 0;
+  text-align: left;
+}
+
 /* Resume chiffre en haut des pages Devis / Factures */
 .resume-docs {
   display: flex;
