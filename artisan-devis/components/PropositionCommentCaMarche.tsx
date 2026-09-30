@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import { AideEcranAccueil, estSurEcranAccueil } from "./AideEcranAccueil";
 
 // Affichee juste apres une inscription reussie. Deux variantes selon le
@@ -14,6 +15,11 @@ import { AideEcranAccueil, estSurEcranAccueil } from "./AideEcranAccueil";
 // Deroulement : etape "bienvenue" (resume du parcours) puis, si l'appli
 // tourne dans un onglet navigateur (pas deja installee), etape
 // "ecran-accueil" (comment ajouter VolpeVox a l'ecran d'accueil).
+
+// Video tuto (a venir) : mettre ici son adresse (ex. "/tuto.mp4" dans
+// public/) pour l'afficher sur l'ecran de bienvenue. Vide = pas de video.
+const VIDEO_TUTO_URL = "";
+
 export function PropositionCommentCaMarche() {
   const [variante, setVariante] = useState<"abonne" | "gratuit" | null>(null);
   const [etape, setEtape] = useState<"bienvenue" | "ecran-accueil">("bienvenue");
@@ -68,54 +74,49 @@ export function PropositionCommentCaMarche() {
               </button>
             </div>
           </>
-        ) : gratuit ? (
-          <>
-            <span className="notif-propose-cadeau">🎁 Offert par VolpeVox</span>
-            <p className="notif-propose-titre">Ton accès est gratuit 🎉</p>
-            <p className="notif-propose-texte">
-              VolpeVox est gratuit pendant le lancement : accès complet, sans engagement, aucune carte bancaire
-              demandée. Tu dictes ta prestation, l&apos;IA remplit le devis, ton client signe sur son téléphone, tu
-              passes en facture et il paie en ligne, avec des relances automatiques à chaque étape. Commence par
-              compléter ton profil ci-dessous : ces infos apparaissent sur tous tes documents.
-            </p>
-            <div className="notif-propose-actions">
-              <Link href="/parametres/comment-ca-marche" className="btn btn-primary">
-                Voir le guide complet
-              </Link>
-              <button type="button" className="btn btn-outline" onClick={continuer}>
-                Compris, je commence
-              </button>
-            </div>
-          </>
         ) : (
-          <>
-            <svg className="notif-propose-icone" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
-              <path
-                d="M9.5 9.3a2.5 2.5 0 1 1 3.3 2.4c-.7.3-1.3.9-1.3 1.8v.3"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="12" cy="16.8" r="1" fill="currentColor" />
-            </svg>
-            <p className="notif-propose-titre">Bienvenue chez VolpeVox 🎉</p>
-            <p className="notif-propose-texte">
-              Ton abonnement est actif. En résumé : tu dictes ta prestation, l&apos;IA remplit le devis, ton client
-              signe sur son téléphone, tu passes en facture et il paie en ligne — avec des relances automatiques à
-              chaque étape. Commence par compléter ton profil ci-dessous : ces infos apparaissent sur tous tes
-              documents.
-            </p>
-            <div className="notif-propose-actions">
-              <Link href="/parametres/comment-ca-marche" className="btn btn-primary">
-                Voir le guide complet
-              </Link>
-              <button type="button" className="btn btn-outline" onClick={continuer}>
-                Compris, je commence
-              </button>
-            </div>
-          </>
+          <div className="bienvenue">
+            <Image src="/fox-icon.png" alt="" width={64} height={64} className="bienvenue-logo" />
+            <p className="bienvenue-titre">Bienvenue sur VolpeVox</p>
+            <span className="bienvenue-badge">
+              {gratuit ? "Gratuit · sans carte bancaire" : "Ton abonnement est actif"}
+            </span>
+
+            {VIDEO_TUTO_URL ? (
+              <video className="bienvenue-video" src={VIDEO_TUTO_URL} controls playsInline preload="metadata" />
+            ) : null}
+
+            <ol className="bienvenue-etapes">
+              <li>
+                <span>1</span>
+                <div>
+                  <strong>Ton profil</strong>
+                  <small>Tes infos pour l&apos;en-tête de tes devis. Une seule fois.</small>
+                </div>
+              </li>
+              <li>
+                <span>2</span>
+                <div>
+                  <strong>Tu dictes ton chantier</strong>
+                  <small>L&apos;IA remplit le devis : client, lignes, prix.</small>
+                </div>
+              </li>
+              <li>
+                <span>3</span>
+                <div>
+                  <strong>Ton client signe</strong>
+                  <small>Sur son téléphone. Puis facture et paiement en 1 clic.</small>
+                </div>
+              </li>
+            </ol>
+
+            <button type="button" className="btn btn-primary bienvenue-bouton" onClick={continuer}>
+              Je remplis mon profil →
+            </button>
+            <Link href="/parametres/comment-ca-marche" className="bienvenue-lien">
+              Voir comment ça marche en détail
+            </Link>
+          </div>
         )}
       </div>
     </div>,

@@ -1410,6 +1410,110 @@ body:has(.splash-screen) .bottom-nav {
   width: 100%;
 }
 
+/* Ecran de bienvenue apres inscription (PropositionCommentCaMarche) */
+.bienvenue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.bienvenue-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+
+.bienvenue-titre {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+
+.bienvenue-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(62, 213, 152, 0.12);
+  border: 1px solid rgba(62, 213, 152, 0.55);
+  color: #3ed598;
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.bienvenue-video {
+  width: 100%;
+  border-radius: 14px;
+  background: #000;
+  margin-bottom: 18px;
+}
+
+.bienvenue-etapes {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.bienvenue-etapes li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(221, 167, 66, 0.06);
+  border: 1px solid rgba(221, 167, 66, 0.22);
+}
+
+.bienvenue-etapes li > span {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: #0d1b2a;
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.bienvenue-etapes strong {
+  display: block;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.bienvenue-etapes small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.bienvenue-bouton {
+  width: 100%;
+}
+
+.bienvenue-lien {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .abo-essai-termine {
   display: flex;
   gap: 12px;
