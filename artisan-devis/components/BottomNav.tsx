@@ -47,7 +47,18 @@ export function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      <Link href="/" className={`bottom-nav-item${pathname === "/" ? " active" : ""}`}>
+      <Link
+        href="/"
+        className={`bottom-nav-item${pathname === "/" ? " active" : ""}`}
+        onClick={(e) => {
+          // Depuis la modification d'un devis (/?modifier=ID), la page reste
+          // montee : on recharge pour repartir d'un devis vierge.
+          if (window.location.search.includes("modifier=")) {
+            e.preventDefault();
+            window.location.href = "/";
+          }
+        }}
+      >
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>

@@ -130,6 +130,9 @@ export default function Home() {
   const [devisId, setDevisId] = useState("");
   // Enregistrement / envoi en cours : boutons bloques (pas de double envoi).
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
+  // Devis existant ouvert via « Modifier » (/?modifier=ID) : numero garde,
+  // statut d'origine (brouillon / envoye). null = nouveau document.
+  const [modification, setModification] = useState<{ numero: number | null; statut: string } | null>(null);
   const [lienSignature, setLienSignature] = useState("");
   const [envoiConfirme, setEnvoiConfirme] = useState<{ email: string; nom: string } | null>(null);
   // Ecran d'accueil anime (logo + slogan) : uniquement en mode "app
@@ -582,6 +585,70 @@ export default function Home() {
     setEnvoiEnCours(false);
   }
 
+  // Met la base a jour avec le formulaire (client + lignes) pour un document
+  // deja enregistre. Refuse si le devis a ete signe entre-temps.
+  async function synchroniser(id: string): Promise<boolean> {
+    const estFacture = typeDocument === "facture";
+    if (!estFacture) {
+      const { data: actuel } = await supabase.from("devis").select("statut").eq("id", id).maybeSingle();
+      if (actuel?.statut === "signe") {
+        setMessage("Ce devis vient d'être signé par ton client : il ne peut plus être modifié.");
+        return false;
+      }
+    }
+    const { error: erreurDevis } = await supabase
+      .from("devis")
+      .update({
+        client_nom: nomClientAffiche,
+        client_email: clientEmail.trim(),
+        client_telephone: clientTelephone.trim() || null,
+        ...(sirenClient ? { client_siren: sirenClient } : {}),
+        client_adresse: clientAdresse,
+        total,
+        ...(estFacture ? { date_prestation: datePrestation || null, moyen_paiement: modePaiement } : {}),
+      })
+      .eq("id", id);
+    if (erreurDevis) {
+      setMessage("Erreur : " + erreurDevis.message);
+      return false;
+    }
+    await supabase.from("lignes_devis").delete().eq("devis_id", id);
+    const { error: erreurLignes } = await supabase.from("lignes_devis").insert(
+      lignes.map((l, index) => ({
+        devis_id: id,
+        ordre: index,
+        description: l.description,
+        quantite: enNombre(l.quantite),
+        unite: l.unite,
+        prix_unitaire: enNombre(l.prixUnitaire),
+        total_ligne: (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0),
+      }))
+    );
+    if (erreurLignes) {
+      setMessage("Erreur : " + erreurLignes.message);
+      return false;
+    }
+    return true;
+  }
+
+  // Lien « Enregistrer les modifications » (document deja enregistre).
+  async function enregistrerModifications() {
+    if (envoiEnCours) return;
+    setEnvoiEnCours(true);
+    setMessage("Enregistrement...");
+    const ok = await synchroniser(devisId);
+    setEnvoiEnCours(false);
+    if (ok) {
+      setMessage(
+        typeDocument === "facture"
+          ? "Modifications enregistrées dans Mes factures."
+          : modification?.statut === "envoye"
+            ? "Modifications enregistrées. Pense à renvoyer le devis à ton client."
+            : "Modifications enregistrées dans Mes devis."
+      );
+    }
+  }
+
   async function envoyerAuClient(id: string, dejaEnregistre: boolean) {
     const estFacture = typeDocument === "facture";
     setMessage(estFacture ? "Envoi de la facture en cours..." : "Envoi de l'email en cours...");
@@ -596,31 +663,7 @@ export default function Home() {
     // soit bien prise en compte. On le fait aussi pour un devis : un devis
     // « enregistre sans envoyer » puis modifie doit etre a jour dans Mes devis.
     if (estFacture || dejaEnregistre) {
-      await supabase
-        .from("devis")
-        .update({
-          client_nom: nomClientAffiche,
-          client_email: clientEmail.trim(),
-          client_telephone: clientTelephone.trim() || null,
-          ...(sirenClient ? { client_siren: sirenClient } : {}),
-          client_adresse: clientAdresse,
-          total,
-          ...(estFacture ? { date_prestation: datePrestation || null, moyen_paiement: modePaiement } : {}),
-        })
-        .eq("id", id);
-
-      await supabase.from("lignes_devis").delete().eq("devis_id", id);
-      await supabase.from("lignes_devis").insert(
-        lignes.map((l, index) => ({
-          devis_id: id,
-          ordre: index,
-          description: l.description,
-          quantite: enNombre(l.quantite),
-          unite: l.unite,
-          prix_unitaire: enNombre(l.prixUnitaire),
-          total_ligne: (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0),
-        }))
-      );
+      if (!(await synchroniser(id))) return;
     }
 
     const res = estFacture
@@ -671,8 +714,67 @@ export default function Home() {
     setMessage("");
   }
 
+  // « Modifier » depuis Mes devis : charge le devis dans le resume. Un devis
+  // signe n'est pas modifiable (le client a signe cette version-la).
+  useEffect(() => {
+    if (!artisanId) return;
+    const id = new URLSearchParams(window.location.search).get("modifier");
+    if (!id) return;
+    (async () => {
+      const { data: d } = await supabase.from("devis").select("*").eq("id", id).maybeSingle();
+      if (!d || d.est_facture || d.statut === "signe") {
+        window.history.replaceState(null, "", "/");
+        setMessage(
+          d?.statut === "signe"
+            ? "Ce devis est signé : il ne peut plus être modifié. Fais un nouveau devis si besoin."
+            : "Devis introuvable."
+        );
+        return;
+      }
+      const { data: lignesBase } = await supabase
+        .from("lignes_devis")
+        .select("*")
+        .eq("devis_id", id)
+        .order("ordre", { ascending: true });
+      const enTexte = (n: number | null) => (n === null || n === undefined ? "" : String(n).replace(".", ","));
+
+      setTypeDocument("devis");
+      // Un seul champ client_nom en base : entreprise si un SIREN est connu,
+      // sinon on le remet tel quel dans « Nom du client ».
+      setClientPrenom("");
+      setClientRaisonSociale(d.client_siren ? d.client_nom || "" : "");
+      setClientNom(d.client_siren ? "" : d.client_nom || "");
+      setClientEmail(d.client_email || "");
+      setClientTelephone(d.client_telephone || "");
+      setClientSiren(d.client_siren || "");
+      setClientAdresse(d.client_adresse || "");
+      setLignes(
+        lignesBase && lignesBase.length > 0
+          ? lignesBase.map((l: any) => ({
+              description: l.description || "",
+              prestation: "",
+              quantite: enTexte(l.quantite) || "1",
+              unite: l.unite || "forfait",
+              prixUnitaire: enTexte(l.prix_unitaire),
+              prixPropose: false,
+            }))
+          : [ligneVide()]
+      );
+      setDevisId(d.id);
+      setDevisEnregistre(true);
+      setModification({ numero: d.numero_devis ?? null, statut: d.statut });
+      setEnvoiConfirme(null);
+      setLienSignature("");
+      setMessage("");
+      setVueResume(true);
+      setEtape("form");
+    })();
+  }, [artisanId]);
+
   // Remet la dictee a zero pour un nouveau document.
   function nouveauDocument() {
+    setModification(null);
+    if (window.location.search.includes("modifier=")) window.history.replaceState(null, "", "/");
     setEnvoiConfirme(null);
     setLienSignature("");
     setMessage("");
@@ -853,7 +955,13 @@ export default function Home() {
     <main className="page-shell">
       <Topbar forcerRetour onRetour={() => (envoiConfirme ? nouveauDocument() : setEtape("voice"))} />
 
-      <h1 className="page-title">{typeDocument === "facture" ? "Nouvelle facture" : "Nouveau devis"}</h1>
+      <h1 className="page-title">
+        {modification
+          ? `Modifier le devis${modification.numero ? ` n°${modification.numero}` : ""}`
+          : typeDocument === "facture"
+            ? "Nouvelle facture"
+            : "Nouveau devis"}
+      </h1>
 
       {!devisEnregistre && toggleTypeDocument}
 
@@ -1402,9 +1510,17 @@ export default function Home() {
         ) : (
           <>
             <button className="btn btn-primary btn-bloc" onClick={envoyerDirect} disabled={envoiEnCours}>
-              {envoiEnCours ? "Envoi en cours..." : "✉ Envoyer au client"}
+              {envoiEnCours
+                ? "Envoi en cours..."
+                : modification?.statut === "envoye"
+                  ? "✉ Renvoyer au client"
+                  : "✉ Envoyer au client"}
             </button>
-            {!devisEnregistre && (
+            {devisEnregistre ? (
+              <button type="button" className="lien-sans-envoyer" onClick={enregistrerModifications} disabled={envoiEnCours}>
+                Enregistrer les modifications
+              </button>
+            ) : (
               <button type="button" className="lien-sans-envoyer" onClick={enregistrerSansEnvoyer} disabled={envoiEnCours}>
                 Enregistrer sans envoyer
               </button>

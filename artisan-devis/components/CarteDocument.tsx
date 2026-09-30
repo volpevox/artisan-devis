@@ -159,6 +159,11 @@ export function CarteDocument({
   if (!principale.lien || annulee) {
     elementsMenu.push({ texte: `📄 Voir ${estFacture ? "la facture" : "le devis"} (PDF)`, lien: lienPdf });
   }
+  // Modifier : devis brouillon ou envoye seulement. Un devis signe engage le
+  // client sur cette version, il ne se modifie plus (nouveau devis si besoin).
+  if (!estFacture && d.statut !== "signe") {
+    elementsMenu.push({ texte: "✏ Modifier", lien: `/?modifier=${d.id}` });
+  }
   elementsMenu.push({ texte: lienCopie ? "✓ Lien copié !" : "↗ Partager", action: partager });
   if (estFacture && !annulee && factureEnvoyee && d.client_email && onEnvoyerFacture) {
     elementsMenu.push({ texte: "✉ Renvoyer par email", action: () => onEnvoyerFacture(d.id) });
