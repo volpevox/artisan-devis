@@ -123,6 +123,9 @@ export default function Home() {
   const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
   const [message, setMessage] = useState("");
   const [enregistrement, setEnregistrement] = useState(false);
+  // Entre l appui sur le micro et le moment ou le telephone l ouvre vraiment
+  // (souvent 0,5 a 1 s sur iPhone) : le bouton reagit tout de suite.
+  const [micPreparation, setMicPreparation] = useState(false);
   const [devisEnregistre, setDevisEnregistre] = useState(false);
   const [devisId, setDevisId] = useState("");
   const [lienSignature, setLienSignature] = useState("");
@@ -212,8 +215,19 @@ export default function Home() {
   }
 
   async function demarrerMicro() {
+    // Double appui pendant l ouverture du micro : on ignore.
+    if (micPreparation || enregistrement) return;
+    setMicPreparation(true);
+    setMessage("");
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setMicPreparation(false);
+      setMessage("Micro inaccessible. Autorise le micro pour VolpeVox dans les réglages de ton téléphone, puis réessaie.");
+      return;
+    }
     streamRef.current = stream;
 
     const recorder = new MediaRecorder(stream);
@@ -347,6 +361,7 @@ export default function Home() {
 
     recorder.start();
     debutEnregistrementRef.current = Date.now();
+    setMicPreparation(false);
     setEnregistrement(true);
   }
 
@@ -734,15 +749,17 @@ export default function Home() {
           <div className="voice-middle">
             <div className="mic-wrap mic-wrap--hero">
               <span className="mic-label">
-                {enregistrement
-                  ? "Je vous écoute, appuyez pour arrêter"
+                {micPreparation
+                  ? "Prépare-toi…"
+                  : enregistrement
+                  ? "Je t'écoute, appuie pour arrêter"
                   : typeDocument === "facture"
-                    ? "Appuyez et dictez votre facture"
-                    : "Appuyez et dictez votre devis"}
+                    ? "Appuie et dicte ta facture"
+                    : "Appuie et dicte ton devis"}
               </span>
 
               <button
-                className={`mic-button mic-button--hero${enregistrement ? " recording" : ""}`}
+                className={`mic-button mic-button--hero${enregistrement ? " recording" : micPreparation ? " preparation" : ""}`}
                 onClick={enregistrement ? arreterMicro : demarrerMicro}
                 aria-label={enregistrement ? "Arrêter la dictée" : "Dicter la prestation"}
               >
@@ -759,7 +776,7 @@ export default function Home() {
             {message ? (
               <p className="message">{message}</p>
             ) : (
-              !enregistrement && (
+              !enregistrement && !micPreparation && (
                 <div className="dictee-guide">
                   <div className="dictee-guide-bulles">
                     <span>👤 Pour qui</span>
@@ -816,7 +833,7 @@ export default function Home() {
 
         <button
           type="button"
-          className={`form-mic-btn${enregistrement ? " recording" : ""}`}
+          className={`form-mic-btn${enregistrement ? " recording" : micPreparation ? " preparation" : ""}`}
           onClick={enregistrement ? arreterMicro : demarrerMicro}
           aria-label={enregistrement ? "Arrêter la dictée" : "Compléter en dictant"}
         >
@@ -830,7 +847,7 @@ export default function Home() {
         </div>
       </div>
       <p className="form-mic-label">
-        {enregistrement ? "Je vous écoute, appuyez pour arrêter" : "Compléter en dictant"}
+        {micPreparation ? "Prépare-toi…" : enregistrement ? "Je t'écoute, appuie pour arrêter" : "Compléter en dictant"}
       </p>
 
       {vueResume ? (

@@ -2751,6 +2751,15 @@ body:has(.splash-screen) .bottom-nav {
   animation: mic-breathe 1.4s ease-in-out infinite;
 }
 
+/* Micro en cours d ouverture (avant « Je t ecoute ») : le bouton reagit des
+   l appui, sans attendre le telephone. */
+.mic-button.preparation,
+.form-mic-btn.preparation {
+  transform: scale(0.94);
+  box-shadow: 0 0 18px 1px rgba(212, 175, 55, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
 .form-mic-onde {
   display: flex;
   align-items: center;
