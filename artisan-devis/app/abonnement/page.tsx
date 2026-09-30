@@ -12,7 +12,6 @@ const FONCTIONNALITES = [
   "Signature électronique des devis, directement sur le téléphone du client",
   "Relances automatiques (devis en attente, factures impayées)",
   "Paiement en ligne des factures, sans commission VolpeVox",
-  "Carnet de prix qui apprend de tes devis précédents",
 ];
 
 export default function Abonnement() {
