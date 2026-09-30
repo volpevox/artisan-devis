@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
 
 // Demande la date de la prestation au moment de transformer un devis en
@@ -9,6 +10,29 @@ import { createPortal } from "react-dom";
 //
 // Rendu via un portail dans <body>, comme les autres popups, pour passer
 // au-dessus du menu du bas sur iPhone (voir PropositionCommentCaMarche).
+//
+// Seule popup qui ouvre le clavier (pour changer la date) : sur iPhone, un
+// element en position: fixed colle en bas ne suit pas le clavier, qui vient
+// alors recouvrir le champ et les boutons. On cale donc le fond sur la zone
+// reellement visible (visualViewport), qui se reduit quand le clavier sort.
+
+function useZoneVisible(): CSSProperties | undefined {
+  const [zone, setZone] = useState<CSSProperties>();
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const caler = () =>
+      setZone({ top: vv.offsetTop, height: vv.height, bottom: "auto" });
+    caler();
+    vv.addEventListener("resize", caler);
+    vv.addEventListener("scroll", caler);
+    return () => {
+      vv.removeEventListener("resize", caler);
+      vv.removeEventListener("scroll", caler);
+    };
+  }, []);
+  return zone;
+}
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -51,9 +75,10 @@ interface PopupDatePrestationProps {
 export function PopupDatePrestation({ dateConnue, enCours, onValider, onAnnuler }: PopupDatePrestationProps) {
   const [affichage, setAffichage] = useState(() => dateInitiale(dateConnue));
   const iso = versIso(affichage);
+  const zoneVisible = useZoneVisible();
 
   return createPortal(
-    <div className="notif-propose-fond">
+    <div className="notif-propose-fond" style={zoneVisible}>
       <div className="notif-propose-feuille">
         <p className="notif-propose-titre">Date de la prestation</p>
         <p className="notif-propose-texte">
@@ -68,6 +93,11 @@ export function PopupDatePrestation({ dateConnue, enCours, onValider, onAnnuler 
             placeholder="JJ/MM/AAAA"
             maxLength={10}
             aria-label="Date de la prestation"
+            onFocus={(e) => {
+              // Laisse le clavier finir de sortir, puis garde le champ visible.
+              const champ = e.currentTarget;
+              setTimeout(() => champ.scrollIntoView({ block: "center" }), 300);
+            }}
             value={affichage}
             onChange={(e) => setAffichage(versAffichage(e.target.value.replace(/\D/g, "").slice(0, 8)))}
           />
