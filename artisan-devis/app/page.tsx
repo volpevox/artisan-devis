@@ -128,6 +128,8 @@ export default function Home() {
   const [micPreparation, setMicPreparation] = useState(false);
   const [devisEnregistre, setDevisEnregistre] = useState(false);
   const [devisId, setDevisId] = useState("");
+  // Enregistrement / envoi en cours : boutons bloques (pas de double envoi).
+  const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [lienSignature, setLienSignature] = useState("");
   const [envoiConfirme, setEnvoiConfirme] = useState<{ email: string; nom: string } | null>(null);
   // Ecran d'accueil anime (logo + slogan) : uniquement en mode "app
@@ -352,8 +354,8 @@ export default function Home() {
       const nomDocument = typeDocument === "facture" ? "Facture" : "Devis";
       setMessage(
         (auMoinsUnPrixPropose
-          ? `${nomDocument} rempli automatiquement. Certains prix sont repris de ton carnet de tarifs, vérifie avant d'enregistrer.`
-          : `${nomDocument} rempli automatiquement, vérifie avant d'enregistrer.`) +
+          ? `${nomDocument} rempli automatiquement. Certains prix sont repris de ton carnet de tarifs, vérifie avant d'envoyer.`
+          : `${nomDocument} rempli automatiquement, vérifie avant d'envoyer.`) +
           (clientConnu ? " Client déjà connu : ses coordonnées ont été reprises." : "")
       );
       setEtape("form");
@@ -467,11 +469,13 @@ export default function Home() {
     }
   }
 
-  async function envoyer() {
+  // Cree le document en base (numero + lignes). Renvoie son id, ou null en
+  // cas d erreur (message deja affiche).
+  async function enregistrer(): Promise<string | null> {
     const estFacture = typeDocument === "facture";
     if (sirenSaisi === "invalide") {
       setMessage("Le SIREN du client doit contenir 9 chiffres (ou le SIRET, 14 chiffres).");
-      return;
+      return null;
     }
     setMessage("Enregistrement...");
     setLienSignature("");
@@ -483,7 +487,7 @@ export default function Home() {
 
     if (erreurNumero) {
       setMessage("Erreur de numérotation : " + erreurNumero.message);
-      return;
+      return null;
     }
 
     // Une facture dictee directement (sans devis ni signature prealable, pour
@@ -518,7 +522,7 @@ export default function Home() {
 
     if (erreurDevis) {
       setMessage("Erreur : " + erreurDevis.message);
-      return;
+      return null;
     }
 
     const { error: erreurLignes } = await supabase.from("lignes_devis").insert(
@@ -535,7 +539,7 @@ export default function Home() {
 
     if (erreurLignes) {
       setMessage("Erreur : " + erreurLignes.message);
-      return;
+      return null;
     }
 
     for (const l of lignes) {
@@ -543,13 +547,42 @@ export default function Home() {
     }
 
     setDevisId(devis.id);
-    setMessage(
-      estFacture ? "Facture enregistrée ! Tu peux maintenant l'envoyer au client." : "Devis enregistré ! Tu peux maintenant l'envoyer au client."
-    );
     setDevisEnregistre(true);
+    return devis.id as string;
   }
 
-  async function envoyerAuClient() {
+  // « Enregistrer sans envoyer » : range le document dans Mes devis / Mes
+  // factures, a envoyer plus tard.
+  async function enregistrerSansEnvoyer() {
+    if (envoiEnCours) return;
+    setEnvoiEnCours(true);
+    const id = await enregistrer();
+    setEnvoiEnCours(false);
+    if (!id) return;
+    setMessage(
+      typeDocument === "facture"
+        ? "Facture enregistrée dans Mes factures. Tu pourras l'envoyer plus tard."
+        : "Devis enregistré dans Mes devis. Tu pourras l'envoyer plus tard."
+    );
+  }
+
+  // Bouton principal : enregistre (si ce n est pas deja fait) puis envoie,
+  // en un seul appui.
+  async function envoyerDirect() {
+    if (envoiEnCours) return;
+    const email = clientEmail.trim();
+    if (!email || !email.includes("@")) {
+      setMessage("Ajoute l'email du client pour lui envoyer. Sinon, utilise « Enregistrer sans envoyer ».");
+      return;
+    }
+    setEnvoiEnCours(true);
+    const dejaEnregistre = devisEnregistre;
+    const id = dejaEnregistre ? devisId : await enregistrer();
+    if (id) await envoyerAuClient(id, dejaEnregistre);
+    setEnvoiEnCours(false);
+  }
+
+  async function envoyerAuClient(id: string, dejaEnregistre: boolean) {
     const estFacture = typeDocument === "facture";
     setMessage(estFacture ? "Envoi de la facture en cours..." : "Envoi de l'email en cours...");
 
@@ -560,8 +593,9 @@ export default function Home() {
     // les infos client et les lignes directement dans son corps. On
     // resynchronise donc d'abord la base avec l'etat courant du formulaire,
     // pour qu'une modification faite juste avant l'envoi (ex: email corrige)
-    // soit bien prise en compte.
-    if (estFacture) {
+    // soit bien prise en compte. On le fait aussi pour un devis : un devis
+    // « enregistre sans envoyer » puis modifie doit etre a jour dans Mes devis.
+    if (estFacture || dejaEnregistre) {
       await supabase
         .from("devis")
         .update({
@@ -571,15 +605,14 @@ export default function Home() {
           ...(sirenClient ? { client_siren: sirenClient } : {}),
           client_adresse: clientAdresse,
           total,
-          date_prestation: datePrestation || null,
-          moyen_paiement: modePaiement,
+          ...(estFacture ? { date_prestation: datePrestation || null, moyen_paiement: modePaiement } : {}),
         })
-        .eq("id", devisId);
+        .eq("id", id);
 
-      await supabase.from("lignes_devis").delete().eq("devis_id", devisId);
+      await supabase.from("lignes_devis").delete().eq("devis_id", id);
       await supabase.from("lignes_devis").insert(
         lignes.map((l, index) => ({
-          devis_id: devisId,
+          devis_id: id,
           ordre: index,
           description: l.description,
           quantite: enNombre(l.quantite),
@@ -591,7 +624,7 @@ export default function Home() {
     }
 
     const res = estFacture
-      ? await fetch(`/api/facture/${devisId}`, {
+      ? await fetch(`/api/facture/${id}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${session?.access_token}` },
         })
@@ -614,7 +647,7 @@ export default function Home() {
               prixUnitaire: enNombre(l.prixUnitaire),
             })),
             prix: total,
-            devisId,
+            devisId: id,
           }),
         });
     const data = await res.json();
@@ -628,12 +661,12 @@ export default function Home() {
       await supabase
         .from("devis")
         .update({ statut: "envoye", envoye_le: new Date().toISOString() })
-        .eq("id", devisId);
+        .eq("id", id);
     }
 
     // On reste sur le document envoye, avec une confirmation claire (plutot
     // que de revenir d'un coup sur le micro) ; « Nouveau devis » repart a zero.
-    setLienSignature(`${window.location.origin}/signer/${devisId}`);
+    setLienSignature(`${window.location.origin}/signer/${id}`);
     setEnvoiConfirme({ email: clientEmail.trim(), nom: nomClientAffiche });
     setMessage("");
   }
@@ -1366,14 +1399,17 @@ export default function Home() {
               </button>
             </div>
           </div>
-        ) : !devisEnregistre ? (
-          <button className="btn btn-primary btn-bloc" onClick={envoyer}>
-            {typeDocument === "facture" ? "Enregistrer la facture" : "Enregistrer le devis"}
-          </button>
         ) : (
-          <button className="btn btn-success btn-bloc" onClick={envoyerAuClient}>
-            Envoyer au client
-          </button>
+          <>
+            <button className="btn btn-primary btn-bloc" onClick={envoyerDirect} disabled={envoiEnCours}>
+              {envoiEnCours ? "Envoi en cours..." : "✉ Envoyer au client"}
+            </button>
+            {!devisEnregistre && (
+              <button type="button" className="lien-sans-envoyer" onClick={enregistrerSansEnvoyer} disabled={envoiEnCours}>
+                Enregistrer sans envoyer
+              </button>
+            )}
+          </>
         )}
 
         {message && <p className="message">{message}</p>}

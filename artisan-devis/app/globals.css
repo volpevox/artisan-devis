@@ -2751,6 +2751,25 @@ body:has(.splash-screen) .bottom-nav {
   animation: mic-breathe 1.4s ease-in-out infinite;
 }
 
+/* Lien discret sous « Envoyer au client » (enregistrer sans envoyer). */
+.lien-sans-envoyer {
+  display: block;
+  margin: 10px auto 0;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.lien-sans-envoyer:disabled {
+  opacity: 0.5;
+}
+
 /* Micro en cours d ouverture (avant « Je t ecoute ») : le bouton reagit des
    l appui, sans attendre le telephone. */
 .mic-button.preparation,
