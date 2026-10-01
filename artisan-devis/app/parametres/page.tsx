@@ -655,7 +655,7 @@ export default function Parametres() {
               </svg>
             </span>
             <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Recommander VolpeVox à un collègue</span>
+              <span className="reglages-item-titre">Recommander VolpeVox</span>
               <span className="reglages-item-sous">
                 {lienRecoCopie ? "✓ Message copié, colle-le où tu veux" : "Envoie-lui le lien par WhatsApp ou SMS"}
               </span>
