@@ -124,7 +124,6 @@ export default function Profil() {
     if (infos.estSociete && infos.formeJuridique && !formeCapital.trim()) {
       setFormeCapital(`${infos.formeJuridique} au capital de `);
     }
-    if (infos.estSociete && infos.ville && !rcsVille.trim()) setRcsVille(infos.ville);
     if (infos.adresse) setAdresse(infos.adresse);
     if (infos.codePostal) setCodePostal(infos.codePostal);
     if (infos.ville) setVille(infos.ville);
@@ -491,7 +490,14 @@ export default function Profil() {
   const okPaiement = Boolean(conditionsPaiement.trim() || iban.trim());
 
   const ETAPES = [
-    { nom: "Identité", fait: okIdentite && okAdresse, conseil: "Complète ton identité et ton adresse." },
+    {
+      nom: "Identité",
+      fait: okIdentite && okAdresse,
+      conseil:
+        estSociete === null
+          ? "Dis-nous si tu travailles à ton nom ou en société (rubrique Identité)."
+          : "Complète ton identité et ton adresse.",
+    },
     { nom: "Légal", fait: okLegal, conseil: "Ajoute ton SIRET et ta TVA." },
     { nom: "Logo", fait: okLogo, conseil: "", facultatif: true },
   ];
