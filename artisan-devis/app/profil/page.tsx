@@ -377,7 +377,7 @@ export default function Profil() {
         </button>
         {message && <p className="message" style={{ textAlign: "center" }}>{message}</p>}
         <p className="hint" style={{ textAlign: "center", margin: "12px 0 24px" }}>
-          Logo, IBAN, assurance… tu pourras les ajouter plus tard dans « Mon compte ».
+          Logo, IBAN… tu pourras les ajouter plus tard dans « Mon compte ».
         </p>
       </main>
     );
@@ -396,11 +396,12 @@ export default function Profil() {
   const ETAPES = [
     { nom: "Identité", fait: okIdentite && okAdresse, conseil: "Complète ton identité et ton adresse." },
     { nom: "Légal", fait: okLegal, conseil: "Ajoute ton SIRET et ta TVA." },
-    { nom: "Mentions", fait: okMentions, conseil: "Ajoute ton assurance : obligatoire dans le bâtiment." },
-    { nom: "Logo", fait: okLogo, conseil: "Ajoute ton logo pour des documents à ton image." },
+    { nom: "Logo", fait: okLogo, conseil: "", facultatif: true },
   ];
-  const prochaine = ETAPES.find((e) => !e.fait);
-  const indexProchaine = prochaine ? ETAPES.indexOf(prochaine) : ETAPES.length;
+  // Le logo est un bonus : sans lui, la carte passe quand meme au vert.
+  const prochaine = ETAPES.find((e) => !e.fait && !e.facultatif);
+  const premiereNonFaite = ETAPES.findIndex((e) => !e.fait);
+  const indexProchaine = premiereNonFaite === -1 ? ETAPES.length : premiereNonFaite;
   const largeurTrait = indexProchaine > 1 ? ((indexProchaine - 1) / (ETAPES.length - 1)) * 76 : 0;
 
   const libelleTva = tauxTva === "0" ? "TVA non applicable" : `TVA ${tauxTva.replace(".", ",")} %`;
@@ -419,6 +420,7 @@ export default function Profil() {
       <PropositionCommentCaMarche />
 
       <h1 className="page-title">Mon compte</h1>
+      <p className="page-sous-titre">Ces informations apparaissent sur tes devis et factures.</p>
 
       {/* Carte de visite : l'en-tete tel que le voient les clients */}
       <div className={`fiche fiche-visite${prochaine ? "" : " fiche--ok"}`}>
@@ -454,6 +456,9 @@ export default function Profil() {
         <p className={`carte-doc-statut ${prochaine ? "or" : "vert"}`} style={{ margin: "4px 0 0" }}>
           {prochaine ? prochaine.conseil : "✓ Tes documents sont complets."}
         </p>
+        {!prochaine && !okLogo ? (
+          <p className="fiche-visite-bonus">Bonus : ajoute ton logo (rubrique Logo) pour des documents à ton image.</p>
+        ) : null}
         <Link href="/exemple-devis" className="carte-doc-secondaire fiche-visite-exemple">
           📄 Voir un exemple de devis
         </Link>
@@ -565,6 +570,63 @@ export default function Profil() {
       </FicheRubrique>
 
       <FicheRubrique
+        etat={okLogo ? "ok" : "neutre"}
+        icone={ICONES.logo}
+        titre="Logo"
+        resume={okLogo ? "Affiché en haut de tes documents" : "Pas de logo : tes initiales s'affichent"}
+      >
+        <div className="champ">
+          <label className="champ-label">
+            Logo de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif, affiché en haut des documents)</span>
+          </label>
+          {logoApercu ? (
+            <div style={{ position: "relative", display: "inline-block", marginTop: 4 }}>
+              <img
+                src={logoApercu}
+                alt="Logo actuel"
+                style={{
+                  maxWidth: 140,
+                  maxHeight: 140,
+                  display: "block",
+                  borderRadius: 10,
+                  border: "1px solid var(--border)",
+                  background: "#fff",
+                  padding: 6,
+                }}
+              />
+              <button
+                type="button"
+                onClick={supprimerLogo}
+                aria-label="Supprimer le logo"
+                style={{
+                  position: "absolute",
+                  top: -8,
+                  right: -8,
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  background: "var(--danger)",
+                  color: "#fff",
+                  border: "2px solid var(--card-bg)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  lineHeight: 1,
+                  padding: 0,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <input type="file" accept="image/*" onChange={choisirLogo} style={{ display: "block", marginTop: 4 }} />
+          )}
+        </div>
+      </FicheRubrique>
+
+      <FicheRubrique
         etat={okPaiement ? "ok" : "neutre"}
         icone={ICONES.paiement}
         titre="Paiement"
@@ -622,136 +684,82 @@ export default function Profil() {
         </div>
       </FicheRubrique>
 
-      <FicheRubrique
-        etat={okMentions ? "ok" : "attente"}
-        icone={ICONES.mentions}
-        titre="Assurance et médiateur"
-        resume={
-          resume(assurancePro ? "Assurance renseignée" : "", mediateurConso ? "médiateur renseigné" : "") ||
-          "Assurance décennale, médiateur"
-        }
-        pastille={okMentions ? undefined : "À ajouter"}
-      >
-        <div className="champ">
-          <label className="champ-label" htmlFor="p-assurance">
-            Assurance professionnelle <span style={{ fontWeight: 400 }}>(affichée sur les documents)</span>
-          </label>
-          <textarea
-            id="p-assurance"
-            className="field"
-            placeholder="Ex : Assurance décennale n° 123456 souscrite auprès de [Assureur], couvrant les chantiers en France métropolitaine."
-            value={assurancePro}
-            onChange={(e) => setAssurancePro(e.target.value)}
-          />
-          <p className="champ-aide">Mention obligatoire sur les devis et factures pour les métiers du bâtiment.</p>
-        </div>
-        <div className="champ">
-          <label className="champ-label" htmlFor="p-mediateur">
-            Médiateur de la consommation <span style={{ fontWeight: 400 }}>(facultatif)</span>
-          </label>
-          <textarea
-            id="p-mediateur"
-            className="field"
-            placeholder="Ex : En cas de litige : [nom du médiateur] — [adresse] — [site web]."
-            value={mediateurConso}
-            onChange={(e) => setMediateurConso(e.target.value)}
-          />
-          <p className="champ-aide">Mention obligatoire si tu vends à des particuliers.</p>
-        </div>
-      </FicheRubrique>
-
-      <FicheRubrique
-        etat="neutre"
-        icone={ICONES.numerotation}
-        titre="Numérotation"
-        resume={`Prochain devis n°${prochainNumeroDevis} · facture n°${prochainNumeroFacture}`}
-        pastille="Auto"
-      >
-        <p className="champ-aide" style={{ margin: "0 0 14px" }}>
-          Numéro à partir duquel VolpeVox continue la numérotation. À ajuster si tu reprends une numérotation déjà
-          commencée ailleurs (ex : mettre 40 si tu as déjà émis 39 factures). Le numéro peut augmenter mais pas
-          diminuer : la numérotation des factures doit rester continue.
-        </p>
-        <div className="champ champ-duo">
-          <div>
-            <label className="champ-label" htmlFor="p-num-devis">Prochain numéro de devis</label>
-            <input
-              id="p-num-devis"
+      {/* Reglages facultatifs, replies par defaut pour garder la page simple. */}
+      <details className="autres-reglages">
+        <summary>Autres réglages (facultatif)</summary>
+        <FicheRubrique
+          etat={okMentions ? "ok" : "neutre"}
+          icone={ICONES.mentions}
+          titre="Assurance et médiateur"
+          resume={
+            resume(assurancePro ? "Assurance renseignée" : "", mediateurConso ? "médiateur renseigné" : "") ||
+            "Assurance décennale, médiateur"
+          }
+        >
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-assurance">
+              Assurance professionnelle <span style={{ fontWeight: 400 }}>(affichée sur les documents)</span>
+            </label>
+            <textarea
+              id="p-assurance"
               className="field"
-              inputMode="numeric"
-              value={prochainNumeroDevis}
-              onChange={(e) => setProchainNumeroDevis(e.target.value.replace(/\D/g, ""))}
+              placeholder="Ex : Assurance décennale n° 123456 souscrite auprès de [Assureur], couvrant les chantiers en France métropolitaine."
+              value={assurancePro}
+              onChange={(e) => setAssurancePro(e.target.value)}
             />
+            <p className="champ-aide">Mention obligatoire sur les devis et factures pour les métiers du bâtiment.</p>
           </div>
-          <div>
-            <label className="champ-label" htmlFor="p-num-facture">Prochain numéro de facture</label>
-            <input
-              id="p-num-facture"
+          <div className="champ">
+            <label className="champ-label" htmlFor="p-mediateur">
+              Médiateur de la consommation <span style={{ fontWeight: 400 }}>(facultatif)</span>
+            </label>
+            <textarea
+              id="p-mediateur"
               className="field"
-              inputMode="numeric"
-              value={prochainNumeroFacture}
-              onChange={(e) => setProchainNumeroFacture(e.target.value.replace(/\D/g, ""))}
+              placeholder="Ex : En cas de litige : [nom du médiateur] — [adresse] — [site web]."
+              value={mediateurConso}
+              onChange={(e) => setMediateurConso(e.target.value)}
             />
+            <p className="champ-aide">Mention obligatoire si tu vends à des particuliers.</p>
           </div>
-        </div>
-      </FicheRubrique>
+        </FicheRubrique>
 
-      <FicheRubrique
-        etat={okLogo ? "ok" : "neutre"}
-        icone={ICONES.logo}
-        titre="Logo"
-        resume={okLogo ? "Affiché en haut de tes documents" : "Pas de logo : tes initiales s'affichent"}
-      >
-        <div className="champ">
-          <label className="champ-label">
-            Logo de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif, affiché en haut des documents)</span>
-          </label>
-          {logoApercu ? (
-            <div style={{ position: "relative", display: "inline-block", marginTop: 4 }}>
-              <img
-                src={logoApercu}
-                alt="Logo actuel"
-                style={{
-                  maxWidth: 140,
-                  maxHeight: 140,
-                  display: "block",
-                  borderRadius: 10,
-                  border: "1px solid var(--border)",
-                  background: "#fff",
-                  padding: 6,
-                }}
+        <FicheRubrique
+          etat="neutre"
+          icone={ICONES.numerotation}
+          titre="Numérotation"
+          resume={`Prochain devis n°${prochainNumeroDevis} · facture n°${prochainNumeroFacture}`}
+          pastille="Auto"
+        >
+          <p className="champ-aide" style={{ margin: "0 0 14px" }}>
+            Numéro à partir duquel VolpeVox continue la numérotation. À ajuster si tu reprends une numérotation déjà
+            commencée ailleurs (ex : mettre 40 si tu as déjà émis 39 factures). Le numéro peut augmenter mais pas
+            diminuer : la numérotation des factures doit rester continue.
+          </p>
+          <div className="champ champ-duo">
+            <div>
+              <label className="champ-label" htmlFor="p-num-devis">Prochain numéro de devis</label>
+              <input
+                id="p-num-devis"
+                className="field"
+                inputMode="numeric"
+                value={prochainNumeroDevis}
+                onChange={(e) => setProchainNumeroDevis(e.target.value.replace(/\D/g, ""))}
               />
-              <button
-                type="button"
-                onClick={supprimerLogo}
-                aria-label="Supprimer le logo"
-                style={{
-                  position: "absolute",
-                  top: -8,
-                  right: -8,
-                  width: 26,
-                  height: 26,
-                  borderRadius: "50%",
-                  background: "var(--danger)",
-                  color: "#fff",
-                  border: "2px solid var(--card-bg)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  lineHeight: 1,
-                  padding: 0,
-                }}
-              >
-                ✕
-              </button>
             </div>
-          ) : (
-            <input type="file" accept="image/*" onChange={choisirLogo} style={{ display: "block", marginTop: 4 }} />
-          )}
-        </div>
-      </FicheRubrique>
+            <div>
+              <label className="champ-label" htmlFor="p-num-facture">Prochain numéro de facture</label>
+              <input
+                id="p-num-facture"
+                className="field"
+                inputMode="numeric"
+                value={prochainNumeroFacture}
+                onChange={(e) => setProchainNumeroFacture(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
+          </div>
+        </FicheRubrique>
+      </details>
 
       <button className="btn btn-primary btn-bloc" onClick={enregistrer}>
         Enregistrer

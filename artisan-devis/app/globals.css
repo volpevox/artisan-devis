@@ -3815,3 +3815,42 @@ h1 + .lien-archives {
   flex: 1;
   text-align: center;
 }
+
+/* Mon compte : rubriques facultatives regroupees et repliees en bas */
+.autres-reglages {
+  margin: 4px 0 18px;
+}
+
+.autres-reglages > summary {
+  list-style: none;
+  cursor: pointer;
+  text-align: center;
+  padding: 10px 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.autres-reglages > summary::-webkit-details-marker {
+  display: none;
+}
+
+.autres-reglages[open] > summary {
+  color: var(--ink);
+}
+
+/* Phrase d'explication sous le titre d'une page (ex : Mon compte) */
+.page-sous-titre {
+  margin: -4px 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Mon compte : suggestion discrete du logo, une fois l'essentiel rempli */
+.fiche-visite-bonus {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
