@@ -334,3 +334,33 @@ export function emailBienvenueHtml({ lienApp, lienVideo, lienWhatsapp }: { lienA
     </div>
   `;
 }
+
+// Sous le bouton "Payer en ligne" d'une facture (mail et relance) : les
+// autres moyens. IBAN ecrit dans le mail avec la reference, cheque ou
+// especes en repondant. Sans paiement en ligne, c'est le bloc principal.
+export function blocAutresMoyens({
+  enLigne,
+  iban: ibanBrut,
+  numero,
+}: {
+  enLigne: boolean;
+  iban?: string | null;
+  numero?: string | number | null;
+}) {
+  const iban = String(ibanBrut || "")
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .replace(/(.{4})/g, "$1 ")
+    .trim();
+  return `<div style="margin-top:${enLigne ? "22px" : "4px"};font-size:14px;line-height:1.6;">
+      <div style="font-weight:700;margin-bottom:6px;">${enLigne ? "Vous préférez un autre moyen ?" : "Pour régler cette facture :"}</div>
+      ${
+        iban
+          ? `<div style="margin-bottom:6px;"><strong>Virement</strong><br>
+               IBAN : <span style="font-family:Consolas,Menlo,monospace;white-space:nowrap;">${echapperHtml(iban)}</span><br>
+               <span style="color:#6b7686;font-size:13px;">Référence : ${numero ? `Facture n°${numero}` : "votre nom"}</span></div>`
+          : ""
+      }
+      <div><strong>Chèque ou espèces</strong> : répondez simplement à ce mail pour convenir du règlement.</div>
+    </div>`;
+}

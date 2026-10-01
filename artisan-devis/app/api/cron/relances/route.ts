@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
-import { emailHtml, logoInline } from "@/lib/emailTemplate";
+import {
+  blocAutresMoyens,
+  echapperHtml,
+  emailClientHtml,
+  emailHtml,
+  expediteur,
+  logoInline,
+  signatureArtisan,
+  totauxTicket,
+} from "@/lib/emailTemplate";
+import { nomAffichageDocument, nomCourt } from "@/lib/nomAffichage";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const UN_JOUR_MS = 24 * 60 * 60 * 1000;
@@ -46,11 +56,11 @@ export async function GET(req: NextRequest) {
     const joursEcoules = (maintenant - new Date(devis.envoye_le).getTime()) / UN_JOUR_MS;
 
     if (joursEcoules >= 7 && !devis.relance_j7_envoyee_le) {
-      await envoyerRelanceDevis(devis, origin, supabase);
+      await envoyerRelanceDevis(devis, origin, supabase, joursEcoules >= 7);
       await supabase.from("devis").update({ relance_j7_envoyee_le: new Date().toISOString() }).eq("id", devis.id);
       relancesEnvoyees++;
     } else if (joursEcoules >= 3 && !devis.relance_j3_envoyee_le) {
-      await envoyerRelanceDevis(devis, origin, supabase);
+      await envoyerRelanceDevis(devis, origin, supabase, joursEcoules >= 7);
       await supabase.from("devis").update({ relance_j3_envoyee_le: new Date().toISOString() }).eq("id", devis.id);
       relancesEnvoyees++;
     }
@@ -72,11 +82,11 @@ export async function GET(req: NextRequest) {
     const joursEcoules = (maintenant - new Date(facture.facture_envoyee_le).getTime()) / UN_JOUR_MS;
 
     if (joursEcoules >= 7 && !facture.relance_j7_envoyee_le) {
-      await envoyerRelanceFacture(facture, origin, supabase);
+      await envoyerRelanceFacture(facture, origin, supabase, joursEcoules >= 7);
       await supabase.from("devis").update({ relance_j7_envoyee_le: new Date().toISOString() }).eq("id", facture.id);
       relancesEnvoyees++;
     } else if (joursEcoules >= 3 && !facture.relance_j3_envoyee_le) {
-      await envoyerRelanceFacture(facture, origin, supabase);
+      await envoyerRelanceFacture(facture, origin, supabase, joursEcoules >= 7);
       await supabase.from("devis").update({ relance_j3_envoyee_le: new Date().toISOString() }).eq("id", facture.id);
       relancesEnvoyees++;
     }
@@ -143,58 +153,109 @@ async function envoyerInvitationAccesGratuit(
   });
 }
 
-// Recupere l'email de connexion de l'artisan, pour que les reponses du
-// client arrivent chez lui plutot que dans une boite VolpeVox non surveillee.
-async function recupererEmailArtisan(supabase: ReturnType<typeof createAdminSupabase>, artisanId: string) {
-  const { data: profil } = await supabase
-    .from("artisans")
-    .select("user_id")
-    .eq("id", artisanId)
-    .maybeSingle();
-
-  if (!profil?.user_id) return undefined;
+// Profil de l'artisan (nom, signature, TVA, IBAN...) et son email de
+// connexion, pour que les reponses du client arrivent chez lui plutot que
+// dans une boite VolpeVox non surveillee.
+async function recupererArtisan(supabase: ReturnType<typeof createAdminSupabase>, artisanId: string) {
+  const { data: profil } = await supabase.from("artisans").select("*").eq("id", artisanId).maybeSingle();
+  if (!profil?.user_id) return { profil, email: undefined };
 
   const { data: userData } = await supabase.auth.admin.getUserById(profil.user_id);
-  return userData?.user?.email;
+  return { profil, email: userData?.user?.email };
 }
 
-async function envoyerRelanceDevis(devis: any, origin: string, supabase: ReturnType<typeof createAdminSupabase>) {
-  const emailArtisan = await recupererEmailArtisan(supabase, devis.artisan_id);
+const dateFr = (iso: string | null | undefined) =>
+  iso ? new Date(iso).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" }) : "";
+
+// derniere = relance J+7 (la seconde et derniere), ton un peu different.
+async function envoyerRelanceDevis(
+  devis: any,
+  origin: string,
+  supabase: ReturnType<typeof createAdminSupabase>,
+  derniere: boolean
+) {
+  const { profil, email: emailArtisan } = await recupererArtisan(supabase, devis.artisan_id);
+  const nomArtisan = nomAffichageDocument(profil);
+  const numero = devis.numero_devis;
+  const tauxTva = Number(profil?.taux_tva ?? 20);
+  const total = totauxTicket(Number(devis.total) || 0, tauxTva);
 
   await resend.emails.send({
-    from: "VolpeVox <devis@volpevox.fr>",
+    from: expediteur(nomCourt(profil)),
     replyTo: emailArtisan || undefined,
     to: devis.client_email,
-    subject: `Rappel : votre devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} en attente de signature`,
-    html: emailHtml({
-      titre: "Votre devis est toujours en attente",
+    subject: `${derniere ? "Votre avis sur le devis" : "Petit rappel : votre devis"}${numero ? ` n°${numero}` : ""}${
+      nomArtisan ? ` – ${nomArtisan}` : ""
+    }`,
+    html: emailClientHtml({
+      nomArtisan: nomArtisan || "Votre devis",
+      etiquette: `Rappel · Devis${numero ? ` n°${numero}` : ""}`,
       corpsHtml: `
-        <p>Bonjour${devis.client_nom ? ` ${devis.client_nom}` : ""},</p>
-        <p>Petit rappel : votre devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} est toujours en attente de signature. Prenez quelques minutes pour le consulter et le valider en ligne quand vous voulez.</p>
+        <p style="margin:0 0 10px;">Bonjour${devis.client_nom ? ` ${echapperHtml(devis.client_nom)}` : ""},</p>
+        <p style="margin:0;">${
+          derniere
+            ? `Je reviens vers vous au sujet du devis envoyé le ${dateFr(devis.envoye_le)}. Est-il toujours d'actualité ? S'il faut ajuster quelque chose, répondez simplement à ce mail.`
+            : `Petit rappel : le devis envoyé le ${dateFr(devis.envoye_le)} attend toujours votre accord. Vous pouvez le consulter et le signer en ligne quand vous voulez.`
+        }</p>
       `,
+      ticket: {
+        lignes: [{ libelle: `Devis${numero ? ` n°${numero}` : ""} du ${dateFr(devis.envoye_le)}`, montant: "" }],
+        totaux: [],
+        totalLibelle: total.totalLibelle,
+        total: total.total,
+      },
       boutonUrl: `${origin}/signer/${devis.id}`,
-      boutonTexte: "Consulter et signer le devis",
+      boutonTexte: "Voir et signer le devis",
+      sousBouton: "Signature électronique sécurisée, sans imprimer",
+      signature: signatureArtisan(profil, nomArtisan),
     }),
     attachments: [...(await logoInline())],
   });
 }
 
-async function envoyerRelanceFacture(facture: any, origin: string, supabase: ReturnType<typeof createAdminSupabase>) {
-  const emailArtisan = await recupererEmailArtisan(supabase, facture.artisan_id);
+async function envoyerRelanceFacture(
+  facture: any,
+  origin: string,
+  supabase: ReturnType<typeof createAdminSupabase>,
+  derniere: boolean
+) {
+  const { profil, email: emailArtisan } = await recupererArtisan(supabase, facture.artisan_id);
+  const nomArtisan = nomAffichageDocument(profil);
+  const numero = facture.numero_facture;
+  const tauxTva = Number(profil?.taux_tva ?? 20);
+  // Montant TTC, comme sur la facture (avant : le total HT brut).
+  const total = totauxTicket(Number(facture.total) || 0, tauxTva);
+  const enLigne = Boolean(profil?.stripe_paiement_actif);
+  const dateFacture = dateFr(facture.facture_creee_le || facture.facture_envoyee_le);
 
   await resend.emails.send({
-    from: "VolpeVox <devis@volpevox.fr>",
+    from: expediteur(nomCourt(profil)),
     replyTo: emailArtisan || undefined,
     to: facture.client_email,
-    subject: `Rappel : facture${facture.numero_facture ? ` n°${facture.numero_facture}` : ""} en attente de paiement`,
-    html: emailHtml({
-      titre: "Facture en attente de règlement",
+    subject: `${derniere ? "Second rappel" : "Petit rappel"} : facture${numero ? ` n°${numero}` : ""}${
+      nomArtisan ? ` – ${nomArtisan}` : ""
+    }`,
+    html: emailClientHtml({
+      nomArtisan: nomArtisan || "Votre facture",
+      etiquette: `Rappel · Facture${numero ? ` n°${numero}` : ""}`,
       corpsHtml: `
-        <p>Bonjour${facture.client_nom ? ` ${facture.client_nom}` : ""},</p>
-        <p>Petit rappel : votre facture${facture.numero_facture ? ` n°${facture.numero_facture}` : ""} d'un montant de ${facture.total} € HT est toujours en attente de règlement. N'hésitez pas à nous contacter si besoin.</p>
+        <p style="margin:0 0 10px;">Bonjour${facture.client_nom ? ` ${echapperHtml(facture.client_nom)}` : ""},</p>
+        <p style="margin:0;">Sauf erreur de ma part, la facture${numero ? ` n°${numero}` : ""} du ${dateFacture} n'a pas encore été réglée.${
+          derniere ? " Merci de bien vouloir procéder au règlement dès que possible." : ""
+        } Si c'est déjà fait, merci de ne pas tenir compte de ce message.</p>
       `,
-      boutonUrl: `${origin}/api/devis-pdf/${facture.id}`,
-      boutonTexte: "Voir la facture",
+      ticket: {
+        lignes: [{ libelle: `Facture${numero ? ` n°${numero}` : ""} du ${dateFacture}`, montant: "" }],
+        totaux: [],
+        totalLibelle: total.totalLibelle,
+        total: total.total,
+      },
+      boutonUrl: enLigne ? `${origin}/signer/${facture.id}` : null,
+      boutonTexte: `Payer ${total.total} en ligne`,
+      sousBouton: "Carte bancaire, Apple Pay ou Google Pay · paiement sécurisé",
+      apresBoutonHtml: `${blocAutresMoyens({ enLigne, iban: profil?.iban, numero })}
+        <div style="margin-top:14px;text-align:center;"><a href="${origin}/api/devis-pdf/${facture.id}" style="color:#0b2a5b;font-weight:700;font-size:14px;">Voir la facture (PDF)</a></div>`,
+      signature: signatureArtisan(profil, nomArtisan),
     }),
     attachments: [...(await logoInline())],
   });

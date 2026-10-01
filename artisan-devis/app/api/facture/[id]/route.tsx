@@ -5,6 +5,7 @@ import { createAdminSupabase, getArtisanConnecte } from "@/lib/supabaseServerCli
 import { DevisPDF } from "@/lib/devisPdf";
 import { nomAffichageDocument, mentionSociete, nomCourt } from "@/lib/nomAffichage";
 import {
+  blocAutresMoyens,
   emailClientHtml,
   echapperHtml,
   expediteur,
@@ -125,24 +126,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // paiement en ligne, puis les autres moyens (IBAN dans le mail, cheque ou
     // especes en repondant). Facture deja reglee : ni bouton ni moyens.
     const enLigne = Boolean(profil?.stripe_paiement_actif) && !dejaPayee;
-    const iban = String(profil?.iban || "")
-      .replace(/\s+/g, "")
-      .toUpperCase()
-      .replace(/(.{4})/g, "$1 ")
-      .trim();
-    const autresMoyens = dejaPayee
-      ? ""
-      : `<div style="margin-top:${enLigne ? "22px" : "4px"};font-size:14px;line-height:1.6;">
-          <div style="font-weight:700;margin-bottom:6px;">${enLigne ? "Vous préférez un autre moyen ?" : "Pour régler cette facture :"}</div>
-          ${
-            iban
-              ? `<div style="margin-bottom:6px;"><strong>Virement</strong><br>
-                   IBAN : <span style="font-family:Consolas,Menlo,monospace;white-space:nowrap;">${echapperHtml(iban)}</span><br>
-                   <span style="color:#6b7686;font-size:13px;">Référence : ${numero ? `Facture n°${numero}` : "votre nom"}</span></div>`
-              : ""
-          }
-          <div><strong>Chèque ou espèces</strong> : répondez simplement à ce mail pour convenir du règlement.</div>
-        </div>`;
+    const autresMoyens = dejaPayee ? "" : blocAutresMoyens({ enLigne, iban: profil?.iban, numero });
 
     const { error: erreurResend } = await resend.emails.send({
       from: expediteur(nomCourt(profil)),
