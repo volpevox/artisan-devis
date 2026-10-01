@@ -30,7 +30,7 @@ Changement de stratégie : **plus de prix ni de bouton « s'abonner »**, ni sur
 - Dépôt GitHub : volpevox/artisan-devis
 
 ## Schéma Supabase actuel (principales colonnes)
-- `artisans` : id, user_id, nom_complet, nom_entreprise (facultatif), telephone, adresse, code_postal, ville, logo_url, taux_tva, siret, numero_tva, iban, conditions_paiement, essai_expire_le, abonnement_actif, stripe_account_id, stripe_paiement_actif, majoration_nuit, majoration_dimanche, majoration_ferie (en %, défauts 10/10/100)
+- `artisans` : id, user_id, prenom (à part depuis le 01/10, pour « Bonjour prénom »), nom_complet (« Prénom Nom », affiché sur les documents), nom_entreprise (facultatif), telephone, adresse, code_postal, ville, logo_url, taux_tva, siret, numero_tva, iban, conditions_paiement, essai_expire_le, abonnement_actif, stripe_account_id, stripe_paiement_actif, majoration_nuit, majoration_dimanche, majoration_ferie (en %, défauts 10/10/100)
 - `devis` : id, artisan_id, client_nom, client_email, client_telephone, client_siren, client_adresse, date_prestation, statut (brouillon/envoye/signe), total, numero_devis, signature_url, signe_le, lieu_signature, signature_vue_le, est_facture, numero_facture, facture_creee_le, facture_envoyee_le, payee_le, moyen_paiement, relance_j3_envoyee_le, relance_j7_envoyee_le
 - `lignes_devis` : id, devis_id, description, quantite, unite, prix_unitaire, total_ligne, ordre
 - `prix_appris` : id, artisan_id, prestation, unite, prix_moyen, nombre_utilisations, updated_at, fixe (true = saisi à la main dans « Mes tarifs », jamais modifié par la moyenne apprise) — utilisée : suggère un prix a partir des devis precedents de l'artisan
