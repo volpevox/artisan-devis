@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
 import { ProposerApresEnvoi } from "@/components/ProposerApresEnvoi";
+import { prenomDepuisNomComplet } from "@/lib/prenom";
 import { BanniereRodage } from "@/components/BanniereRodage";
 import { SplashEcran } from "@/components/SplashEcran";
 import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
@@ -168,7 +169,8 @@ export default function Home() {
   // Infos issues du profil deja charge par useArtisanSession (plus de requete
   // a la table artisans propre a cet ecran).
   const nomEntreprise = profilArtisan?.nom_entreprise || "";
-  const nomComplet = profilArtisan?.nom_complet || "";
+  // Salutation : le prenom de la personne si connu, sinon l'entreprise.
+  const nomSalutation = prenomDepuisNomComplet(profilArtisan?.nom_complet || "") || nomEntreprise;
   const paiementEnLigneDisponible = Boolean(profilArtisan?.stripe_paiement_actif);
 
   const total = lignes.reduce((s, l) => s + (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0), 0);
@@ -877,7 +879,7 @@ export default function Home() {
           <div className="voice-top">
             <p className="voice-greeting">
               <span className="voice-greeting-hand">Bonjour</span>
-              {nomEntreprise || nomComplet ? ` ${nomEntreprise || nomComplet}` : ""} !
+              {nomSalutation ? ` ${nomSalutation}` : ""} !
             </p>
             {toggleTypeDocument}
           </div>

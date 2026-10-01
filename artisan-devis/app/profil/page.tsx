@@ -262,7 +262,7 @@ export default function Profil() {
           <div className="form-carte">
             <div className="champ">
               <label className="champ-label" htmlFor="d-nom">
-                Nom et prénom <span className="obligatoire">*</span>
+                Prénom et nom <span className="obligatoire">*</span>
               </label>
               <input id="d-nom" className="field" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
             </div>
@@ -436,7 +436,7 @@ export default function Profil() {
       >
         <div className="champ">
           <label className="champ-label" htmlFor="p-nom">
-            Nom et prénom <span className="obligatoire">*</span>
+            Prénom et nom <span className="obligatoire">*</span>
           </label>
           <input id="p-nom" className="field" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
         </div>
