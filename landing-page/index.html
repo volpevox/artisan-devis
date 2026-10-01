@@ -522,5 +522,36 @@
   }
 })();
 </script>
+<!-- Provenance des inscrits (tableau de bord /admin de l'appli) : transmet
+     les parametres utm_ (ou fbclid/gclid/ttclid) et le site d'origine du
+     visiteur aux liens vers app.volpevox.fr. Rien n'est envoye a un tiers.
+     Double forme (script + img onerror, comme le reveal ci-dessus) au cas ou
+     WordPress filtrerait l'une des deux ; window.__vvProv evite le doublon. -->
+<script>
+(function(){
+  if(window.__vvProv) return; window.__vvProv = 1;
+  var CLE = 'vv-provenance', p = {};
+  try { p = JSON.parse(sessionStorage.getItem(CLE) || '{}'); } catch(e) {}
+  if(!p.utm_source && !p.vv_ref){
+    var q = new URLSearchParams(location.search), n = {};
+    ['utm_source','utm_medium','utm_campaign'].forEach(function(k){ var v = q.get(k); if(v) n[k] = v.slice(0,100); });
+    if(!n.utm_source){
+      if(q.get('fbclid')) n.utm_source = 'meta';
+      else if(q.get('gclid') || q.get('gbraid') || q.get('wbraid')) n.utm_source = 'google';
+      else if(q.get('ttclid')) n.utm_source = 'tiktok';
+    }
+    try { var h = document.referrer ? new URL(document.referrer).hostname : ''; if(h && !/(^|\.)volpevox\.fr$/.test(h)) n.vv_ref = h; } catch(e) {}
+    if(n.utm_source || n.vv_ref){ p = n; try { sessionStorage.setItem(CLE, JSON.stringify(p)); } catch(e) {} }
+  }
+  if(!p.utm_source && !p.vv_ref) return;
+  function lier(){
+    document.querySelectorAll('a').forEach(function(a){ if(a.href.indexOf('https://app.volpevox.fr/connexion') !== 0) return;
+      try { var u = new URL(a.href); Object.keys(p).forEach(function(k){ if(!u.searchParams.has(k)) u.searchParams.set(k, p[k]); }); a.href = u.toString(); } catch(e) {}
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lier); else lier();
+})();
+</script>
+<img src="vv-provenance-trigger" alt="" style="display:none" onerror="(function(){ if(window.__vvProv) return; window.__vvProv = 1; var CLE = 'vv-provenance', p = {}; try { p = JSON.parse(sessionStorage.getItem(CLE) || '{}'); } catch(e) {} if(!p.utm_source &amp;&amp; !p.vv_ref){ var q = new URLSearchParams(location.search), n = {}; ['utm_source','utm_medium','utm_campaign'].forEach(function(k){ var v = q.get(k); if(v) n[k] = v.slice(0,100); }); if(!n.utm_source){ if(q.get('fbclid')) n.utm_source = 'meta'; else if(q.get('gclid') || q.get('gbraid') || q.get('wbraid')) n.utm_source = 'google'; else if(q.get('ttclid')) n.utm_source = 'tiktok'; } try { var h = document.referrer ? new URL(document.referrer).hostname : ''; if(h &amp;&amp; !/(^|\.)volpevox\.fr$/.test(h)) n.vv_ref = h; } catch(e) {} if(n.utm_source || n.vv_ref){ p = n; try { sessionStorage.setItem(CLE, JSON.stringify(p)); } catch(e) {} } } if(!p.utm_source &amp;&amp; !p.vv_ref) return; function lier(){ document.querySelectorAll('a').forEach(function(a){ if(a.href.indexOf('https://app.volpevox.fr/connexion') !== 0) return; try { var u = new URL(a.href); Object.keys(p).forEach(function(k){ if(!u.searchParams.has(k)) u.searchParams.set(k, p[k]); }); a.href = u.toString(); } catch(e) {} }); } if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lier); else lier(); })();">
 </body>
 </html>
