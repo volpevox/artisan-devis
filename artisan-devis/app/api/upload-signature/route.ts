@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
-import { emailHtml, logoInline } from "@/lib/emailTemplate";
+import { echapperHtml, emailHtml, logoInline, totauxTicket } from "@/lib/emailTemplate";
 import { envoyerNotificationPush } from "@/lib/pushNotifications";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       lieu_signature: lieuSignature || null,
     })
     .eq("id", devisId)
-    .select("artisan_id, client_nom, numero_devis")
+    .select("artisan_id, client_nom, numero_devis, total")
     .maybeSingle();
 
   if (erreurUpdate) {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     try {
       const { data: artisan } = await supabaseAdmin
         .from("artisans")
-        .select("user_id")
+        .select("user_id, taux_tva")
         .eq("id", devisSigne.artisan_id)
         .maybeSingle();
 
@@ -73,15 +73,31 @@ export async function POST(req: NextRequest) {
         const emailArtisan = userData?.user?.email;
 
         if (emailArtisan) {
+          const client = echapperHtml(devisSigne.client_nom) || "Ton client";
+          const numero = devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : "";
+          const total = totauxTicket(Number(devisSigne.total) || 0, Number(artisan.taux_tva ?? 20));
+          const quand = new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
           await resend.emails.send({
             from: "VolpeVox <devis@volpevox.fr>",
             to: emailArtisan,
-            subject: `${devisSigne.client_nom || "Un client"} a signé son devis${devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : ""} !`,
+            subject: `🎉 ${devisSigne.client_nom || "Un client"} a signé ton devis${numero} !`,
             html: emailHtml({
-              titre: "Devis signé !",
-              corpsHtml: `<p>${devisSigne.client_nom || "Votre client"} vient de signer son devis${devisSigne.numero_devis ? ` n°${devisSigne.numero_devis}` : ""}.</p>`,
-              boutonUrl: `${req.nextUrl.origin}/api/devis-pdf/${devisId}`,
-              boutonTexte: "Voir le devis signé",
+              titre: `🎉 ${client} a signé ton devis${numero} !`,
+              corpsHtml: `
+                <div style="background:#f8f6ef;border:1px solid #ece4c8;border-radius:10px;padding:14px 16px;margin:0 0 16px;">
+                  <div style="font-size:13px;color:#56606e;">Devis${numero} · signé le ${quand}${
+                    lieuSignature ? ` à ${echapperHtml(lieuSignature)}` : ""
+                  }</div>
+                  <div style="font-size:22px;font-weight:800;color:#0b2a5b;margin-top:4px;">${total.total}${
+                    total.totalLibelle === "Total TTC" ? ` <span style="font-size:13px;font-weight:400;color:#56606e;">TTC</span>` : ""
+                  }</div>
+                </div>
+                <p style="margin:0 0 12px;">Bravo, c'est validé ! Le devis signé est enregistré dans VolpeVox.</p>
+                <p style="margin:0 0 4px;"><strong>Prochaine étape :</strong> une fois le travail fait, ouvre tes devis et appuie sur <strong>« Transformer en facture »</strong> : ta facture part en 1 clic.</p>
+                <p style="margin:12px 0 0;"><a href="${req.nextUrl.origin}/api/devis-pdf/${devisId}" style="color:#0b2a5b;font-weight:700;">Voir le devis signé (PDF)</a></p>
+              `,
+              boutonUrl: `${req.nextUrl.origin}/devis`,
+              boutonTexte: "Ouvrir mes devis",
             }),
             attachments: [...(await logoInline())],
           });

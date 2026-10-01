@@ -3,8 +3,16 @@ import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase, getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
-import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
-import { emailHtml, logoInline } from "@/lib/emailTemplate";
+import { nomAffichageDocument, mentionSociete, nomCourt } from "@/lib/nomAffichage";
+import {
+  echapperHtml,
+  emailClientHtml,
+  expediteur,
+  formaterEuros,
+  logoInline,
+  nomFichierPdf,
+  signatureArtisan,
+} from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -122,27 +130,40 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     );
 
     const numeroFacture = devis.numero_facture ? ` n°${devis.numero_facture}` : "";
+    const dateFacture = devis.facture_creee_le
+      ? ` du ${new Date(devis.facture_creee_le).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}`
+      : "";
+    const nomArtisan = nomAffichageDocument(profil);
     const { error: erreurResend } = await resend.emails.send({
-      from: "VolpeVox <devis@volpevox.fr>",
+      from: expediteur(nomCourt(profil)),
       replyTo: emailArtisan || undefined,
       to: devis.client_email,
       bcc: profil?.copie_envois && emailArtisan ? emailArtisan : undefined,
-      subject: `Avoir AV-${numero} - annulation de la facture${numeroFacture}`,
-      html: emailHtml({
-        titre: `Annulation de la facture${numeroFacture}`,
+      subject: `Annulation de la facture${numeroFacture} (avoir AV-${numero})${nomArtisan ? ` – ${nomArtisan}` : ""}`,
+      html: emailClientHtml({
+        nomArtisan: nomArtisan || "Avoir",
+        etiquette: `Avoir AV-${numero}`,
         corpsHtml: `
-          <p style="margin:0 0 12px;">Bonjour${devis.client_nom ? ` ${devis.client_nom}` : ""},</p>
-          <p style="margin:0 0 12px;">La facture${numeroFacture} est annulée. Vous trouverez en pièce jointe l'avoir correspondant.</p>
-          <p style="margin:0 0 20px;">Montant de l'avoir : <strong>-${totalTTC.toFixed(2)} € TTC</strong></p>
-          <p style="margin:0;">Pour toute question, il vous suffit de répondre à cet email.</p>
+          <p style="margin:0 0 10px;">Bonjour${devis.client_nom ? ` ${echapperHtml(devis.client_nom)}` : ""},</p>
+          <p style="margin:0;">La facture${numeroFacture}${dateFacture} est annulée. Vous trouverez ci-joint l'avoir correspondant.${
+            devis.payee_le ? "" : " Vous n'avez donc rien à régler pour cette facture."
+          }</p>
         `,
+        ticket: {
+          lignes: [{ libelle: `Annule la facture${numeroFacture}${dateFacture}`, montant: "" }],
+          totaux: [],
+          totalLibelle: "Montant de l'avoir",
+          total: `-${formaterEuros(totalTTC)}`,
+          note: "Avoir joint en PDF",
+        },
         boutonUrl: `${req.nextUrl.origin}/api/devis-pdf/${params.id}?avoir=1`,
         boutonTexte: "Télécharger l'avoir",
+        signature: signatureArtisan(profil, nomArtisan),
       }),
       attachments: [
         ...(await logoInline()),
         {
-          filename: `avoir-AV-${numero}.pdf`,
+          filename: nomFichierPdf("Avoir", `AV-${numero}`, nomArtisan),
           content: pdfBuffer,
         },
       ],
