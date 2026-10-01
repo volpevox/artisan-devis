@@ -2,6 +2,28 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
+function euros(n: number) {
+  return `${(Number(n) || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, " ")} €`;
+}
+
+// Page publique ouverte par le CLIENT de l'artisan (lien du mail) : signer un
+// devis ou regler une facture. Toujours en theme clair, dans le meme style
+// que les mails et les PDF (bandeau bleu au nom de l'artisan, ticket, bouton
+// or) -- le client ne doit pas avoir l'impression de changer de site.
+const C = {
+  bleu: "#0b2a5b",
+  or: "#d4af37",
+  fond: "#f4f6f8",
+  texte: "#1c2230",
+  gris: "#6b7686",
+  bord: "#e2e6ee",
+  ticket: "#f8f6ef",
+  ticketBord: "#ece4c8",
+  vert: "#1a7a4a",
+  vertFond: "#e8f6ee",
+  rouge: "#b3261e",
+};
+
 export default function Signer() {
   return (
     <Suspense fallback={null}>
@@ -24,10 +46,22 @@ function SignerContenu() {
   const [message, setMessage] = useState("");
   const [lieuSignature, setLieuSignature] = useState("");
   const [enCoursPaiement, setEnCoursPaiement] = useState(false);
+  const [aSigne, setASigne] = useState(false);
+  const [ibanCopie, setIbanCopie] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dessinRef = useRef(false);
   const aDessineRef = useRef(false);
+
+  // Le fond global de l'appli est sombre : on passe la page en clair (y
+  // compris le rebond du defilement sur iPhone).
+  useEffect(() => {
+    const avant = document.body.style.background;
+    document.body.style.background = C.fond;
+    return () => {
+      document.body.style.background = avant;
+    };
+  }, []);
 
   useEffect(() => {
     async function charger() {
@@ -90,14 +124,21 @@ function SignerContenu() {
 
       window.location.href = data.url;
     } catch {
-      setMessage("Erreur : impossible de contacter le serveur, réessaie.");
+      setMessage("Erreur : impossible de contacter le serveur, réessayez.");
       setEnCoursPaiement(false);
     }
   }
 
+  // Le cadre est affiche a la largeur de l'ecran (plus petit que ses 400 px
+  // internes sur un telephone) : on ramene la position du doigt a l'echelle
+  // du dessin, sinon le trait se decale par rapport au doigt.
   function position(e: React.PointerEvent<HTMLCanvasElement>) {
-    const rect = e.currentTarget.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) * canvas.width) / rect.width,
+      y: ((e.clientY - rect.top) * canvas.height) / rect.height,
+    };
   }
 
   function debuterTrait(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -110,6 +151,7 @@ function SignerContenu() {
     ctx.moveTo(x, y);
     dessinRef.current = true;
     aDessineRef.current = true;
+    setASigne(true);
   }
 
   function tracer(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -136,6 +178,7 @@ function SignerContenu() {
     const ctx = canvas.getContext("2d");
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     aDessineRef.current = false;
+    setASigne(false);
   }
 
   async function valider() {
@@ -177,175 +220,379 @@ function SignerContenu() {
       lieu_signature: lieuSignature.trim(),
       signature_url: data.url,
     }));
-    setMessage("Devis signé, merci !");
+    setMessage("");
   }
 
-  if (chargement) {
+  async function copierIban(iban: string) {
+    try {
+      await navigator.clipboard.writeText(iban.replace(/\s+/g, ""));
+      setIbanCopie(true);
+      setTimeout(() => setIbanCopie(false), 2000);
+    } catch {
+      // presse-papiers indisponible : l'IBAN reste selectionnable a la main
+    }
+  }
+
+  if (chargement || introuvable) {
     return (
-      <main className="page-shell">
-        <p className="message">Chargement...</p>
-      </main>
+      <Fond>
+        <p style={{ textAlign: "center", color: C.gris, marginTop: 60 }}>
+          {chargement ? "Chargement..." : "Document introuvable."}
+        </p>
+      </Fond>
     );
   }
 
-  if (introuvable) {
-    return (
-      <main className="page-shell">
-        <p className="message">Document introuvable.</p>
-      </main>
-    );
-  }
-
-  const totalHT = devis.total;
-  const tauxTva = profil?.taux_tva ?? 20;
+  const totalHT = Number(devis.total) || 0;
+  const tauxTva = Number(profil?.taux_tva ?? 20);
   const montantTva = (totalHT * tauxTva) / 100;
   const totalTTC = totalHT + montantTva;
   const estFacture = Boolean(devis.est_facture);
   const motDocument = estFacture ? "Facture" : "Devis";
   const numero = estFacture ? devis.numero_facture : devis.numero_devis;
-  // Meme logique que /api/facture/[id] : le mode de paiement choisi a la
-  // creation de la facture prime sur le simple fait que l'artisan ait active
-  // le paiement en ligne -- sinon le bouton reapparaitrait ici meme quand le
-  // mail n'en contenait pas (ex: si quelqu'un revient sur ce lien).
-  const modeChoisiExcluLigne = devis.moyen_paiement && devis.moyen_paiement !== "Carte bancaire (en ligne)";
-  const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif) && !modeChoisiExcluLigne;
+  const nomArtisan = profil?.nom_affiche || profil?.nom_entreprise || "";
+  // Meme regle que le mail (/api/facture/[id]) : le paiement en ligne est
+  // propose des que l'artisan l'a active, quel que soit le mode choisi a la
+  // creation -- c'est le client qui choisit comment regler.
+  const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif);
+  const lienPdf = `/api/devis-pdf/${devisId}?t=${Date.now()}`;
+  const iban = String(profil?.iban || "")
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .replace(/(.{4})/g, "$1 ")
+    .trim();
+  const jour = (iso: string) => new Date(iso).toLocaleDateString("fr-FR");
 
   return (
-    <main className="page-shell">
-      <div className="card">
-        {profil?.nom_entreprise && (
-          <h2 style={{ marginTop: 0, marginBottom: 4, fontSize: 15, color: "var(--ink)" }}>
-            {profil.nom_entreprise}
-          </h2>
-        )}
-        <h1 className="page-title" style={{ marginBottom: devis.client_adresse ? 4 : 16 }}>
-          {motDocument}
-          {numero ? ` n°${numero}` : ""} pour {devis.client_nom}
-        </h1>
-        {devis.client_adresse && (
-          <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--muted)" }}>{devis.client_adresse}</p>
-        )}
-
-        {lignes.map((ligne) => (
-          <div key={ligne.id} style={{ background: "var(--bg)", padding: 14, borderRadius: 8, marginBottom: 10 }}>
-            <p style={{ margin: "0 0 6px" }}>{ligne.description}</p>
-            <p style={{ margin: 0, fontSize: 14, color: "var(--muted)" }}>
-              {ligne.quantite} {ligne.unite} × {ligne.prix_unitaire} €
-            </p>
-          </div>
-        ))}
-
-        <div style={{ margin: "10px 0 16px" }}>
-          <p style={{ display: "flex", justifyContent: "space-between", margin: "0 0 4px", fontSize: 13, color: "var(--muted)" }}>
-            <span>Total HT</span>
-            <span>{totalHT.toFixed(2)} €</span>
-          </p>
-          {tauxTva > 0 ? (
-            <p style={{ display: "flex", justifyContent: "space-between", margin: "0 0 4px", fontSize: 13, color: "var(--muted)" }}>
-              <span>TVA ({tauxTva}%)</span>
-              <span>{montantTva.toFixed(2)} €</span>
-            </p>
-          ) : (
-            <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--muted)" }}>TVA non applicable, art. 293 B du CGI</p>
+    <Fond>
+      <div
+        style={{
+          maxWidth: 520,
+          margin: "0 auto",
+          background: "#fff",
+          borderRadius: 14,
+          overflow: "hidden",
+          border: `1px solid ${C.bord}`,
+          boxShadow: "0 4px 18px rgba(11,42,91,0.06)",
+        }}
+      >
+        {/* Bandeau : l'artisan en vedette */}
+        <div style={{ background: C.bleu, padding: "18px 22px", borderBottom: `3px solid ${C.or}` }}>
+          {nomArtisan && (
+            <div style={{ color: "#fff", fontSize: 19, fontWeight: 800, fontFamily: "var(--font-poppins), Arial, sans-serif" }}>
+              {nomArtisan}
+            </div>
           )}
-          <p className="total-line" style={{ display: "flex", justifyContent: "space-between", fontSize: 18 }}>
-            <span>Total TTC</span>
-            <span>{totalTTC.toFixed(2)} €</span>
-          </p>
+          <div style={{ color: C.or, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginTop: 3 }}>
+            {motDocument}
+            {numero ? ` n°${numero}` : ""}
+            {devis.client_nom ? ` · ${devis.client_nom}` : ""}
+          </div>
         </div>
 
-        {estFacture || devis.statut === "signe" ? (
-          <div
-            style={{
-              background: "var(--success-bg)",
-              padding: 16,
-              borderRadius: 8,
-              marginTop: 8,
-            }}
-          >
-            {devis.signe_le && (
-              <p style={{ margin: "0 0 10px", color: "var(--success)" }}>
-                ✓ {motDocument} signé{estFacture ? "e" : ""} le {new Date(devis.signe_le).toLocaleDateString("fr-FR")}
-              </p>
+        <div style={{ padding: 22 }}>
+          {/* Ticket : lignes et totaux */}
+          <div style={{ background: C.ticket, border: `1px solid ${C.ticketBord}`, borderRadius: 10, padding: "14px 16px" }}>
+            {lignes.map((ligne) => {
+              const q = Number(ligne.quantite) || 1;
+              const pu = Number(ligne.prix_unitaire) || 0;
+              const detail = quantiteLisible(q, ligne.unite || "forfait");
+              return (
+                <div key={ligne.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "5px 0" }}>
+                  <div style={{ fontSize: 14, color: C.texte }}>
+                    {ligne.description || "Prestation"}
+                    {detail && (
+                      <div style={{ fontSize: 12, color: C.gris }}>
+                        {detail} × {euros(pu)}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 14, color: C.texte, whiteSpace: "nowrap" }}>{euros(q * pu)}</div>
+                </div>
+              );
+            })}
+            <div style={{ borderTop: "1px dashed #cdbf8f", margin: "10px 0 8px" }} />
+            {tauxTva > 0 ? (
+              <>
+                <LigneTotal libelle="Total HT" montant={euros(totalHT)} />
+                <LigneTotal libelle={`TVA ${String(tauxTva).replace(".", ",")} %`} montant={euros(montantTva)} />
+              </>
+            ) : (
+              <div style={{ fontSize: 12, color: C.gris, marginBottom: 2 }}>TVA non applicable, art. 293 B du CGI</div>
             )}
-            {devis.signature_url && (
-              <img
-                src={devis.signature_url}
-                alt="Signature"
-                style={{
-                  maxWidth: 220,
-                  background: "#fff",
-                  border: "1px solid var(--border)",
-                  borderRadius: 6,
-                  marginBottom: 10,
-                }}
-              />
-            )}
-            <a href={`/api/devis-pdf/${devisId}?t=${Date.now()}`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
-              {estFacture ? "Télécharger la facture" : "Télécharger le PDF signé"}
-            </a>
-
-            {estFacture && (
-              <div style={{ marginTop: 16 }}>
-                {devis.avoir_numero ? (
-                  <>
-                    <p style={{ margin: "0 0 8px", color: "var(--muted)" }}>
-                      Cette facture a été annulée (avoir AV-{devis.avoir_numero}).
-                    </p>
-                    <a href={`/api/devis-pdf/${devisId}?avoir=1`} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
-                      Télécharger l'avoir
-                    </a>
-                  </>
-                ) : devis.payee_le ? (
-                  <p style={{ margin: 0, color: "var(--success)" }}>
-                    ✓ Payée le {new Date(devis.payee_le).toLocaleDateString("fr-FR")}
-                  </p>
-                ) : paiementEnLigneActif ? (
-                  <button className="btn btn-primary" onClick={payer} disabled={enCoursPaiement}>
-                    Payer {totalTTC.toFixed(2)} € en ligne
-                  </button>
-                ) : null}
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 4 }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: C.texte }}>{tauxTva > 0 ? "Total TTC" : "Total"}</span>
+              <span style={{ fontSize: 24, fontWeight: 800, color: C.bleu, fontFamily: "var(--font-roboto), Arial, sans-serif" }}>
+                {euros(totalTTC)}
+              </span>
+            </div>
+            {estFacture && profil?.conditions_paiement && !devis.payee_le && (
+              <div style={{ fontSize: 12, color: C.gris, marginTop: 6 }}>Conditions : {profil.conditions_paiement}</div>
             )}
           </div>
-        ) : (
-          <>
-            <input
-              className="field"
-              placeholder="Votre ville * (pour « Fait à ... »)"
-              value={lieuSignature}
-              onChange={(e) => setLieuSignature(e.target.value)}
-            />
-            <p style={{ marginTop: 8, marginBottom: 8 }}>Signez ci-dessous avec votre doigt ou votre souris :</p>
-            <canvas
-              ref={canvasRef}
-              width={400}
-              height={180}
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                touchAction: "none",
-                width: "100%",
-                maxWidth: 400,
-                background: "#fff",
-              }}
-              onPointerDown={debuterTrait}
-              onPointerMove={tracer}
-              onPointerUp={terminerTrait}
-              onPointerLeave={terminerTrait}
-            />
-            <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
-              <button className="btn btn-outline" onClick={effacer}>
-                Effacer
+
+          <div style={{ textAlign: "center", margin: "12px 0 4px" }}>
+            <a href={estFacture && devis.avoir_numero ? `${lienPdf}&avoir=1` : lienPdf} target="_blank" rel="noreferrer" style={lienStyle}>
+              📄{" "}
+              {estFacture
+                ? devis.avoir_numero
+                  ? "Télécharger l'avoir"
+                  : "Voir la facture (PDF)"
+                : devis.statut === "signe"
+                ? "Télécharger le devis signé (PDF)"
+                : "Voir le devis complet (PDF)"}
+            </a>
+          </div>
+
+          {estFacture ? (
+            devis.avoir_numero ? (
+              <Encadre>Cette facture a été annulée (avoir AV-{devis.avoir_numero}).</Encadre>
+            ) : devis.payee_le ? (
+              <Encadre vert>
+                ✓ Facture réglée le {jour(devis.payee_le)}
+                {devis.moyen_paiement ? ` (${devis.moyen_paiement})` : ""}. Merci !
+              </Encadre>
+            ) : (
+              <>
+                {paiementEnLigneActif && (
+                  <>
+                    <button onClick={payer} disabled={enCoursPaiement} style={{ ...boutonOr, marginTop: 18 }}>
+                      {enCoursPaiement ? "Ouverture du paiement..." : `Payer ${euros(totalTTC)} en ligne`}
+                    </button>
+                    <div style={{ textAlign: "center", fontSize: 12, color: C.gris, marginTop: 6 }}>
+                      Carte bancaire, Apple Pay ou Google Pay · paiement sécurisé
+                    </div>
+                  </>
+                )}
+                <div style={{ marginTop: paiementEnLigneActif ? 24 : 16, fontSize: 14, lineHeight: 1.6, color: C.texte }}>
+                  <div style={{ fontWeight: 700, marginBottom: 8 }}>
+                    {paiementEnLigneActif ? "Vous préférez un autre moyen ?" : "Pour régler cette facture :"}
+                  </div>
+                  {iban && (
+                    <div style={{ marginBottom: 10 }}>
+                      <strong>Virement</strong>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontFamily: "Consolas, Menlo, monospace", fontSize: 13, userSelect: "all" }}>{iban}</span>
+                        <button onClick={() => copierIban(iban)} style={boutonPetit}>
+                          {ibanCopie ? "Copié ✓" : "Copier"}
+                        </button>
+                      </div>
+                      <div style={{ fontSize: 13, color: C.gris }}>Référence : {numero ? `Facture n°${numero}` : "votre nom"}</div>
+                    </div>
+                  )}
+                  <div>
+                    <strong>Chèque ou espèces</strong> : à convenir directement avec {profil?.nom_complet || nomArtisan || "l'artisan"}
+                    {profil?.telephone ? (
+                      <>
+                        {" "}
+                        au{" "}
+                        <a href={`tel:${String(profil.telephone).replace(/\s+/g, "")}`} style={{ ...lienStyle, whiteSpace: "nowrap" }}>
+                          {profil.telephone}
+                        </a>
+                      </>
+                    ) : null}
+                    .
+                  </div>
+                </div>
+              </>
+            )
+          ) : devis.statut === "signe" ? (
+            <Encadre vert>
+              <div>
+                ✓ Devis signé le {devis.signe_le ? jour(devis.signe_le) : ""}
+                {devis.lieu_signature ? ` à ${devis.lieu_signature}` : ""}. Merci !
+              </div>
+              {devis.signature_url && (
+                <img
+                  src={devis.signature_url}
+                  alt="Signature"
+                  style={{ maxWidth: 200, background: "#fff", border: `1px solid ${C.bord}`, borderRadius: 6, marginTop: 10 }}
+                />
+              )}
+              <div style={{ fontSize: 13, color: C.gris, marginTop: 8 }}>
+                {nomArtisan || "L'artisan"} est prévenu et reviendra vers vous.
+              </div>
+            </Encadre>
+          ) : (
+            <div style={{ marginTop: 18 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.bleu, marginBottom: 4 }}>Signer le devis</div>
+              <div style={{ fontSize: 13, color: C.gris, marginBottom: 12 }}>
+                En signant, vous donnez votre accord (« Bon pour accord ») sur ce devis.
+              </div>
+              <label style={{ fontSize: 13, fontWeight: 700, color: C.texte }}>Fait à (votre ville)</label>
+              <input
+                value={lieuSignature}
+                onChange={(e) => setLieuSignature(e.target.value)}
+                placeholder="Ex. : Lyon"
+                autoComplete="address-level2"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  margin: "4px 0 14px",
+                  padding: "12px 14px",
+                  fontSize: 16,
+                  border: `1px solid ${C.bord}`,
+                  borderRadius: 10,
+                  background: "#fff",
+                  color: C.texte,
+                }}
+              />
+              <label style={{ fontSize: 13, fontWeight: 700, color: C.texte }}>Votre signature</label>
+              <div style={{ position: "relative", marginTop: 4 }}>
+                <canvas
+                  ref={canvasRef}
+                  width={400}
+                  height={180}
+                  style={{
+                    display: "block",
+                    border: `2px dashed ${aSigne ? C.bleu : "#c5ccd8"}`,
+                    borderRadius: 10,
+                    touchAction: "none",
+                    width: "100%",
+                    height: "auto",
+                    aspectRatio: "400 / 180",
+                    background: "#fff",
+                  }}
+                  onPointerDown={debuterTrait}
+                  onPointerMove={tracer}
+                  onPointerUp={terminerTrait}
+                  onPointerLeave={terminerTrait}
+                />
+                {!aSigne && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#a9b2c0",
+                      fontSize: 15,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    ✍️ Signez ici avec le doigt
+                  </div>
+                )}
+              </div>
+              {aSigne && (
+                <div style={{ textAlign: "right", marginTop: 6 }}>
+                  <button onClick={effacer} style={boutonPetit}>
+                    Effacer et recommencer
+                  </button>
+                </div>
+              )}
+              <button onClick={valider} disabled={enregistrement} style={{ ...boutonOr, marginTop: 16 }}>
+                {enregistrement ? "Enregistrement..." : "Bon pour accord — Signer"}
               </button>
-              <button className="btn btn-success" onClick={valider} disabled={enregistrement}>
-                Bon pour accord — Valider
-              </button>
+              <div style={{ textAlign: "center", fontSize: 12, color: C.gris, marginTop: 6 }}>
+                Signature électronique sécurisée, sans imprimer
+              </div>
             </div>
-          </>
-        )}
-        {message && <p className="message">{message}</p>}
+          )}
+
+          {message && (
+            <p style={{ marginTop: 14, textAlign: "center", fontSize: 14, color: message.startsWith("Erreur") || message.startsWith("Merci d") ? C.rouge : C.gris }}>
+              {message}
+            </p>
+          )}
+        </div>
+
+        <div style={{ background: C.fond, padding: 12, textAlign: "center", fontSize: 11, color: "#93a0b3" }}>
+          Envoyé avec VolpeVox
+        </div>
       </div>
+    </Fond>
+  );
+}
+
+// "2 heures", "4,5 m²", "3 jours"... ; rien pour un forfait unique.
+function quantiteLisible(q: number, unite: string) {
+  const n = q.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+  const pluriel = q >= 2;
+  switch (unite) {
+    case "heure":
+      return `${n} heure${pluriel ? "s" : ""}`;
+    case "jour":
+      return `${n} jour${pluriel ? "s" : ""}`;
+    case "unité":
+      return `${n} unité${pluriel ? "s" : ""}`;
+    case "m²":
+    case "ml":
+      return `${n} ${unite}`;
+    default:
+      return q !== 1 ? `${n} forfaits` : "";
+  }
+}
+
+function Fond({ children }: { children: React.ReactNode }) {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background: C.fond,
+        padding: "20px 14px 40px",
+        boxSizing: "border-box",
+        color: C.texte,
+        fontFamily: "var(--font-montserrat), Arial, sans-serif",
+      }}
+    >
+      {children}
     </main>
   );
 }
+
+function LigneTotal({ libelle, montant }: { libelle: string; montant: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56606e", padding: "2px 0" }}>
+      <span>{libelle}</span>
+      <span>{montant}</span>
+    </div>
+  );
+}
+
+function Encadre({ children, vert }: { children: React.ReactNode; vert?: boolean }) {
+  return (
+    <div
+      style={{
+        marginTop: 18,
+        padding: 16,
+        borderRadius: 10,
+        background: vert ? C.vertFond : C.fond,
+        color: vert ? C.vert : C.gris,
+        fontSize: 15,
+        fontWeight: vert ? 700 : 400,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+const boutonOr: React.CSSProperties = {
+  display: "block",
+  width: "100%",
+  padding: "16px 12px",
+  background: C.or,
+  color: C.bleu,
+  border: "none",
+  borderRadius: 12,
+  fontSize: 17,
+  fontWeight: 800,
+  cursor: "pointer",
+  fontFamily: "var(--font-poppins), Arial, sans-serif",
+};
+
+const boutonPetit: React.CSSProperties = {
+  padding: "4px 10px",
+  background: "#fff",
+  color: C.bleu,
+  border: `1px solid ${C.bord}`,
+  borderRadius: 8,
+  fontSize: 12,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const lienStyle: React.CSSProperties = { color: C.bleu, fontWeight: 700, fontSize: 14 };

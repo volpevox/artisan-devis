@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
+import { nomAffichageDocument } from "@/lib/nomAffichage";
 
 // Sert le devis au client final (statut, signature...) : jamais de cache,
 // sinon un client pourrait voir un statut perime apres avoir signe.
@@ -20,11 +21,26 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     .eq("devis_id", params.id)
     .order("ordre", { ascending: true });
 
-  const { data: profil } = await supabase
+  const { data: artisan } = await supabase
     .from("artisans")
-    .select("nom_entreprise, taux_tva, stripe_paiement_actif")
+    .select("nom_complet, nom_entreprise, est_societe, telephone, taux_tva, stripe_paiement_actif, iban, conditions_paiement")
     .eq("id", devis.artisan_id)
     .maybeSingle();
+
+  // Seulement ce que la page affiche. L'IBAN et les conditions de paiement
+  // ne servent qu'aux factures (ils figurent deja sur le PDF de la facture).
+  const profil = artisan
+    ? {
+        nom_affiche: nomAffichageDocument(artisan),
+        nom_complet: artisan.nom_complet,
+        nom_entreprise: artisan.nom_entreprise,
+        telephone: artisan.telephone,
+        taux_tva: artisan.taux_tva,
+        stripe_paiement_actif: artisan.stripe_paiement_actif,
+        iban: devis.est_facture ? artisan.iban : null,
+        conditions_paiement: devis.est_facture ? artisan.conditions_paiement : null,
+      }
+    : null;
 
   return NextResponse.json({ devis, lignes, profil }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -4,7 +4,16 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
-import { emailClientHtml, echapperHtml, expediteur, formaterEuros, logoInline, nomFichierPdf } from "@/lib/emailTemplate";
+import {
+  emailClientHtml,
+  echapperHtml,
+  expediteur,
+  lignesTicket,
+  logoInline,
+  nomFichierPdf,
+  signatureArtisan,
+  totauxTicket,
+} from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -80,36 +89,6 @@ export async function POST(req: NextRequest) {
     const nomArtisan = nomAffichageDocument(profil);
     const numero = devisRow?.numero_devis;
 
-    // Lignes du ticket : "Pose carrelage (12 m²)  540,00 €" (montants HT,
-    // comme sur le PDF). Au-dela de 6 lignes, le reste est resume.
-    const quantiteCourte = (q: number, unite: string) => {
-      const n = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(q);
-      const abrev: Record<string, string> = { heure: "h", jour: "j", "m²": "m²", ml: "ml" };
-      if (abrev[unite]) return `${n} ${abrev[unite]}`;
-      return q !== 1 ? `× ${n}` : "";
-    };
-    const lignesTicket = (lignes || [])
-      .filter((l: any) => l.description || Number(l.prixUnitaire))
-      .map((l: any) => {
-        const q = Number(l.quantite) || 1;
-        const qte = quantiteCourte(q, l.unite || "forfait");
-        return {
-          libelle: `${echapperHtml(l.description) || "Prestation"}${qte ? ` <span style="color:#6b7686;">(${qte})</span>` : ""}`,
-          montant: formaterEuros(q * (Number(l.prixUnitaire) || 0)),
-        };
-      });
-    const MAX_LIGNES = 6;
-    const lignesAffichees =
-      lignesTicket.length > MAX_LIGNES
-        ? [
-            ...lignesTicket.slice(0, MAX_LIGNES - 1),
-            {
-              libelle: `<span style="color:#6b7686;">… et ${lignesTicket.length - (MAX_LIGNES - 1)} autres lignes (voir le PDF)</span>`,
-              montant: "",
-            },
-          ]
-        : lignesTicket;
-
     const validiteJours = Number(profil?.duree_validite_devis) || 0;
     const valableJusquau =
       validiteJours > 0
@@ -132,16 +111,8 @@ export async function POST(req: NextRequest) {
           <p style="margin:0;">Suite à notre échange, voici votre devis.</p>
         `,
         ticket: {
-          lignes: lignesAffichees,
-          totaux:
-            tauxTva > 0
-              ? [
-                  { libelle: "Total HT", montant: formaterEuros(totalHT) },
-                  { libelle: `TVA ${String(tauxTva).replace(".", ",")} %`, montant: formaterEuros(montantTva) },
-                ]
-              : [],
-          totalLibelle: tauxTva > 0 ? "Total TTC" : "Total",
-          total: formaterEuros(totalTTC),
+          lignes: lignesTicket(lignes || []),
+          ...totauxTicket(totalHT, tauxTva),
           note: [valableJusquau ? `Valable jusqu'au ${valableJusquau}` : null, "Détail complet dans le PDF joint"]
             .filter(Boolean)
             .join(" · "),
@@ -150,11 +121,7 @@ export async function POST(req: NextRequest) {
         boutonUrl: lienSignature,
         boutonTexte: "Voir et signer le devis",
         sousBouton: "Signature électronique sécurisée, sans imprimer",
-        signature: {
-          personne: profil?.nom_complet,
-          entreprise: profil?.nom_entreprise || (profil?.nom_complet ? null : nomArtisan),
-          telephone: profil?.telephone,
-        },
+        signature: signatureArtisan(profil, nomArtisan),
       }),
       attachments: [
         ...(await logoInline()),

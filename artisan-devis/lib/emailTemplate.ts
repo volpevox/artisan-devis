@@ -126,6 +126,7 @@ interface EmailClientOptions {
   boutonUrl?: string | null;
   boutonTexte?: string;
   sousBouton?: string | null;
+  apresBoutonHtml?: string;
   signature: { personne?: string | null; entreprise?: string | null; telephone?: string | null };
 }
 
@@ -173,6 +174,7 @@ export function emailClientHtml(o: EmailClientOptions) {
                  ${o.sousBouton ? `<div style="text-align:center;font-size:12px;color:#6b7686;">${o.sousBouton}</div>` : ""}`
               : ""
           }
+          ${o.apresBoutonHtml || ""}
           <div style="margin-top:22px;padding-top:16px;border-top:1px solid #e2e6ee;font-size:14px;line-height:1.6;">
             ${lignesSignature.join("<br>")}${lignesSignature.length ? "<br>" : ""}
             <span style="color:#6b7686;font-size:13px;">Une question ? Répondez simplement à ce mail.</span>
@@ -184,4 +186,65 @@ export function emailClientHtml(o: EmailClientOptions) {
       </div>
     </div>
   `;
+}
+
+// Lignes du ticket depuis les lignes du document : "Pose carrelage (12 m²)
+// 540,00 €" (montants HT, comme sur le PDF). Au-dela de 6 lignes, le reste
+// est resume.
+export function lignesTicket(
+  lignes: { description?: string | null; quantite?: number | string | null; unite?: string | null; prixUnitaire?: number | string | null }[]
+): LigneTicket[] {
+  const quantiteCourte = (q: number, unite: string) => {
+    const n = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(q);
+    const abrev: Record<string, string> = { heure: "h", jour: "j", "m²": "m²", ml: "ml" };
+    if (abrev[unite]) return `${n} ${abrev[unite]}`;
+    return q !== 1 ? `× ${n}` : "";
+  };
+  const toutes = lignes
+    .filter((l) => l.description || Number(l.prixUnitaire))
+    .map((l) => {
+      const q = Number(l.quantite) || 1;
+      const qte = quantiteCourte(q, l.unite || "forfait");
+      return {
+        libelle: `${echapperHtml(l.description) || "Prestation"}${qte ? ` <span style="color:#6b7686;">(${qte})</span>` : ""}`,
+        montant: formaterEuros(q * (Number(l.prixUnitaire) || 0)),
+      };
+    });
+  const MAX = 6;
+  if (toutes.length <= MAX) return toutes;
+  return [
+    ...toutes.slice(0, MAX - 1),
+    {
+      libelle: `<span style="color:#6b7686;">… et ${toutes.length - (MAX - 1)} autres lignes (voir le PDF)</span>`,
+      montant: "",
+    },
+  ];
+}
+
+// Bas du ticket : Total HT + TVA (petits) puis le total. Sans TVA : "Total".
+export function totauxTicket(totalHT: number, tauxTva: number) {
+  const montantTva = (totalHT * tauxTva) / 100;
+  return {
+    totaux:
+      tauxTva > 0
+        ? [
+            { libelle: "Total HT", montant: formaterEuros(totalHT) },
+            { libelle: `TVA ${String(tauxTva).replace(".", ",")} %`, montant: formaterEuros(montantTva) },
+          ]
+        : [],
+    totalLibelle: tauxTva > 0 ? "Total TTC" : "Total",
+    total: formaterEuros(totalHT + montantTva),
+  };
+}
+
+// Signature : la personne, puis l'entreprise si elle a un nom a part.
+export function signatureArtisan(
+  profil: { nom_complet?: string | null; nom_entreprise?: string | null; telephone?: string | null } | null | undefined,
+  nomArtisan: string
+) {
+  return {
+    personne: profil?.nom_complet,
+    entreprise: profil?.nom_entreprise || (profil?.nom_complet ? null : nomArtisan),
+    telephone: profil?.telephone,
+  };
 }
