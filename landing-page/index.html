@@ -4,482 +4,694 @@
 <meta charset="utf-8">
 <title>VolpeVox — Récupère tes soirées</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Dicte ta prestation à voix haute, VolpeVox transforme ça en devis, en facture, en relance et en encaissement. Gratuit pendant le lancement.">
+<meta name="description" content="Tu dictes ton chantier, VolpeVox fait le devis. Ton client signe sur son téléphone, tu factures en 1 clic et tu es payé en ligne. Gratuit pendant le lancement.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="https://app.volpevox.fr/landing/ecran-dictee.webp">
 <style>
   :root{
-    --bg:#0f1b2e;
-    --bg-soft:#0c1626;
-    --card:#172542;
-    --card-border:#2a3a56;
-    --gold:#e3a94a;
-    --gold-dark:#c9902f;
+    --bg:#0d1b2a;
+    --bg-2:#0a1522;
+    --navy:#0b2a5b;
+    --card:#152235;
+    --card-2:#1b2a40;
+    --line:#2a3a52;
+    --gold:#dda742;
+    --gold-soft:#e8c17a;
+    --gold-dark:#c08a2c;
     --cream:#f5f1e6;
     --muted:#9aa5b5;
-    --muted-2:#7b8494;
-    --green:#3fae72;
-    --maxw:100%;
+    --muted-2:#6f7b8c;
+    --green:#3ed598;
+    --red:#ff6b6b;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   header, main#top, footer{max-width:none !important;}
-  @media (prefers-reduced-motion: reduce){
-    *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
-  }
-  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
-  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease;}
-  .reveal.is-visible{opacity:1;transform:none;}
   body{
-    margin:0;
-    background:var(--bg);
-    color:var(--cream);
+    margin:0;background:var(--bg);color:var(--cream);
     font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
+    line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;
   }
   img{max-width:100%;display:block;}
   a{color:inherit;}
-  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
-  h1,h2,h3{font-family:'Poppins',system-ui,-apple-system,Segoe UI,sans-serif;font-weight:700;margin:0;line-height:1.15;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px;}
+  h1,h2,h3{font-family:'Poppins',system-ui,sans-serif;font-weight:700;margin:0;line-height:1.12;letter-spacing:-.01em;}
+  h2{font-size:clamp(28px,5.2vw,44px);}
+  h3{font-size:19px;}
+  p{margin:0;}
+  .gold{color:var(--gold);}
+  .green{color:var(--green);}
+  section{padding:84px 0;}
+  .alt{background:var(--bg-2);}
+
+  /* Apparition au defilement */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.is-visible{opacity:1;transform:none;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+    .reveal{opacity:1;transform:none;}
+  }
+
+  /* Petits elements communs */
   .eyebrow{
-    display:flex;align-items:center;gap:8px;
-    font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--gold);margin-bottom:16px;
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;
   }
-  .eyebrow .bars{display:inline-flex;align-items:flex-end;gap:2px;height:12px;}
-  .eyebrow .bars span{width:2px;background:var(--gold);display:block;transform-origin:bottom;animation:barPulse .9s ease-in-out infinite;}
-  .eyebrow .bars span:nth-child(1){height:40%;animation-delay:0s;}
-  .eyebrow .bars span:nth-child(2){height:100%;animation-delay:.15s;}
-  .eyebrow .bars span:nth-child(3){height:65%;animation-delay:.3s;}
-  @keyframes barPulse{
-    0%,100%{transform:scaleY(.55);}
-    50%{transform:scaleY(1);}
-  }
+  .bars{display:inline-flex;align-items:center;gap:2px;height:14px;}
+  .bars span{width:3px;border-radius:2px;background:var(--gold);display:block;animation:barre .9s ease-in-out infinite;}
+  .bars span:nth-child(1){height:45%;}
+  .bars span:nth-child(2){height:100%;animation-delay:.15s;}
+  .bars span:nth-child(3){height:70%;animation-delay:.3s;}
+  .bars span:nth-child(4){height:90%;animation-delay:.45s;}
+  @keyframes barre{0%,100%{transform:scaleY(.5);}50%{transform:scaleY(1);}}
   .btn{
-    display:inline-block;
-    background:var(--gold);
-    color:#1a1305;
-    font-weight:700;
-    font-size:15px;
-    padding:14px 28px;
-    border-radius:8px;
-    text-decoration:none;
-    border:none;
-    cursor:pointer;
-    transition:background .15s ease, transform .15s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--gold);color:#0d1b2a;text-decoration:none;
+    font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;
+    padding:16px 28px;border-radius:999px;border:0;cursor:pointer;
+    box-shadow:0 10px 30px -10px rgba(221,167,66,.6);
+    transition:transform .2s ease, background .2s ease, box-shadow .2s ease;
   }
-  .btn:hover{background:var(--gold-dark);transform:translateY(-1px);}
-  .btn-sm{padding:10px 20px;font-size:14px;}
-  .fine-print{color:var(--muted-2);font-size:13px;margin-top:14px;}
+  .btn:hover{background:var(--gold-soft);transform:translateY(-2px);box-shadow:0 14px 34px -10px rgba(221,167,66,.75);}
+  .btn svg{width:18px;height:18px;}
+  .btn-ghost{
+    display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+    font-weight:600;font-size:15px;color:var(--cream);
+    padding:15px 22px;border-radius:999px;border:1px solid var(--line);
+    transition:border-color .2s ease,color .2s ease;
+  }
+  .btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+  .btn-sm{padding:10px 18px;font-size:14px;box-shadow:none;}
 
-  /* header */
-  header{border-bottom:1px solid var(--card-border);}
-  .nav{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:20px 24px;max-width:var(--maxw);margin:0 auto;
+  /* Telephone (vraies captures de l'appli) */
+  .phone{
+    position:relative;width:260px;aspect-ratio:460/1000;flex:none;
+    border-radius:42px;padding:9px;background:#05090f;
+    box-shadow:0 0 0 2px #2b3546, 0 40px 80px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.04) inset;
   }
-  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
-  .brand img{width:34px;height:34px;object-fit:contain;animation:logoGlow 4s ease-in-out infinite;}
-  @keyframes logoGlow{
-    0%,100%{filter:drop-shadow(0 0 0 rgba(227,169,74,0));}
-    50%{filter:drop-shadow(0 0 5px rgba(227,169,74,.7));}
+  .phone .ecran{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#0d1b2a;}
+  .phone img{width:100%;height:100%;object-fit:cover;object-position:top;}
+
+  /* ---------- En-tete ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(13,27,42,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(42,58,82,.6);
   }
-  .brand span{font-family:'Poppins',sans-serif;font-weight:700;font-size:19px;}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px;}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:20px;}
+  .brand img{width:34px;height:34px;}
   .brand .vox{color:var(--gold);}
+  .court{display:none;}
 
-  /* hero */
-  .hero{padding:72px 0 88px;}
-  .hero-grid{display:grid;grid-template-columns:1fr;gap:48px;align-items:center;}
-  .hero-grid > div{animation:fadeUp .8s ease both;}
-  .hero-grid > div:nth-child(2){animation-delay:.15s;}
-  .hero h1{font-size:44px;}
-  .hero h1 .gold{color:var(--gold);}
-  .hero p.lead{color:var(--muted);font-size:17px;margin:22px 0 28px;max-width:46ch;}
-  .mock-card{
-    position:relative;background:var(--card);border:1px solid var(--card-border);
-    border-radius:16px;padding:32px 24px;text-align:center;max-width:360px;margin:0 auto;
-    animation:breathe 4s ease-in-out infinite;
+  /* ---------- Hero ---------- */
+  .hero{position:relative;padding:56px 0 80px;overflow:hidden;}
+  .hero::before{
+    content:"";position:absolute;inset:-20% -10% auto -10%;height:120%;
+    background:radial-gradient(60% 50% at 75% 35%, rgba(11,42,91,.95), transparent 70%),
+               radial-gradient(30% 30% at 78% 40%, rgba(221,167,66,.16), transparent 70%);
+    pointer-events:none;
   }
-  @keyframes breathe{
-    0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(227,169,74,0);}
-    50%{transform:scale(1.015);box-shadow:0 0 24px rgba(227,169,74,.18);}
+  .hero-grid{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--green);
+    background:rgba(62,213,152,.1);border:1px solid rgba(62,213,152,.3);padding:6px 14px;border-radius:999px;margin-bottom:22px;
   }
-  .mock-card .who{color:var(--muted);font-size:14px;margin-bottom:18px;}
-  .mock-card .avatar{width:76px;height:76px;object-fit:contain;margin:0 auto 14px;position:relative;z-index:1;}
-  .mock-card .avatar-ring{
-    position:absolute;top:50px;left:50%;width:96px;height:96px;margin-left:-48px;
-    border-radius:50%;border:1px solid rgba(227,169,74,.4);
-    animation:ringPulse 4s ease-in-out infinite;
-  }
-  @keyframes ringPulse{
-    0%,100%{transform:scale(1);opacity:.5;}
-    50%{transform:scale(1.12);opacity:.9;}
-  }
-  .mock-card .bubble{
-    background:var(--bg-soft);border:1px solid var(--card-border);border-radius:12px;
-    padding:14px 16px;font-size:14px;color:var(--cream);font-style:italic;margin-top:18px;
-  }
-  .float-tag{
-    position:relative;margin:-20px auto 0;max-width:280px;background:var(--bg);
-    border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;text-align:left;
-    box-shadow:0 12px 30px rgba(0,0,0,.35);
-    transform:rotate(-3deg);
-    transition:transform .25s ease;
-  }
-  .float-tag:hover{transform:rotate(0deg);}
-  .float-tag .badge{
-    display:inline-flex;align-items:center;gap:6px;background:rgba(63,174,114,.15);
-    color:var(--green);font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;margin-bottom:8px;
-  }
-  .float-tag .label{color:var(--muted);font-size:13px;}
-  .float-tag .amount{font-family:'Roboto',sans-serif;font-size:24px;font-weight:700;margin-top:2px;}
+  .pill i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(62,213,152,.6);animation:pouls 2s infinite;}
+  @keyframes pouls{0%{box-shadow:0 0 0 0 rgba(62,213,152,.6);}70%{box-shadow:0 0 0 9px rgba(62,213,152,0);}100%{box-shadow:0 0 0 0 rgba(62,213,152,0);}}
+  .hero h1{font-size:clamp(44px,8vw,80px);font-weight:800;letter-spacing:-.025em;}
+  .hero .lead{font-size:clamp(17px,2.2vw,20px);color:#cfd6e0;margin:22px 0 30px;max-width:540px;}
+  .hero .lead b{color:var(--cream);}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+  .confiance{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:24px;font-size:13px;color:var(--muted);}
+  .confiance span{display:inline-flex;align-items:center;gap:6px;}
+  .confiance svg{width:16px;height:16px;color:var(--green);}
 
-  /* generic section */
-  section{padding:44px 0;}
-  section.alt{background:var(--bg-soft);}
-  section:not(:first-of-type){position:relative;}
-  section:not(:first-of-type)::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:120px;
-    height:1px;
-    background:var(--card-border);
+  .scene{position:relative;display:flex;justify-content:center;padding:20px 0;}
+  .scene .halo{position:absolute;width:340px;height:340px;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle, rgba(221,167,66,.28), transparent 65%);filter:blur(10px);}
+  .scene .phone{width:280px;transform:rotate(-3deg);}
+  /* Les 2 ecrans alternent : dictee -> devis rempli */
+  .defile img{position:absolute;inset:0;opacity:0;animation:defile 8s infinite;}
+  .defile img:nth-child(1){animation-delay:-.6s;}
+  .defile img:nth-child(2){animation-delay:3.4s;}
+  @keyframes defile{0%{opacity:0;transform:scale(1.03);}6%{opacity:1;transform:none;}50%{opacity:1;}56%{opacity:0;}100%{opacity:0;}}
+  .bulle{
+    position:absolute;z-index:2;background:var(--cream);color:#0d1b2a;font-weight:600;font-size:14px;line-height:1.35;
+    padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:220px;box-shadow:0 20px 40px -15px rgba(0,0,0,.6);
   }
-  .section-head{max-width:640px;margin-bottom:48px;}
-  .section-head h2{font-size:34px;margin-bottom:14px;}
-  .section-head p{color:var(--muted);font-size:16px;}
-  .section-head.center-head{max-width:none;}
-  .section-head.center-head h2,
-  .section-head.center-head p{max-width:640px;margin-left:auto;margin-right:auto;text-align:center;}
-
-  /* constat cards */
-  .cards3{display:grid;grid-template-columns:1fr;gap:20px;}
-  .card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:28px;transition:transform .2s ease, border-color .2s ease;}
-  .card:hover{transform:translateY(-4px);border-color:var(--gold);}
-  .card .icon{
-    width:44px;height:44px;border-radius:50%;border:1.5px solid var(--gold);
-    display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--gold);
+  .bulle .bars span{background:#0d1b2a;}
+  .bulle-voix{top:8%;left:-4%;animation:flotte 6s ease-in-out infinite;}
+  .bulle-voix small{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a5b1d;margin-bottom:4px;}
+  .puce-signe{
+    position:absolute;z-index:2;bottom:12%;right:-2%;display:flex;align-items:center;gap:12px;
+    background:#0f2433;border:1px solid rgba(62,213,152,.45);border-radius:16px;padding:12px 16px;
+    box-shadow:0 20px 40px -15px rgba(0,0,0,.7);animation:flotte 6s ease-in-out infinite 1.5s;
   }
-  .card h3{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:700;margin-bottom:10px;}
-  .card p{color:var(--muted);font-size:14.5px;margin:0;}
+  .puce-signe .rond{width:34px;height:34px;border-radius:50%;background:var(--green);color:#0d1b2a;display:grid;place-items:center;font-weight:800;}
+  .puce-signe b{display:block;font-size:14px;color:var(--green);}
+  .puce-signe span{font-family:'Roboto',sans-serif;font-weight:700;font-size:18px;}
+  @keyframes flotte{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
 
-  /* steps : timeline verticale */
-  .steps{display:block;position:relative;max-width:640px;margin:0 auto;}
-  .steps::before{
-    content:"";
-    position:absolute;
-    left:23px;
-    top:24px;
-    bottom:24px;
-    width:2px;
-    background:var(--card-border);
+  /* ---------- 21:47 ---------- */
+  .horloge{text-align:center;}
+  .heure{
+    font-family:'Roboto',sans-serif;font-weight:900;font-size:clamp(84px,18vw,170px);line-height:1;color:var(--gold);
+    text-shadow:0 0 60px rgba(221,167,66,.35);letter-spacing:-.02em;
   }
-  .step{position:relative;padding-left:68px;margin-bottom:36px;}
-  .step:last-child{margin-bottom:0;}
-  .step .num,.step .rule{display:none;}
-  .step .icon{
-    position:absolute;
-    left:0;
-    top:0;
-    width:48px;height:48px;
-    margin-bottom:0;
-    border-radius:50%;
-    background:var(--card);
-    border:1.5px solid var(--gold);
-    display:flex;align-items:center;justify-content:center;
-    color:var(--gold);
-    transform:scale(.6);
-    opacity:0;
-    transition:transform .5s ease .15s, opacity .5s ease .15s;
+  .horloge h2{margin-top:10px;}
+  .horloge h2 .rouge{color:var(--red);}
+  .horloge > .wrap > p{color:var(--muted);font-size:18px;max-width:620px;margin:18px auto 0;}
+  .douleurs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px;text-align:left;}
+  .douleur{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;}
+  .douleur .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(255,107,107,.1);color:var(--red);margin-bottom:16px;}
+  .douleur .ico svg{width:22px;height:22px;}
+  .douleur p{color:var(--muted);font-size:15px;margin-top:8px;}
+
+  /* ---------- Avant / apres ---------- */
+  .duel{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:44px;}
+  .camp{border-radius:24px;padding:32px;border:1px solid var(--line);}
+  .camp.avant{background:#121a26;}
+  .camp.apres{background:linear-gradient(160deg,#10305f,#0b1f3d);border-color:rgba(221,167,66,.45);box-shadow:0 30px 60px -30px rgba(221,167,66,.35);}
+  .etiq{display:inline-block;font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px;border-radius:999px;}
+  .avant .etiq{background:#262f3d;color:#aab3c0;}
+  .apres .etiq{background:var(--green);color:#0d1b2a;}
+  .temps{font-family:'Roboto',sans-serif;font-weight:900;font-size:clamp(64px,10vw,96px);line-height:1;margin:22px 0 22px;}
+  .temps small{font-size:.4em;font-weight:700;margin-left:4px;}
+  .avant .temps{color:#5d6878;}
+  .apres .temps{color:var(--gold);}
+  .camp ul{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+  .camp li{display:flex;gap:12px;align-items:center;font-weight:600;font-size:16px;}
+  .avant li{color:#8c96a5;}
+  .camp li svg{width:20px;height:20px;flex:none;}
+  .avant li svg{color:#5d6878;}
+  .apres li svg{color:var(--green);}
+
+  /* ---------- Etapes ---------- */
+  .tete{text-align:center;max-width:680px;margin:0 auto;}
+  .tete p{color:var(--muted);font-size:18px;margin-top:14px;}
+  .etapes{display:grid;gap:96px;margin-top:64px;}
+  .etape{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;}
+  .etape:nth-child(even) .texte{order:2;}
+  .etape .visuel{display:flex;justify-content:center;position:relative;}
+  .etape .visuel::before{content:"";position:absolute;width:300px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle, rgba(11,42,91,.9), transparent 70%);}
+  .etape .phone{width:250px;}
+  .num{
+    display:inline-grid;place-items:center;width:48px;height:48px;border-radius:14px;margin-bottom:18px;
+    background:rgba(221,167,66,.12);border:1px solid rgba(221,167,66,.4);
+    font-family:'Roboto',sans-serif;font-weight:900;font-size:20px;color:var(--gold);
   }
-  .step.is-visible .icon{transform:scale(1);opacity:1;}
-  .step:nth-child(1){transition-delay:0s;}
-  .step:nth-child(2){transition-delay:.15s;}
-  .step:nth-child(3){transition-delay:.3s;}
-  .step h3{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:700;margin-bottom:10px;}
-  .step p{color:var(--muted);font-size:14.5px;margin:0;}
+  .etape h3{font-size:clamp(26px,3.6vw,34px);}
+  .etape .texte p{color:#c3cbd6;font-size:17px;margin-top:14px;max-width:440px;}
+  .tag{display:inline-flex;align-items:center;gap:6px;margin-top:18px;font-size:13px;font-weight:600;color:var(--gold-soft);
+    background:rgba(221,167,66,.08);border:1px solid rgba(221,167,66,.25);padding:6px 12px;border-radius:999px;}
+  .tag svg{width:14px;height:14px;}
+  .voir-tout{text-align:center;margin-top:72px;}
 
-  /* result */
-  .result{text-align:center;}
-  .result .eyebrow{justify-content:center;}
-  .result .stat{font-family:'Roboto',sans-serif;font-weight:900;color:var(--gold);font-size:96px;line-height:1;display:inline-block;animation:statPulse 3.5s ease-in-out infinite;}
-  @keyframes statPulse{
-    0%,100%{transform:scale(1);text-shadow:0 0 0 rgba(227,169,74,0);}
-    50%{transform:scale(1.04);text-shadow:0 0 30px rgba(227,169,74,.45);}
+  /* ---------- Animations sur les telephones ---------- */
+  .etape .visuel.reveal{transform:translateY(50px) rotate(-5deg) scale(.94);transition:opacity .8s ease, transform .9s cubic-bezier(.2,.8,.2,1);}
+  .etape:nth-child(even) .visuel.reveal{transform:translateY(50px) rotate(5deg) scale(.94);}
+  .etape .visuel.reveal.is-visible{transform:none;}
+  .etape .phone{animation:flotte 7s ease-in-out infinite;}
+  .etape:nth-child(2) .phone{animation-delay:-2s;}
+  .etape:nth-child(3) .phone{animation-delay:-4s;}
+  .etape:nth-child(4) .phone{animation-delay:-1s;}
+  .scene .phone{animation:penche 9s ease-in-out infinite;}
+  @keyframes penche{0%,100%{transform:rotate(-3deg) translateY(0);}50%{transform:rotate(-1deg) translateY(-8px);}}
+  /* Dictee : ondes autour du micro */
+  .onde{position:absolute;left:50%;top:57.5%;width:46%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(221,167,66,.8);
+    transform:translate(-50%,-50%) scale(.75);opacity:0;animation:onde 2.4s ease-out infinite;pointer-events:none;}
+  .onde.deux{animation-delay:1.2s;}
+  @keyframes onde{0%{transform:translate(-50%,-50%) scale(.75);opacity:.9;}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0;}}
+  /* Devis rempli : reflet qui balaie l'ecran */
+  .balayage{position:absolute;left:0;right:0;top:-30%;height:28%;pointer-events:none;
+    background:linear-gradient(to bottom, transparent, rgba(221,167,66,.22), transparent);animation:balaye 3.2s ease-in-out infinite;}
+  @keyframes balaye{0%{top:-30%;}70%,100%{top:105%;}}
+  /* Signature : tampon "Signe" */
+  .tampon{position:absolute;top:60%;right:9%;z-index:2;font-family:'Poppins',sans-serif;font-weight:800;font-size:15px;color:#0d1b2a;
+    background:var(--green);padding:6px 12px;border-radius:10px;transform:rotate(-8deg);box-shadow:0 10px 24px -8px rgba(62,213,152,.7);
+    animation:tampon 4s ease-in-out infinite;}
+  @keyframes tampon{0%,15%{transform:rotate(-8deg) scale(2.2);opacity:0;}25%{transform:rotate(-8deg) scale(.92);opacity:1;}30%,85%{transform:rotate(-8deg) scale(1);opacity:1;}95%,100%{transform:rotate(-8deg) scale(1);opacity:0;}}
+  /* Factures : notification de paiement */
+  .notif{position:absolute;top:5.5%;left:4%;right:4%;z-index:2;display:flex;text-align:left;gap:8px;align-items:center;
+    background:rgba(38,44,56,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:14px;padding:8px 10px;
+    box-shadow:0 12px 30px -10px rgba(0,0,0,.8);animation:notif 5s cubic-bezier(.2,.8,.2,1) infinite;}
+  .notif img{width:26px;height:26px;border-radius:7px;background:#0d1b2a;padding:2px;flex:none;}
+  .notif b{display:block;font-size:10.5px;color:var(--cream);line-height:1.25;}
+  .notif span{display:block;font-size:10px;color:#b9c2cf;line-height:1.3;}
+  .notif .vert{color:var(--green);font-weight:700;}
+  @keyframes notif{0%,10%{transform:translateY(-150%);opacity:0;}20%,78%{transform:none;opacity:1;}90%,100%{transform:translateY(-150%);opacity:0;}}
+
+
+  /* ---------- Document client ---------- */
+  .doc-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;}
+  .feuille{
+    position:relative;border-radius:14px;overflow:hidden;background:#fff;
+    transform:perspective(1200px) rotateY(8deg) rotateX(2deg);
+    box-shadow:-30px 40px 80px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08);
+    -webkit-mask-image:linear-gradient(to bottom,#000 78%,transparent);mask-image:linear-gradient(to bottom,#000 78%,transparent);
   }
-  .result .stat-label{font-weight:700;font-size:19px;margin-top:8px;}
-  .result p{color:var(--muted);max-width:52ch;margin:20px auto 0;}
+  .liste-ok{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:14px;}
+  .liste-ok li{display:flex;gap:12px;align-items:flex-start;color:#c3cbd6;font-size:16px;}
+  .liste-ok li svg{width:22px;height:22px;flex:none;color:var(--gold);margin-top:1px;}
+  .liste-ok b{color:var(--cream);}
 
-  /* pricing */
-  .price-wrap{display:flex;justify-content:center;}
-  .price-card{
-    position:relative;overflow:hidden;background:var(--card);border:1px solid var(--card-border);
-    border-radius:18px;padding:40px 32px;max-width:420px;width:100%;text-align:center;
-    transition:transform .25s ease, box-shadow .25s ease;
+  /* ---------- Atouts ---------- */
+  .atouts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px;}
+  .atout{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;transition:border-color .25s ease, transform .25s ease;}
+  .atout:hover{border-color:rgba(221,167,66,.5);transform:translateY(-3px);}
+  .atout .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(221,167,66,.12);color:var(--gold);margin-bottom:16px;}
+  .atout .ico svg{width:22px;height:22px;}
+  .atout h3{font-size:17px;}
+  .atout p{color:var(--muted);font-size:14.5px;margin-top:6px;}
+
+  /* ---------- Resultat ---------- */
+  .resultat{text-align:center;background:radial-gradient(60% 80% at 50% 50%, rgba(11,42,91,.9), var(--bg-2) 75%);}
+  .stat{font-family:'Roboto',sans-serif;font-weight:900;font-size:clamp(72px,14vw,140px);line-height:1;color:var(--gold);text-shadow:0 0 60px rgba(221,167,66,.3);}
+  .stat-label{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(20px,3vw,28px);margin-top:8px;}
+  .resultat p{color:var(--muted);font-size:17px;max-width:520px;margin:16px auto 0;}
+
+  /* ---------- Prix ---------- */
+  .prix{max-width:520px;margin:0 auto;position:relative;border-radius:28px;padding:40px 32px;text-align:center;
+    background:linear-gradient(170deg,#132a4d,#0e1c30);border:1px solid rgba(221,167,66,.5);box-shadow:0 40px 80px -40px rgba(221,167,66,.4);}
+  .ruban{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--gold);color:#0d1b2a;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:6px 16px;border-radius:999px;}
+  .montant{font-family:'Poppins',sans-serif;font-weight:800;font-size:64px;line-height:1;margin:8px 0 6px;}
+  .prix .sous{color:var(--gold-soft);font-weight:600;}
+  .prix ul{list-style:none;padding:0;margin:26px 0 30px;display:grid;gap:12px;text-align:left;}
+  .prix li{display:flex;gap:10px;align-items:flex-start;font-size:15.5px;}
+  .prix li svg{width:18px;height:18px;flex:none;color:var(--green);margin-top:3px;}
+  .prix .btn{width:100%;}
+  .petit{font-size:13px;color:var(--muted);margin-top:16px;}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width:760px;margin:44px auto 0;display:grid;gap:12px;}
+  .faq details{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:0 22px;transition:border-color .2s ease;}
+  .faq details[open]{border-color:rgba(221,167,66,.45);}
+  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 0;
+    font-family:'Poppins',sans-serif;font-weight:600;font-size:16.5px;}
+  .faq summary::-webkit-details-marker{display:none;}
+  .faq summary::after{content:"+";font-size:26px;font-weight:400;color:var(--gold);transition:transform .2s ease;line-height:1;}
+  .faq details[open] summary::after{transform:rotate(45deg);}
+  .faq details p{color:var(--muted);padding:0 0 20px;font-size:15.5px;}
+
+  /* ---------- Appel final (dore, comme la pub) ---------- */
+  .final{background:var(--gold);color:#0d1b2a;padding:96px 0;}
+  .final-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;}
+  .final h2{font-size:clamp(40px,7vw,72px);font-weight:800;letter-spacing:-.025em;}
+  .final h2 s{text-decoration-color:#e5484d;text-decoration-thickness:.12em;}
+  .final p{font-family:'Poppins',sans-serif;font-weight:600;font-size:clamp(18px,2.4vw,22px);margin:22px 0 30px;}
+  .final .btn{background:#0d1b2a;color:var(--gold);box-shadow:0 14px 30px -12px rgba(13,27,42,.6);}
+  .final .btn:hover{background:#13263d;}
+  .final p.petit{font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#5a4316;margin:16px 0 0;}
+  .medaillon{width:220px;height:220px;border-radius:50%;background:#0d1b2a;display:grid;place-items:center;box-shadow:0 30px 60px -20px rgba(13,27,42,.6);}
+  .medaillon img{width:150px;height:150px;}
+
+  /* ---------- Pied de page ---------- */
+  footer{border-top:1px solid var(--line);padding:28px 0;background:var(--bg);}
+  .pied{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;font-size:14px;color:var(--muted);}
+  .pied-marque{display:flex;align-items:center;gap:10px;}
+  .pied-marque img{width:28px;height:28px;}
+  .pied-liens{display:flex;flex-wrap:wrap;align-items:center;gap:18px;}
+  .pied-liens a{text-decoration:none;}
+  .pied-liens a:hover{color:var(--gold);}
+  .pied-liens svg{width:20px;height:20px;}
+
+  /* Barre d'inscription collee en bas (mobile) */
+  .barre-mobile{display:none;}
+
+  /* ---------- Tablette / mobile ---------- */
+  @media (max-width:900px){
+    section{padding:64px 0;}
+    .hero{padding:32px 0 56px;}
+    .hero-grid,.doc-grid,.final-grid{grid-template-columns:1fr;}
+    .hero-grid{gap:20px;text-align:center;}
+    .hero .lead{margin-left:auto;margin-right:auto;}
+    .cta-row,.confiance{justify-content:center;}
+    .scene .phone{width:230px;}
+    .bulle-voix{left:2%;top:4%;max-width:170px;font-size:13px;}
+    .puce-signe{right:2%;bottom:8%;}
+    .douleurs,.atouts{grid-template-columns:1fr;}
+    .duel{grid-template-columns:1fr;}
+    .camp{padding:26px;}
+    .etapes{gap:72px;margin-top:48px;}
+    .etape{grid-template-columns:1fr;gap:28px;text-align:center;}
+    .etape:nth-child(even) .texte{order:0;}
+    .etape .texte p{margin-left:auto;margin-right:auto;}
+    .etape .phone{width:230px;}
+    .feuille{transform:none;max-width:520px;margin:0 auto;}
+    .final{text-align:center;padding:72px 0 88px;}
+    .medaillon{display:none;}
+    .pied{justify-content:center;text-align:center;}
+    .pied-liens{justify-content:center;}
   }
-  .price-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.35);}
-  .ribbon{
-    position:absolute;top:18px;right:-42px;background:var(--gold);color:#1a1305;
-    font-size:11px;font-weight:800;letter-spacing:.08em;padding:5px 46px;transform:rotate(45deg);
-  }
-  .price-card .eyebrow{justify-content:center;}
-  .price-card .price{font-family:'Roboto',sans-serif;font-weight:900;color:var(--gold);font-size:48px;}
-  .price-card .price .per{font-family:'Montserrat',sans-serif;color:var(--muted);font-size:15px;font-weight:400;}
-  .price-card .highlight{color:var(--gold);font-weight:700;font-size:14px;margin-top:6px;}
-  .price-card .trial{color:var(--muted);font-size:14px;margin-top:4px;margin-bottom:28px;}
-  .price-list{list-style:none;padding:0;margin:0 0 28px;text-align:left;}
-  .price-list li{display:flex;gap:10px;padding:8px 0;font-size:14.5px;color:var(--cream);}
-  .price-list li svg{flex-shrink:0;margin-top:2px;color:var(--green);}
-  .price-card .btn{width:100%;}
-
-  /* faq */
-  .faq{max-width:720px;margin:0 auto;}
-  .faq-item{border-bottom:1px solid var(--card-border);padding:22px 0;}
-  .faq-item h3{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px;}
-  .faq-item p{color:var(--muted);font-size:14.5px;margin:0;}
-
-  /* final cta */
-  .final-cta{text-align:center;}
-  .final-cta h2{font-size:36px;margin-bottom:28px;}
-
-  /* footer */
-  footer{border-top:1px solid var(--card-border);padding:28px 0;}
-  .foot-wrap{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;}
-  .foot-brand{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;}
-  .foot-brand img{width:20px;height:20px;object-fit:contain;}
-  .foot-links{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:center;}
-  .foot-links a{color:var(--muted);font-size:14px;text-decoration:none;}
-  .foot-links a:hover{color:var(--cream);}
-  .foot-insta{display:inline-flex;color:var(--gold);}
-  .foot-insta svg{width:22px;height:22px;display:block;}
-  .foot-insta:hover{color:var(--cream);}
-
-  @media (min-width:860px){
-    .hero-grid{grid-template-columns:1.1fr .9fr;}
-    .hero h1{font-size:56px;}
-    .cards3{grid-template-columns:repeat(3,1fr);}
-    .result .stat{font-size:120px;}
-    .foot-wrap{flex-direction:row;justify-content:space-between;text-align:left;}
-  }
-
-  @media (max-width:859px){
-    .nav{justify-content:center;padding:10px 24px;}
+  @media (max-width:640px){
+    .long{display:none;}
+    .court{display:inline;}
     .nav .btn-sm{display:none;}
-    .brand{gap:4px;}
-    .brand img{width:56px;height:56px;}
-    .brand span{font-size:23px;}
-    .hero{padding:28px 0 32px;}
-
-    /* offre de lancement : moins d'espace vide */
-    .price-card{padding:22px 20px;}
-    .price-card .eyebrow{margin-bottom:8px;}
-    .price-card .price{line-height:1.1;}
-    .price-card .price .per{display:block;margin-top:2px;font-size:13px;}
-    .price-card .highlight{margin-top:4px;}
-    .price-card .trial{margin-top:2px;margin-bottom:14px;}
-    .price-list{margin:0 0 14px;}
-    .price-list li{padding:4px 0;}
-    .price-card .fine-print{margin-top:10px;font-size:12px;}
-
-    /* bas de page : moins d'espace entre le CTA final et le footer */
-    section.final-cta{padding-bottom:20px;}
-    footer{padding-top:20px;}
+    .nav{justify-content:center;}
+    .btn{width:100%;}
+    .cta-row{flex-direction:column;}
+    .btn-ghost{justify-content:center;width:100%;}
+    .barre-mobile{
+      display:block;position:fixed;left:0;right:0;bottom:0;z-index:60;
+      padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+      background:rgba(13,27,42,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border-top:1px solid var(--line);
+    }
+    .barre-mobile .btn{padding:14px;font-size:15px;}
+    footer{padding-bottom:96px;}
+    .douleur,.atout{display:grid;grid-template-columns:44px 1fr;column-gap:14px;padding:18px;}
+    .douleur .ico,.atout .ico{grid-row:span 2;margin-bottom:0;}
+    .douleur p,.atout p{margin-top:4px;font-size:14px;}
+    .douleurs,.atouts{gap:10px;margin-top:32px;}
+    .etapes{gap:56px;}
+    .etape .phone{width:210px;}
+    .scene .phone{width:210px;}
+    .temps{margin:14px 0;}
+    .camp li{font-size:15px;}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="nav">
+  <div class="wrap nav">
     <a class="brand" href="#top">
       <img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="Logo VolpeVox">
       <span>Volpe<span class="vox">Vox</span></span>
     </a>
-    <a class="btn btn-sm" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
+    <a class="btn btn-sm" href="https://app.volpevox.fr/connexion?mode=inscription"><span class="long">Créer mon compte gratuitement</span><span class="court">Essayer gratuitement</span></a>
   </div>
 </header>
 
 <main id="top">
 
+  <!-- ===== Hero ===== -->
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <div class="eyebrow">
-          <span class="bars"><span></span><span></span><span></span></span>
-          Pensé pour les artisans
-        </div>
+        <div class="pill"><i></i>Gratuit pendant le lancement</div>
         <h1>Récupère tes<br><span class="gold">soirées</span>.</h1>
-        <p class="lead">Dicte ta prestation à voix haute, VolpeVox transforme ça en devis, en facture, en relance et en encaissement. Le soir, tu rentres chez toi la paperasse déjà faite.</p>
-        <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
-        <div class="fine-print">Gratuit pendant le lancement · sans carte bancaire · prêt en 2 minutes</div>
-      </div>
-      <div>
-        <div class="mock-card">
-          <div class="who">Bonjour Marc</div>
-          <div class="avatar-ring"></div>
-          <img class="avatar" src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="">
-          <div class="eyebrow" style="justify-content:center;margin-bottom:0;">
-            <span class="bars"><span></span><span></span><span></span></span>
-          </div>
-          <div class="bubble">« Peinture cuisine, douze mètres carrés, quatre cents euros »</div>
+        <p class="lead">Tu <b>dictes ton chantier</b> en 30 secondes. VolpeVox rédige le devis, ton client le <b>signe sur son téléphone</b>, et tu factures en 1 clic.</p>
+        <div class="cta-row">
+          <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">
+            Créer mon compte gratuitement
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn-ghost" href="#comment">Voir comment ça marche</a>
         </div>
-        <div class="float-tag">
-          <div class="badge">✓ Prêt à envoyer</div>
-          <div class="label">Devis — Peinture cuisine</div>
-          <div class="amount">400,00&nbsp;€</div>
+        <div class="confiance">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Sans carte bancaire</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Prêt en 2 minutes</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Données hébergées en Europe</span>
+        </div>
+      </div>
+
+      <div class="scene" aria-hidden="true">
+        <div class="halo"></div>
+        <div class="bulle bulle-voix">
+          <small><span class="bars"><span></span><span></span><span></span><span></span></span>Tu dictes</small>
+          « Mme Martin, 25 m² de faïence, 30 € le mètre »
+        </div>
+        <div class="phone">
+          <div class="ecran defile">
+            <img src="https://app.volpevox.fr/landing/ecran-dictee.webp" alt="">
+            <img src="https://app.volpevox.fr/landing/ecran-resume.webp" alt="" loading="lazy">
+          </div>
+        </div>
+        <div class="puce-signe">
+          <div class="rond">✓</div>
+          <div><b>Devis prêt</b><span>750,00&nbsp;€</span></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="alt">
+  <!-- ===== 21:47 ===== -->
+  <section class="alt horloge">
     <div class="wrap">
-      <div class="section-head reveal">
-        <div class="eyebrow">Le constat</div>
-        <h2>Le soir, tu devrais être avec les tiens.</h2>
-        <p>Pas devant l'ordinateur à retaper le devis de la prestation de l'après-midi. Pas à chercher le prix que tu avais fait au client d'avant. Pas à courir après une facture impayée depuis trois semaines.</p>
-      </div>
-      <div class="cards3">
-        <div class="card reveal">
-          <div class="icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          </div>
+      <div class="heure reveal">21:47</div>
+      <h2 class="reveal">T'es encore sur tes <span class="rouge">devis</span>&nbsp;?</h2>
+      <p class="reveal">Le soir, tu devrais être avec les tiens. Pas devant l'ordinateur à retaper le chantier de l'après-midi.</p>
+      <div class="douleurs">
+        <div class="douleur reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
           <h3>Des devis refaits à la main</h3>
-          <p>Le même texte retapé prestation après prestation, avec le risque d'oublier une ligne ou de se tromper de prix.</p>
+          <p>Le même texte retapé chantier après chantier, avec le risque d'oublier une ligne ou de se tromper de prix.</p>
         </div>
-        <div class="card reveal">
-          <div class="icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
-          </div>
+        <div class="douleur reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div>
           <h3>Des relances qu'on oublie</h3>
           <p>Le devis envoyé il y a dix jours, jamais relancé, jamais signé. Le client qui a fini par appeler quelqu'un d'autre.</p>
         </div>
-        <div class="card reveal">
-          <div class="icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          </div>
+        <div class="douleur reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
           <h3>Des paiements qui traînent</h3>
-          <p>Des semaines à attendre un virement, sans jamais savoir si c'est oublié, contesté, ou juste en retard.</p>
+          <p>Des semaines à attendre un virement, sans savoir si c'est oublié, contesté, ou juste en retard.</p>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ===== Avant / apres ===== -->
   <section>
     <div class="wrap">
-      <div class="section-head center-head reveal">
-        <div class="eyebrow">Comment ça marche</div>
-        <h2>Trois étapes, pas plus.</h2>
-        <p>Tout se passe sur le terrain, depuis ton téléphone.</p>
+      <div class="tete reveal">
+        <div class="eyebrow">Le même devis</div>
+        <h2>45 minutes le soir,<br>ou <span class="gold">30 secondes</span> sur place.</h2>
       </div>
-      <div class="steps">
-        <div class="step reveal">
-          <div class="num">01</div>
-          <div class="rule"></div>
-          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
-          <h3>Tu dictes</h3>
-          <p>Tu décris la prestation et le prix, à voix haute, comme tu le ferais à un collègue. Pas besoin de taper.</p>
+      <div class="duel">
+        <div class="camp avant reveal">
+          <span class="etiq">Avant</span>
+          <div class="temps">45<small>min</small></div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>Le soir, sur l'ordi</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>Tout retaper, calculer les totaux</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>Imprimer, faire signer, scanner</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>Attendre le chèque</li>
+          </ul>
         </div>
-        <div class="step reveal">
-          <div class="num">02</div>
-          <div class="rule"></div>
-          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div>
-          <h3>VolpeVox rédige</h3>
-          <p>Le devis est rempli automatiquement, avec les bons prix — il apprend de tes prestations précédentes.</p>
+        <div class="camp apres reveal">
+          <span class="etiq">Avec VolpeVox</span>
+          <div class="temps">30<small>s</small></div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Dicté dans le camion</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Rempli et calculé tout seul</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Signé sur le téléphone du client</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Payé en ligne, par carte</li>
+          </ul>
         </div>
-        <div class="step reveal">
-          <div class="num">03</div>
-          <div class="rule"></div>
-          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
-          <h3>Le client signe, tu es payé</h3>
-          <p>Signature électronique sur son téléphone, facture générée en un clic, paiement en ligne sans commission.</p>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:40px;">
-        <a class="btn" href="/comment-ca-marche">Comment ça marche, étape par étape</a>
       </div>
     </div>
   </section>
 
-  <section class="alt result">
+  <!-- ===== Etapes avec les vrais ecrans ===== -->
+  <section class="alt" id="comment">
+    <div class="wrap">
+      <div class="tete reveal">
+        <div class="eyebrow"><span class="bars"><span></span><span></span><span></span><span></span></span>Comment ça marche</div>
+        <h2>Du chantier au paiement,<br>sur ton téléphone.</h2>
+        <p>Les vrais écrans de l'appli. Rien à installer : ça marche dans le navigateur.</p>
+      </div>
+
+      <div class="etapes">
+        <div class="etape">
+          <div class="texte reveal">
+            <div class="num">1</div>
+            <h3>Tu dictes</h3>
+            <p>Appuie sur le micro et décris le chantier comme à un collègue : le client, les travaux, le prix. Pas besoin de taper.</p>
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>Si tu sais envoyer un vocal, tu sais l'utiliser</span>
+          </div>
+          <div class="visuel reveal"><div class="phone"><div class="ecran"><img src="https://app.volpevox.fr/landing/ecran-dictee.webp" alt="Écran de dictée VolpeVox : un gros bouton micro doré" loading="lazy"><span class="onde"></span><span class="onde deux"></span></div></div></div>
+        </div>
+
+        <div class="etape">
+          <div class="texte reveal">
+            <div class="num">2</div>
+            <h3>C'est rempli</h3>
+            <p>Client, lignes, quantités, totaux : le devis se remplit tout seul. Les prix viennent de ton carnet, qui apprend de tes devis précédents. Une correction ? Touche la ligne.</p>
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Tu vérifies, tu valides</span>
+          </div>
+          <div class="visuel reveal"><div class="phone"><div class="ecran"><img src="https://app.volpevox.fr/landing/ecran-resume.webp" alt="Devis rempli automatiquement après la dictée" loading="lazy"><span class="balayage"></span></div></div></div>
+        </div>
+
+        <div class="etape">
+          <div class="texte reveal">
+            <div class="num">3</div>
+            <h3>Ton client signe sur son téléphone</h3>
+            <p>Il reçoit le devis par email, l'ouvre et signe avec son doigt. Tu es prévenu à la seconde où c'est signé. Pas relancé ? VolpeVox s'en charge.</p>
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Signature électronique incluse</span>
+          </div>
+          <div class="visuel reveal"><div class="phone"><div class="ecran"><img src="https://app.volpevox.fr/landing/ecran-signature.webp" alt="Le client signe le devis avec son doigt" loading="lazy"><span class="tampon">✓ Signé</span></div></div></div>
+        </div>
+
+        <div class="etape">
+          <div class="texte reveal">
+            <div class="num">4</div>
+            <h3>Tu factures, il paie en ligne</h3>
+            <p>Le devis signé devient une facture en un clic. Ton client paie par carte, l'argent arrive sur ton compte, <b>sans commission VolpeVox</b>. Tu vois d'un coup d'œil qui t'a payé.</p>
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Carte, Apple Pay, Google Pay</span>
+          </div>
+          <div class="visuel reveal"><div class="phone"><div class="ecran"><img src="https://app.volpevox.fr/landing/ecran-factures.webp" alt="Page Factures : facture réglée par carte bancaire" loading="lazy"><div class="notif"><img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt=""><div><b>VolpeVox</b><span><span class="vert">Paiement reçu · 816 €</span>Claire Martin a payé</span></div></div></div></div></div>
+        </div>
+      </div>
+
+      <div class="voir-tout reveal">
+        <a class="btn-ghost" href="/comment-ca-marche">Le parcours complet, étape par étape →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Le document recu par le client ===== -->
+  <section>
+    <div class="wrap doc-grid">
+      <div class="reveal">
+        <div class="eyebrow">Ce que reçoit ton client</div>
+        <h2>Un devis qui fait <span class="gold">pro</span>.<br>À ton nom.</h2>
+        <ul class="liste-ok">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span><b>Ton logo, tes coordonnées</b> : c'est ton entreprise qui est mise en avant.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span><b>Mentions légales à jour</b> : SIRET, TVA ou franchise, validité, conditions de paiement.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span><b>Numérotation automatique</b> des devis, factures et avoirs.</span></li>
+        </ul>
+      </div>
+      <div class="reveal">
+        <div class="feuille"><img src="https://app.volpevox.fr/landing/pdf-devis.webp" alt="Exemple de devis PDF généré par VolpeVox" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Atouts ===== -->
+  <section class="alt">
+    <div class="wrap">
+      <div class="tete reveal">
+        <div class="eyebrow">Et en plus</div>
+        <h2>Tout ce qui te fait perdre du temps, réglé.</h2>
+      </div>
+      <div class="atouts">
+        <div class="atout reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+          <h3>Relances automatiques</h3>
+          <p>Devis pas signé, facture pas payée : le client est relancé poliment à ta place.</p>
+        </div>
+        <div class="atout reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+          <h3>Un carnet de prix qui apprend</h3>
+          <p>Tes tarifs habituels sont retenus et proposés tout seuls au devis suivant.</p>
+        </div>
+        <div class="atout reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div>
+          <h3>Nuit, dimanche, férié</h3>
+          <p>Dis « dimanche » en dictant : la majoration s'ajoute toute seule.</p>
+        </div>
+        <div class="atout reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/></svg></div>
+          <h3>Facture directe</h3>
+          <p>Prix déjà convenu à l'oral ? Dicte directement la facture, sans repasser par un devis.</p>
+        </div>
+        <div class="atout reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+          <h3>Paiement en ligne</h3>
+          <p>Un bouton « Payer » dans chaque facture. Sans commission VolpeVox.</p>
+        </div>
+        <div class="atout reveal">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+          <h3>Envoi en un geste</h3>
+          <p>Par email, WhatsApp ou SMS, directement depuis ton téléphone.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Resultat ===== -->
+  <section class="resultat">
     <div class="wrap reveal">
       <div class="eyebrow">Le résultat</div>
-      <div class="stat">2 à 4h</div>
+      <div class="stat">2 à 4 h</div>
       <div class="stat-label">récupérées chaque jour</div>
       <p>Le temps que tu passais sur la paperasse, le soir ou le week-end. Rendu à ta famille, à tes clients, à toi.</p>
     </div>
   </section>
 
+  <!-- ===== Prix ===== -->
   <section>
-    <div class="wrap price-wrap">
-      <div class="price-card reveal">
-        <div class="ribbon">Lancement</div>
-        <div class="eyebrow">Offre de lancement</div>
-        <div class="price">Gratuit</div>
-        <div class="highlight">Pendant toute la durée du lancement</div>
-        <div class="trial">Accès complet · aucune carte bancaire demandée</div>
-        <ul class="price-list">
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Devis et factures dictés à la voix, illimités</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Signature électronique sur le téléphone du client</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Relances automatiques (devis, factures impayées)</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Paiement en ligne, sans commission VolpeVox</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Carnet de prix qui apprend de tes devis précédents</li>
+    <div class="wrap">
+      <div class="prix reveal">
+        <div class="ruban">Lancement</div>
+        <div class="eyebrow" style="margin-bottom:6px;">Offre de lancement</div>
+        <div class="montant">Gratuit</div>
+        <div class="sous">Pendant toute la durée du lancement</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Devis et factures dictés à la voix, illimités</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Signature électronique sur le téléphone du client</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Relances automatiques (devis, factures impayées)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Paiement en ligne, sans commission VolpeVox</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Carnet de prix qui apprend de tes devis précédents</li>
         </ul>
         <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
-        <div class="fine-print">Les artisans inscrits pendant le lancement bénéficieront d'un tarif préférentiel pendant 12 mois le jour où VolpeVox deviendra payant.</div>
+        <p class="petit">Accès complet, aucune carte bancaire demandée. Les artisans inscrits pendant le lancement bénéficieront d'un tarif préférentiel pendant 12 mois le jour où VolpeVox deviendra payant.</p>
       </div>
     </div>
   </section>
 
+  <!-- ===== FAQ ===== -->
   <section class="alt">
-    <div class="wrap faq">
-      <h2 style="text-align:center;font-size:32px;margin-bottom:40px;">Questions fréquentes</h2>
-      <div class="faq-item reveal">
-        <h3>Je ne suis pas doué avec les outils numériques, c'est compliqué ?</h3>
-        <p>Non. Si tu sais envoyer un message vocal, tu sais utiliser VolpeVox.</p>
-      </div>
-      <div class="faq-item reveal">
-        <h3>Mes données et celles de mes clients sont en sécurité ?</h3>
-        <p>Oui. Tes données sont hébergées en Europe et restent strictement confidentielles, réservées à ton usage.</p>
-      </div>
-      <div class="faq-item reveal">
-        <h3>C'est vraiment gratuit ?</h3>
-        <p>Oui. VolpeVox est gratuit pendant toute la durée du lancement : accès complet, sans carte bancaire et sans engagement. Le jour où l'outil deviendra payant, tu seras prévenu bien à l'avance — et les artisans inscrits pendant le lancement bénéficieront d'un tarif préférentiel pendant 12 mois.</p>
-      </div>
-      <div class="faq-item reveal">
-        <h3>Je peux arrêter quand je veux ?</h3>
-        <p>Oui. Rien ne t'engage : tu utilises VolpeVox tant que ça t'aide, et tu arrêtes quand tu veux.</p>
-      </div>
-      <div class="faq-item reveal" style="border-bottom:none;">
-        <h3>Je peux facturer sans avoir fait de devis avant ?</h3>
-        <p>Oui. Si tu es déjà d'accord avec ton client sur le prix, dicte directement la facture — pas besoin de repasser par un devis ni une signature.</p>
+    <div class="wrap">
+      <div class="tete reveal"><h2>Questions fréquentes</h2></div>
+      <div class="faq">
+        <details class="reveal">
+          <summary>Je ne suis pas doué avec les outils numériques, c'est compliqué ?</summary>
+          <p>Non. Si tu sais envoyer un message vocal, tu sais utiliser VolpeVox.</p>
+        </details>
+        <details class="reveal">
+          <summary>Je dois installer une application ?</summary>
+          <p>Non. VolpeVox s'ouvre dans le navigateur de ton téléphone. Tu peux l'ajouter à ton écran d'accueil pour l'ouvrir comme une appli, en un geste.</p>
+        </details>
+        <details class="reveal">
+          <summary>Mes données et celles de mes clients sont en sécurité ?</summary>
+          <p>Oui. Tes données sont hébergées en Europe et restent strictement confidentielles, réservées à ton usage.</p>
+        </details>
+        <details class="reveal">
+          <summary>C'est vraiment gratuit ?</summary>
+          <p>Oui. VolpeVox est gratuit pendant toute la durée du lancement : accès complet, sans carte bancaire et sans engagement. Le jour où l'outil deviendra payant, tu seras prévenu bien à l'avance, et les artisans inscrits pendant le lancement bénéficieront d'un tarif préférentiel pendant 12 mois.</p>
+        </details>
+        <details class="reveal">
+          <summary>Je peux arrêter quand je veux ?</summary>
+          <p>Oui. Rien ne t'engage : tu utilises VolpeVox tant que ça t'aide, et tu arrêtes quand tu veux.</p>
+        </details>
+        <details class="reveal">
+          <summary>Je peux facturer sans avoir fait de devis avant ?</summary>
+          <p>Oui. Si tu es déjà d'accord avec ton client sur le prix, dicte directement la facture : pas besoin de repasser par un devis ni une signature.</p>
+        </details>
       </div>
     </div>
   </section>
 
-  <section class="final-cta">
-    <div class="wrap reveal">
-      <h2>Prêt à récupérer tes soirées ?</h2>
-      <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
-      <div class="fine-print">Gratuit pendant le lancement · sans carte bancaire · sans engagement</div>
+  <!-- ===== Appel final ===== -->
+  <section class="final">
+    <div class="wrap final-grid">
+      <div class="reveal">
+        <h2>Arrête de faire<br>tes devis <s>le soir</s>.</h2>
+        <p>Dicte-le sur le chantier. VolpeVox fait le reste.</p>
+        <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
+        <p class="petit">Gratuit pendant le lancement · sans carte bancaire · sans engagement</p>
+      </div>
+      <div class="medaillon reveal"><img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt=""></div>
     </div>
   </section>
 
 </main>
 
 <footer>
-  <div class="wrap foot-wrap">
-    <div class="foot-brand">
+  <div class="wrap pied">
+    <div class="pied-marque">
       <img src="https://www.volpevox.fr/wp-content/uploads/2026/08/logo-volpevox-transparant.png" alt="">
       © 2026 VolpeVox
     </div>
-    <div class="foot-links">
-      <a class="foot-insta" href="https://www.instagram.com/volpetechlabs/" target="_blank" rel="noreferrer" aria-label="VolpeVox sur Instagram">
+    <div class="pied-liens">
+      <a href="https://www.instagram.com/volpetechlabs/" target="_blank" rel="noreferrer" aria-label="VolpeVox sur Instagram">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/>
           <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/>
@@ -493,6 +705,10 @@
     </div>
   </div>
 </footer>
+
+<div class="barre-mobile">
+  <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
+</div>
 
 <img src="reveal-init-trigger" alt="" style="display:none" onerror="(function(){function i(){var t=document.querySelectorAll('.reveal');if(!t.length)return;if(!('IntersectionObserver' in window)){t.forEach(function(e){e.classList.add('is-visible')});return}var o=new IntersectionObserver(function(a){a.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-visible');o.unobserve(e.target)}})},{threshold:.15,rootMargin:'0px 0px -40px 0px'});t.forEach(function(e){o.observe(e)})}'complete'===document.readyState?i():window.addEventListener('load',i)})()">
 
