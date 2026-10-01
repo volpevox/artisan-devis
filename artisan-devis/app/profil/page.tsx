@@ -156,7 +156,7 @@ export default function Profil() {
   }
 
   async function enregistrer() {
-    if (!prenom.trim() || !nom.trim() || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
+    if ((!estSociete && (!prenom.trim() || !nom.trim())) || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
       setMessage("Merci de remplir tous les champs obligatoires (marqués d'un *).");
       return;
     }
@@ -265,6 +265,13 @@ export default function Profil() {
 
     setMessage("Profil enregistré !");
   }
+
+  // En societe, le prenom et le nom (du gerant) sont facultatifs.
+  const etoileOuFacultatif = estSociete ? (
+    <span style={{ fontWeight: 400 }}>(facultatif)</span>
+  ) : (
+    <span className="obligatoire">*</span>
+  );
 
   // Question "A ton nom / En societe" et champs propres aux societes,
   // communs a l'ecran de depart (prefixe "d") et au profil complet ("p").
@@ -378,7 +385,7 @@ export default function Profil() {
             {choixStatut}
             <div className="champ">
               <label className="champ-label" htmlFor="d-prenom">
-                Prénom <span className="obligatoire">*</span>
+                Prénom {etoileOuFacultatif}
               </label>
               <input
                 id="d-prenom"
@@ -390,7 +397,7 @@ export default function Profil() {
             </div>
             <div className="champ">
               <label className="champ-label" htmlFor="d-nom">
-                Nom <span className="obligatoire">*</span>
+                Nom {etoileOuFacultatif}
               </label>
               <input
                 id="d-nom"
@@ -481,7 +488,7 @@ export default function Profil() {
   // facultatif) et parcours de la carte de visite. Calcule sur les valeurs
   // en cours de saisie : la carte se met a jour en direct.
   const okIdentite = Boolean(
-    prenom.trim() && nom.trim() && telephone.trim() && estSociete !== null && (!estSociete || nomEntreprise.trim())
+    telephone.trim() && estSociete !== null && (estSociete ? nomEntreprise.trim() : prenom.trim() && nom.trim())
   );
   const okAdresse = Boolean(adresse.trim() && codePostal.trim() && ville.trim());
   const okLegal = Boolean(siret.trim() && tauxTva.trim() && (!estSociete || (formeCapital.trim() && rcsVille.trim())));
@@ -576,7 +583,7 @@ export default function Profil() {
         {choixStatut}
         <div className="champ">
           <label className="champ-label" htmlFor="p-prenom">
-            Prénom <span className="obligatoire">*</span>
+            Prénom {etoileOuFacultatif}
           </label>
           <input
             id="p-prenom"
@@ -588,7 +595,7 @@ export default function Profil() {
         </div>
         <div className="champ">
           <label className="champ-label" htmlFor="p-nom">
-            Nom <span className="obligatoire">*</span>
+            Nom {etoileOuFacultatif}
           </label>
           <input
             id="p-nom"

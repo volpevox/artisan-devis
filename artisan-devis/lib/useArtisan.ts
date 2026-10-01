@@ -21,7 +21,8 @@ let verificationAccesGratuitFaite = false;
 // qu'il est "truthy".
 export function profilComplet(profil: any) {
   return Boolean(
-    profil?.nom_complet?.trim() &&
+    // En societe, le prenom/nom est facultatif : le nom de la societe suffit.
+    (profil?.nom_complet?.trim() || (profil?.est_societe === true && profil?.nom_entreprise?.trim())) &&
       profil?.telephone?.trim() &&
       profil?.adresse?.trim() &&
       profil?.code_postal?.trim() &&
@@ -74,7 +75,7 @@ export function useArtisanSession() {
         supabase
           .from("artisans")
           .select(
-            "id, abonnement_actif, prenom, nom_complet, nom_entreprise, telephone, adresse, code_postal, ville, siret, taux_tva, stripe_paiement_actif"
+            "id, abonnement_actif, prenom, nom_complet, nom_entreprise, est_societe, telephone, adresse, code_postal, ville, siret, taux_tva, stripe_paiement_actif"
           )
           .eq("user_id", sessionValide.user.id)
           .maybeSingle()
