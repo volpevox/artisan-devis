@@ -311,117 +311,50 @@ export default function Parametres() {
         </div>
       </div>
 
-      {/* --- Recommander (bouche-a-oreille entre artisans) --- */}
+      {/* --- Bien demarrer --- */}
       <div className="reglages-groupe">
+        <p className="reglages-groupe-titre">Bien démarrer</p>
         <div className="reglages-liste">
-          <button type="button" className="reglages-item" onClick={recommander}>
+          <Link href="/parametres/comment-ca-marche" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="9" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M2.5 20c.9-3.4 3.3-5.2 6.5-5.2s5.6 1.8 6.5 5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                <path d="M18.5 8v6M15.5 11h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
+                <path
+                  d="M9.5 9.3a2.5 2.5 0 1 1 3.3 2.4c-.7.3-1.3.9-1.3 1.8v.3"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="12" cy="16.8" r="1" fill="currentColor" />
               </svg>
             </span>
             <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Recommander VolpeVox à un collègue</span>
-              <span className="reglages-item-sous">
-                {lienRecoCopie ? "✓ Message copié, colle-le où tu veux" : "Envoie-lui le lien par WhatsApp ou SMS"}
-              </span>
+              <span className="reglages-item-titre">Comment ça marche</span>
+              <span className="reglages-item-sous">Le parcours complet, de la dictée au paiement</span>
+            </span>
+            <span className="reglages-item-fin">
+              <Chevron />
+            </span>
+          </Link>
+
+          <button type="button" className="reglages-item" onClick={() => setVideoOuverte(true)}>
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M10 8.5v7l5.5-3.5z" fill="currentColor" />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Vidéo tuto</span>
+              <span className="reglages-item-sous">VolpeVox en une minute</span>
             </span>
             <span className="reglages-item-fin">
               <Chevron />
             </span>
           </button>
-        </div>
-      </div>
+          {videoOuverte ? <LecteurVideoTuto onFermer={() => setVideoOuverte(false)} /> : null}
 
-      {/* --- Compte --- */}
-      <div className="reglages-groupe">
-        <p className="reglages-groupe-titre">Compte</p>
-        <div className="reglages-liste">
-          <Link href="/abonnement" className="reglages-item">
-            <span className="reglages-item-icone">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M3 9.5h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Mon abonnement</span>
-              <span className="reglages-item-sous">
-                {MODE_GRATUIT ? "Gratuit pendant le lancement" : "Gérer mon abonnement VolpeVox"}
-              </span>
-            </span>
-            <span className="reglages-item-fin">
-              <Chevron />
-            </span>
-          </Link>
-
-          {stripePaiementActif ? (
-            <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="reglages-item">
-              <span className="reglages-item-icone">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <span className="reglages-item-corps">
-                <span className="reglages-item-titre">Paiement en ligne</span>
-                <span className="reglages-item-sous">Voir mon espace Stripe</span>
-              </span>
-              <span className="reglages-item-fin">
-                <span className="pastille-etat ok">Activé</span>
-                <Chevron />
-              </span>
-            </a>
-          ) : (
-            <button type="button" className="reglages-item" onClick={connecterPaiements} disabled={enCoursStripe}>
-              <span className="reglages-item-icone">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <span className="reglages-item-corps">
-                <span className="reglages-item-titre">Paiement en ligne</span>
-                <span className="reglages-item-sous">
-                  {enCoursStripe
-                    ? "Ouverture de Stripe..."
-                    : stripeAccountId
-                    ? "Reprendre l'inscription Stripe"
-                    : "Tes clients paient par carte"}
-                </span>
-              </span>
-              <span className="reglages-item-fin">
-                <span className="pastille-etat">À connecter</span>
-                <Chevron />
-              </span>
-            </button>
-          )}
-
-          <Link href="/parametres/mot-de-passe" className="reglages-item">
-            <span className="reglages-item-icone">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Mot de passe</span>
-              <span className="reglages-item-sous">Modifier mon mot de passe</span>
-            </span>
-            <span className="reglages-item-fin">
-              <Chevron />
-            </span>
-          </Link>
-        </div>
-        {message && <p className="message">{message}</p>}
-      </div>
-
-      {/* --- Application --- */}
-      <div className="reglages-groupe">
-        <p className="reglages-groupe-titre">Application</p>
-        <div className="reglages-liste">
           <Link href="/parametres/ajout-ecran-accueil" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -443,77 +376,13 @@ export default function Parametres() {
               <Chevron />
             </span>
           </Link>
+        </div>
+      </div>
 
-          <button
-            type="button"
-            className="reglages-item"
-            onClick={basculerNotifications}
-            disabled={notifEnCours || etatNotifications === "verification" || etatNotifications === "indisponible"}
-          >
-            <span className="reglages-item-icone">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.2 1-.5 1.4L5 15h14l-1.5-2.4a2 2 0 0 1-.5-1.4V8a5 5 0 0 0-5-5Z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Notifications</span>
-              <span className="reglages-item-sous">
-                {etatNotifications === "indisponible"
-                  ? "Non disponible sur ce navigateur"
-                  : etatNotifications === "actif"
-                  ? "Alertes activées"
-                  : "Être alerté des signatures et paiements"}
-              </span>
-            </span>
-            <span className="reglages-item-fin">
-              {etatNotifications === "indisponible" ? (
-                <Chevron />
-              ) : (
-                <span className="interrupteur">
-                  <span
-                    className="interrupteur-piste"
-                    data-actif={etatNotifications === "actif" ? "oui" : "non"}
-                  />
-                </span>
-              )}
-            </span>
-          </button>
-
-          {etatNotifications === "actif" && (
-            <button
-              type="button"
-              className="reglages-item"
-              onClick={testerNotifications}
-              disabled={notifEnCours}
-            >
-              <span className="reglages-item-icone">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="M5 12l4 4L19 6"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <span className="reglages-item-corps">
-                <span className="reglages-item-titre">Envoyer une notification test</span>
-                <span className="reglages-item-sous">Vérifier d'un geste que les alertes arrivent bien</span>
-              </span>
-              <span className="reglages-item-fin">
-                <Chevron />
-              </span>
-            </button>
-          )}
-
+      {/* --- Mes envois (relances, copie, paiement en ligne) --- */}
+      <div className="reglages-groupe">
+        <p className="reglages-groupe-titre">Mes envois</p>
+        <div className="reglages-liste">
           <button
             type="button"
             className="reglages-item"
@@ -585,6 +454,125 @@ export default function Parametres() {
             </span>
           </button>
 
+          {stripePaiementActif ? (
+            <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="reglages-item">
+              <span className="reglages-item-icone">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              </span>
+              <span className="reglages-item-corps">
+                <span className="reglages-item-titre">Paiement en ligne</span>
+                <span className="reglages-item-sous">Voir mon espace Stripe</span>
+              </span>
+              <span className="reglages-item-fin">
+                <span className="pastille-etat ok">Activé</span>
+                <Chevron />
+              </span>
+            </a>
+          ) : (
+            <button type="button" className="reglages-item" onClick={connecterPaiements} disabled={enCoursStripe}>
+              <span className="reglages-item-icone">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              </span>
+              <span className="reglages-item-corps">
+                <span className="reglages-item-titre">Paiement en ligne</span>
+                <span className="reglages-item-sous">
+                  {enCoursStripe
+                    ? "Ouverture de Stripe..."
+                    : stripeAccountId
+                    ? "Reprendre l'inscription Stripe"
+                    : "Tes clients paient par carte"}
+                </span>
+              </span>
+              <span className="reglages-item-fin">
+                <span className="pastille-etat">À connecter</span>
+                <Chevron />
+              </span>
+            </button>
+          )}
+        </div>
+        {message && <p className="message">{message}</p>}
+      </div>
+
+      {/* --- Application --- */}
+      <div className="reglages-groupe">
+        <p className="reglages-groupe-titre">Application</p>
+        <div className="reglages-liste">
+          <button
+            type="button"
+            className="reglages-item"
+            onClick={basculerNotifications}
+            disabled={notifEnCours || etatNotifications === "verification" || etatNotifications === "indisponible"}
+          >
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 3a5 5 0 0 0-5 5v3.2c0 .5-.2 1-.5 1.4L5 15h14l-1.5-2.4a2 2 0 0 1-.5-1.4V8a5 5 0 0 0-5-5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Notifications</span>
+              <span className="reglages-item-sous">
+                {etatNotifications === "indisponible"
+                  ? "Non disponible sur ce navigateur"
+                  : etatNotifications === "actif"
+                  ? "Alertes activées"
+                  : "Être alerté des signatures et paiements"}
+              </span>
+            </span>
+            <span className="reglages-item-fin">
+              {etatNotifications === "indisponible" ? (
+                <Chevron />
+              ) : (
+                <span className="interrupteur">
+                  <span
+                    className="interrupteur-piste"
+                    data-actif={etatNotifications === "actif" ? "oui" : "non"}
+                  />
+                </span>
+              )}
+            </span>
+          </button>
+
+          {etatNotifications === "actif" && (
+            <button
+              type="button"
+              className="reglages-item"
+              onClick={testerNotifications}
+              disabled={notifEnCours}
+            >
+              <span className="reglages-item-icone">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M5 12l4 4L19 6"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="reglages-item-corps">
+                <span className="reglages-item-titre">Envoyer une notification test</span>
+                <span className="reglages-item-sous">Vérifier d'un geste que les alertes arrivent bien</span>
+              </span>
+              <span className="reglages-item-fin">
+                <Chevron />
+              </span>
+            </button>
+          )}
+
           <Link href="/parametres/export-comptable" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -615,50 +603,74 @@ export default function Parametres() {
         {notifMessage && <p className="message">{notifMessage}</p>}
       </div>
 
-      {/* --- Informations légales --- */}
+      {/* --- Compte --- */}
       <div className="reglages-groupe">
-        <p className="reglages-groupe-titre">Informations légales</p>
-        <div className="reglages-liste reglages-liste--neutre">
-          <Link href="/parametres/comment-ca-marche" className="reglages-item">
+        <p className="reglages-groupe-titre">Compte</p>
+        <div className="reglages-liste">
+          <Link href="/abonnement" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
-                <path
-                  d="M9.5 9.3a2.5 2.5 0 1 1 3.3 2.4c-.7.3-1.3.9-1.3 1.8v.3"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle cx="12" cy="16.8" r="1" fill="currentColor" />
+                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M3 9.5h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
             </span>
             <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Comment ça marche</span>
-              <span className="reglages-item-sous">Le parcours complet, de la dictée au paiement</span>
+              <span className="reglages-item-titre">Mon abonnement</span>
+              <span className="reglages-item-sous">
+                {MODE_GRATUIT ? "Gratuit pendant le lancement" : "Gérer mon abonnement VolpeVox"}
+              </span>
             </span>
             <span className="reglages-item-fin">
               <Chevron />
             </span>
           </Link>
 
-          <button type="button" className="reglages-item" onClick={() => setVideoOuverte(true)}>
+          <Link href="/parametres/mot-de-passe" className="reglages-item">
             <span className="reglages-item-icone">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M10 8.5v7l5.5-3.5z" fill="currentColor" />
+                <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
             </span>
             <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Vidéo tuto</span>
-              <span className="reglages-item-sous">VolpeVox en une minute</span>
+              <span className="reglages-item-titre">Mot de passe</span>
+              <span className="reglages-item-sous">Modifier mon mot de passe</span>
+            </span>
+            <span className="reglages-item-fin">
+              <Chevron />
+            </span>
+          </Link>
+        </div>
+      </div>
+
+      {/* --- Recommander (bouche-a-oreille entre artisans) --- */}
+      <div className="reglages-groupe">
+        <div className="reglages-liste">
+          <button type="button" className="reglages-item" onClick={recommander}>
+            <span className="reglages-item-icone">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="9" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M2.5 20c.9-3.4 3.3-5.2 6.5-5.2s5.6 1.8 6.5 5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <path d="M18.5 8v6M15.5 11h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="reglages-item-corps">
+              <span className="reglages-item-titre">Recommander VolpeVox à un collègue</span>
+              <span className="reglages-item-sous">
+                {lienRecoCopie ? "✓ Message copié, colle-le où tu veux" : "Envoie-lui le lien par WhatsApp ou SMS"}
+              </span>
             </span>
             <span className="reglages-item-fin">
               <Chevron />
             </span>
           </button>
-          {videoOuverte ? <LecteurVideoTuto onFermer={() => setVideoOuverte(false)} /> : null}
+        </div>
+      </div>
 
+      {/* --- Informations legales --- */}
+      <div className="reglages-groupe">
+        <p className="reglages-groupe-titre">Informations légales</p>
+        <div className="reglages-liste reglages-liste--neutre">
           {[
             { href: "/mentions-legales", label: "Mentions légales" },
             { href: "/cgu", label: "Conditions générales d'utilisation" },
@@ -692,6 +704,7 @@ export default function Parametres() {
           ))}
         </div>
       </div>
+
 
       {/* --- Mes données --- */}
       <div className="reglages-groupe">
