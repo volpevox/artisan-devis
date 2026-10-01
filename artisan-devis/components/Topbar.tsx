@@ -55,9 +55,7 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
           {/* Rappel discret que la gratuite est temporaire (voir CGV, article 2) ;
               disparait tout seul quand on repasse en payant. */}
           {MODE_GRATUIT && (
-            <span className="badge-lancement">
-              <span className="badge-lancement-acces">Accès </span>lancement
-            </span>
+            <span className="badge-lancement">Lancement</span>
           )}
         </Link>
 

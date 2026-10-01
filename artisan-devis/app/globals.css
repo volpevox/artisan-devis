@@ -227,7 +227,7 @@ canvas {
   color: var(--ink);
 }
 
-/* Etiquette "Accès lancement" a cote du logo, pendant le mode gratuit */
+/* Etiquette "Lancement" a cote du logo, pendant le mode gratuit */
 .badge-lancement {
   margin-left: 4px;
   padding: 3px 7px;
@@ -244,22 +244,8 @@ canvas {
   align-self: center;
 }
 
-/* Faute de place, l'etiquette se reduit a "Lancement" : sur les pages avec
-   fleche retour (jusqu'a 429px) et partout sous 375px. */
-@media (max-width: 429px) {
-  .topbar:not(.topbar--sans-retour) .badge-lancement-acces {
-    display: none;
-  }
-}
-
-@media (max-width: 374px) {
-  .badge-lancement-acces {
-    display: none;
-  }
-}
-
-/* Petits telephones, pages avec fleche retour : meme "Lancement" ne tient pas
-   (l'etiquette reste visible sur l'accueil) */
+/* Petits telephones, pages avec fleche retour : l'etiquette ne tient pas
+   (elle reste visible sur l'accueil) */
 @media (max-width: 389px) {
   .topbar:not(.topbar--sans-retour) .badge-lancement {
     display: none;
