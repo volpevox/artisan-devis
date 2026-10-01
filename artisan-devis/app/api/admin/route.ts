@@ -233,6 +233,7 @@ export async function GET(req: NextRequest) {
         inscrits: comptes.length,
         inscritsAujourdhui: comptes.filter((c) => jourParis(new Date(c.inscritLe)) === aujourdhui).length,
         inscrits7j: inscritDepuis(7),
+        inscritsSemainePrecedente: inscritDepuis(14) - inscritDepuis(7),
         inscrits30j: inscritDepuis(30),
         comptesActifs: comptes.filter((c) => c.nbDevis + c.nbFactures > 0).length,
         actifs7j: actifsDepuis(7),

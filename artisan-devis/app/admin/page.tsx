@@ -237,18 +237,27 @@ export default function AdminPage() {
 
         {/* Chiffre principal + inscriptions recentes */}
         <div className={s.hero}>
-          <p className={s.heroLibelle}>Inscrits</p>
-          <p className={s.heroValeur}>{nombre(inscrits)}</p>
-          <div className={s.heroLigne}>
-            <span>
-              <b>+{c.inscritsAujourdhui}</b> aujourd'hui
-            </span>
-            <span>
-              <b>+{c.inscrits7j}</b> 7 j
-            </span>
-            <span>
-              <b>+{c.inscrits30j}</b> 30 j
-            </span>
+          <div className={s.heroHaut}>
+            <div>
+              <p className={s.heroLibelle}>Inscrits au total</p>
+              <p className={s.heroValeur}>{nombre(inscrits)}</p>
+            </div>
+            <Tendance cetteSemaine={c.inscrits7j || 0} avant={c.inscritsSemainePrecedente || 0} />
+          </div>
+          <p className={s.heroSousTitre}>Nouveaux inscrits</p>
+          <div className={s.heroCases}>
+            <div className={s.heroCase}>
+              <span className={s.heroCaseValeur}>{c.inscritsAujourdhui ? `+${c.inscritsAujourdhui}` : "0"}</span>
+              <span className={s.heroCaseLibelle}>Aujourd'hui</span>
+            </div>
+            <div className={s.heroCase}>
+              <span className={s.heroCaseValeur}>{c.inscrits7j ? `+${c.inscrits7j}` : "0"}</span>
+              <span className={s.heroCaseLibelle}>7 derniers jours</span>
+            </div>
+            <div className={s.heroCase}>
+              <span className={s.heroCaseValeur}>{c.inscrits30j ? `+${c.inscrits30j}` : "0"}</span>
+              <span className={s.heroCaseLibelle}>30 derniers jours</span>
+            </div>
           </div>
         </div>
 
@@ -448,6 +457,24 @@ function Tuile({ libelle, valeur, note }: { libelle: string; valeur: string; not
       <p className={s.tuileLibelle}>{libelle}</p>
       <p className={s.tuileValeur}>{valeur}</p>
       {note && <p className={s.tuileNote}>{note}</p>}
+    </div>
+  );
+}
+
+// Compare les inscrits des 7 derniers jours a ceux des 7 jours d'avant.
+function Tendance({ cetteSemaine, avant }: { cetteSemaine: number; avant: number }) {
+  const ecart = cetteSemaine - avant;
+  const sens = ecart > 0 ? "hausse" : ecart < 0 ? "baisse" : "stable";
+  const fleche = ecart > 0 ? "↑" : ecart < 0 ? "↓" : "=";
+  return (
+    <div className={`${s.tendance} ${s["tendance_" + sens]}`}>
+      <span className={s.tendanceValeur}>
+        {fleche} {ecart > 0 ? `+${ecart}` : ecart}
+      </span>
+      <span className={s.tendanceLibelle}>
+        vs semaine d'avant
+        <br />({avant} inscrit{avant > 1 ? "s" : ""})
+      </span>
     </div>
   );
 }
