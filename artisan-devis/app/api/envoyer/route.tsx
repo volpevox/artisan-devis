@@ -4,7 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
-import { emailHtml, logoInline } from "@/lib/emailTemplate";
+import { emailClientHtml, echapperHtml, expediteur, formaterEuros, logoInline, nomFichierPdf } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -77,33 +77,89 @@ export async function POST(req: NextRequest) {
       />
     );
 
-    const descriptionEmail = (lignes || []).map((l: any) => l.description).filter(Boolean).join(", ");
+    const nomArtisan = nomAffichageDocument(profil);
+    const numero = devisRow?.numero_devis;
+
+    // Lignes du ticket : "Pose carrelage (12 m²)  540,00 €" (montants HT,
+    // comme sur le PDF). Au-dela de 6 lignes, le reste est resume.
+    const quantiteCourte = (q: number, unite: string) => {
+      const n = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(q);
+      const abrev: Record<string, string> = { heure: "h", jour: "j", "m²": "m²", ml: "ml" };
+      if (abrev[unite]) return `${n} ${abrev[unite]}`;
+      return q !== 1 ? `× ${n}` : "";
+    };
+    const lignesTicket = (lignes || [])
+      .filter((l: any) => l.description || Number(l.prixUnitaire))
+      .map((l: any) => {
+        const q = Number(l.quantite) || 1;
+        const qte = quantiteCourte(q, l.unite || "forfait");
+        return {
+          libelle: `${echapperHtml(l.description) || "Prestation"}${qte ? ` <span style="color:#6b7686;">(${qte})</span>` : ""}`,
+          montant: formaterEuros(q * (Number(l.prixUnitaire) || 0)),
+        };
+      });
+    const MAX_LIGNES = 6;
+    const lignesAffichees =
+      lignesTicket.length > MAX_LIGNES
+        ? [
+            ...lignesTicket.slice(0, MAX_LIGNES - 1),
+            {
+              libelle: `<span style="color:#6b7686;">… et ${lignesTicket.length - (MAX_LIGNES - 1)} autres lignes (voir le PDF)</span>`,
+              montant: "",
+            },
+          ]
+        : lignesTicket;
+
+    const validiteJours = Number(profil?.duree_validite_devis) || 0;
+    const valableJusquau =
+      validiteJours > 0
+        ? new Date(date.getTime() + validiteJours * 86400000).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })
+        : null;
 
     const { error: erreurResend } = await resend.emails.send({
-      from: "VolpeVox <devis@volpevox.fr>",
+      from: expediteur(nomArtisan),
       replyTo: resultat.email || undefined,
       to: clientEmail,
       // L'artisan recoit une copie cachee de son envoi s'il a active le
       // reglage "Recevoir une copie de mes envois" (Parametres).
       bcc: profil?.copie_envois && resultat.email ? resultat.email : undefined,
-      subject: `Votre devis${devisRow?.numero_devis ? ` n°${devisRow.numero_devis}` : ""} - ${clientNom}`,
-      html: emailHtml({
-        titre: `Devis pour ${clientNom}`,
+      subject: `Votre devis${numero ? ` n°${numero}` : ""}${nomArtisan ? ` – ${nomArtisan}` : ""}`,
+      html: emailClientHtml({
+        nomArtisan: nomArtisan || "Votre devis",
+        etiquette: numero ? `Devis n°${numero}` : "Devis",
         corpsHtml: `
-          <p style="margin:0 0 12px;">Bonjour${clientNom ? ` ${clientNom}` : ""},</p>
-          <p style="margin:0 0 12px;">Voici votre devis, avec tous les détails dans le PDF joint.</p>
-          <p style="margin:0 0 4px;">${descriptionEmail}</p>
-          <p style="margin:0 0 20px;">Total : <strong>${totalTTC.toFixed(2)} € TTC</strong></p>
-          <p style="margin:0 0 12px;">Vous pouvez le signer directement en ligne en un clic, ci-dessous.</p>
-          <p style="margin:0;">Une question ? N'hésitez pas à répondre directement à cet email.</p>
+          <p style="margin:0 0 10px;">Bonjour${clientNom ? ` ${echapperHtml(clientNom)}` : ""},</p>
+          <p style="margin:0;">Suite à notre échange, voici votre devis.</p>
         `,
+        ticket: {
+          lignes: lignesAffichees,
+          totaux:
+            tauxTva > 0
+              ? [
+                  { libelle: "Total HT", montant: formaterEuros(totalHT) },
+                  { libelle: `TVA ${String(tauxTva).replace(".", ",")} %`, montant: formaterEuros(montantTva) },
+                ]
+              : [],
+          totalLibelle: tauxTva > 0 ? "Total TTC" : "Total",
+          total: formaterEuros(totalTTC),
+          note: [valableJusquau ? `Valable jusqu'au ${valableJusquau}` : null, "Détail complet dans le PDF joint"]
+            .filter(Boolean)
+            .join(" · "),
+        },
+        apresTicketHtml: `<p style="margin:0;">S'il vous convient, vous pouvez le signer en ligne depuis votre téléphone, en quelques secondes.</p>`,
         boutonUrl: lienSignature,
-        boutonTexte: "Signer ce devis en ligne",
+        boutonTexte: "Voir et signer le devis",
+        sousBouton: "Signature électronique sécurisée, sans imprimer",
+        signature: {
+          personne: profil?.nom_complet,
+          entreprise: profil?.nom_entreprise || (profil?.nom_complet ? null : nomArtisan),
+          telephone: profil?.telephone,
+        },
       }),
       attachments: [
         ...(await logoInline()),
         {
-          filename: "devis.pdf",
+          filename: nomFichierPdf("Devis", numero, nomArtisan),
           content: pdfBuffer,
         },
       ],

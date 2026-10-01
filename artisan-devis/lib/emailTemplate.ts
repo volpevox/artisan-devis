@@ -60,3 +60,128 @@ export function emailHtml({ titre, corpsHtml, boutonUrl, boutonTexte }: EmailHtm
     </div>
   `;
 }
+
+// ---------------------------------------------------------------------------
+// Mails envoyes AU CLIENT de l'artisan (devis, puis facture/relances) :
+// l'artisan est en vedette (bandeau a son nom, sa signature), VolpeVox reste
+// discret en bas. Le client ne connait pas VolpeVox : un mail signe
+// "VolpeVox" sans le nom de l'artisan ressemble a du spam.
+
+// Le texte saisi (descriptions, noms) est echappe avant d'aller dans le HTML.
+export function echapperHtml(texte: string | null | undefined) {
+  return String(texte ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// 1240 -> "1 240,00 €" (espace insecable fine comme separateur de milliers).
+export function formaterEuros(montant: number) {
+  return (
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(montant || 0) +
+    "\u00a0€"
+  );
+}
+
+// Nom affiche dans "De :" : "Plomberie Durand via VolpeVox". Les caracteres
+// qui casseraient l'en-tete email (<>",) sont retires.
+export function expediteur(nomArtisan: string | null | undefined) {
+  const nom = String(nomArtisan ?? "").replace(/[<>",;]/g, "").trim();
+  return nom ? `${nom} via VolpeVox <devis@volpevox.fr>` : "VolpeVox <devis@volpevox.fr>";
+}
+
+// "Devis", 12, "Plomberie Durand" -> "Devis-12-Plomberie-Durand.pdf"
+export function nomFichierPdf(type: string, numero: string | number | null | undefined, nomArtisan?: string | null) {
+  const propre = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  const morceaux = [type, numero != null && numero !== "" ? String(numero) : "", propre(nomArtisan || "").slice(0, 40)];
+  return morceaux.filter(Boolean).join("-") + ".pdf";
+}
+
+const BLEU = "#0b2a5b";
+const OR = "#d4af37";
+
+interface LigneTicket {
+  libelle: string;
+  montant: string;
+}
+
+interface EmailClientOptions {
+  nomArtisan: string;
+  etiquette: string; // "Devis n°12", "Facture n°8"...
+  corpsHtml: string; // paragraphes au-dessus du ticket (deja echappes)
+  ticket?: {
+    lignes: LigneTicket[];
+    totaux?: LigneTicket[]; // Total HT, TVA... (petits, au-dessus du total)
+    totalLibelle: string;
+    total: string;
+    note?: string | null;
+  };
+  apresTicketHtml?: string;
+  boutonUrl?: string | null;
+  boutonTexte?: string;
+  sousBouton?: string | null;
+  signature: { personne?: string | null; entreprise?: string | null; telephone?: string | null };
+}
+
+export function emailClientHtml(o: EmailClientOptions) {
+  const ligne = (l: LigneTicket, style = "") =>
+    `<tr><td style="padding:3px 0;font-size:14px;color:#1c2230;${style}">${l.libelle}</td><td style="padding:3px 0 3px 12px;font-size:14px;color:#1c2230;text-align:right;white-space:nowrap;${style}">${l.montant}</td></tr>`;
+
+  const ticket = o.ticket
+    ? `<div style="background:#f8f6ef;border:1px solid #ece4c8;border-radius:10px;padding:14px 16px;margin:16px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${o.ticket.lignes.map((l) => ligne(l)).join("")}
+          <tr><td colspan="2" style="padding:8px 0 6px;"><div style="border-top:1px dashed #cdbf8f;"></div></td></tr>
+          ${(o.ticket.totaux || []).map((l) => ligne(l, "color:#56606e;font-size:13px;")).join("")}
+          <tr>
+            <td style="padding-top:4px;font-size:15px;font-weight:700;color:#1c2230;">${o.ticket.totalLibelle}</td>
+            <td style="padding-top:4px;font-size:22px;font-weight:800;color:${BLEU};text-align:right;white-space:nowrap;">${o.ticket.total}</td>
+          </tr>
+        </table>
+        ${o.ticket.note ? `<div style="font-size:12px;color:#6b7686;margin-top:6px;">${o.ticket.note}</div>` : ""}
+      </div>`
+    : "";
+
+  const sig = o.signature;
+  const lignesSignature = [
+    sig.personne ? `<strong>${echapperHtml(sig.personne)}</strong>` : "",
+    [sig.entreprise && sig.entreprise !== sig.personne ? echapperHtml(sig.entreprise) : "", echapperHtml(sig.telephone)]
+      .filter(Boolean)
+      .join(" · "),
+  ].filter(Boolean);
+
+  return `
+    <div style="background:#f4f6f8;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+      <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e6ee;">
+        <div style="background:${BLEU};padding:18px 24px;border-bottom:3px solid ${OR};">
+          <div style="color:#ffffff;font-size:19px;font-weight:800;">${echapperHtml(o.nomArtisan)}</div>
+          <div style="color:${OR};font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:3px;">${echapperHtml(o.etiquette)}</div>
+        </div>
+        <div style="padding:24px;color:#1c2230;font-size:15px;line-height:1.55;">
+          ${o.corpsHtml}
+          ${ticket}
+          ${o.apresTicketHtml || ""}
+          ${
+            o.boutonUrl
+              ? `<a href="${o.boutonUrl}" style="display:block;text-align:center;margin:22px 0 6px;padding:15px 12px;background:${OR};color:${BLEU};text-decoration:none;border-radius:10px;font-weight:800;font-size:16px;">${o.boutonTexte}</a>
+                 ${o.sousBouton ? `<div style="text-align:center;font-size:12px;color:#6b7686;">${o.sousBouton}</div>` : ""}`
+              : ""
+          }
+          <div style="margin-top:22px;padding-top:16px;border-top:1px solid #e2e6ee;font-size:14px;line-height:1.6;">
+            ${lignesSignature.join("<br>")}${lignesSignature.length ? "<br>" : ""}
+            <span style="color:#6b7686;font-size:13px;">Une question ? Répondez simplement à ce mail.</span>
+          </div>
+        </div>
+        <div style="background:#f4f6f8;padding:12px;text-align:center;font-size:11px;color:#93a0b3;">
+          <img src="cid:volpevox-logo" alt="" width="14" height="14" style="vertical-align:middle;margin-right:4px;width:14px;height:14px;border:0;" />Envoyé avec VolpeVox
+        </div>
+      </div>
+    </div>
+  `;
+}
