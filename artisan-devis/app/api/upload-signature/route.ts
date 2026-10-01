@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                   }</div>
                 </div>
                 <p style="margin:0 0 12px;">Bravo, c'est validé ! Le devis signé est enregistré dans VolpeVox.</p>
-                <p style="margin:0 0 4px;"><strong>Prochaine étape :</strong> une fois le travail fait, ouvre tes devis et appuie sur <strong>« Transformer en facture »</strong> : ta facture part en 1 clic.</p>
+                <p style="margin:0 0 4px;"><strong>Prochaine étape :</strong> une fois le travail fait, ouvre tes devis et appuie sur <strong>« Transformer en facture »</strong>, puis envoie-la depuis l'onglet <strong>Factures</strong>.</p>
                 <p style="margin:12px 0 0;"><a href="${req.nextUrl.origin}/api/devis-pdf/${devisId}" style="color:#0b2a5b;font-weight:700;">Voir le devis signé (PDF)</a></p>
               `,
             }),
