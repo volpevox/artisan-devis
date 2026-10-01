@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { lireProvenance } from "@/lib/provenance";
 import { IconeOeil } from "@/components/IconeOeil";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
 import { trackEvent } from "@/lib/analytics";
@@ -122,7 +123,8 @@ function ConnexionContenu() {
           const minuteur = setTimeout(() => controleur.abort(), 4000);
           const reponse = await fetch("/api/activer-invite", {
             method: "POST",
-            headers: { Authorization: `Bearer ${data.session.access_token}` },
+            headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ provenance: lireProvenance() }),
             signal: controleur.signal,
           });
           clearTimeout(minuteur);

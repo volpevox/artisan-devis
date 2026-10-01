@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
+import { lireProvenance } from "@/lib/provenance";
 
 // L'artisan garde acces a son profil (pour gerer/reactiver son abonnement,
 // ou completer les informations obligatoires) et a la page d'abonnement
@@ -90,7 +91,8 @@ export function useArtisanSession() {
         try {
           await fetch("/api/activer-invite", {
             method: "POST",
-            headers: { Authorization: `Bearer ${sessionValide.access_token}` },
+            headers: { Authorization: `Bearer ${sessionValide.access_token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ provenance: lireProvenance() }),
           });
         } catch {
           // ignore : la lecture du profil reste la source de verite

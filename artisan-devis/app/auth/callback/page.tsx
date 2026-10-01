@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
+import { lireProvenance } from "@/lib/provenance";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
 import { trackEvent } from "@/lib/analytics";
 
@@ -41,7 +42,8 @@ export default function AuthCallback() {
         const minuteur = setTimeout(() => controleur.abort(), 4000);
         const reponse = await fetch("/api/activer-invite", {
           method: "POST",
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ provenance: lireProvenance() }),
           signal: controleur.signal,
         });
         clearTimeout(minuteur);

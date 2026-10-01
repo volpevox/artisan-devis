@@ -31,6 +31,20 @@ const NUMERO_WHATSAPP_SUPPORT = "33766213674";
 // Appelee a l'inscription (app/connexion) ET a chaque ouverture de l'appli
 // (lib/useArtisan) : retirer un email de la table revoque donc l'acces a la
 // prochaine ouverture, et l'artisan tombe sur la page /abonnement.
+// Lit la provenance envoyee par le front (lib/provenance.ts), en ne gardant
+// que du texte court.
+async function lireProvenanceRequete(req: NextRequest) {
+  const texte = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 100) : null);
+  try {
+    const corps = await req.json();
+    const p = corps?.provenance || {};
+    return { source: texte(p.source), medium: texte(p.medium), campagne: texte(p.campagne), referent: texte(p.referent) };
+  } catch {
+    // appel sans corps : provenance inconnue
+    return { source: null, medium: null, campagne: null, referent: null };
+  }
+}
+
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
@@ -87,13 +101,40 @@ export async function POST(req: NextRequest) {
     .eq("user_id", user.id)
     .maybeSingle();
 
+  // Cette route est appelee a chaque ouverture de l'appli (lib/useArtisan) :
+  // on en profite pour dater la derniere ouverture, affichee dans /admin.
+  // Une erreur (colonne pas encore creee, voir supabase/suivi-admin.sql) est
+  // ignoree : ce suivi ne doit jamais bloquer l'acces.
+  if (artisanExistant) {
+    await supabaseAdmin
+      .from("artisans")
+      .update({ derniere_ouverture_le: new Date().toISOString() })
+      .eq("id", artisanExistant.id);
+  }
+
   if (autorise) {
     if (artisanExistant) {
       if (!artisanExistant.abonnement_actif) {
         await supabaseAdmin.from("artisans").update({ abonnement_actif: true }).eq("id", artisanExistant.id);
       }
     } else {
-      await supabaseAdmin.from("artisans").insert({ user_id: user.id, abonnement_actif: true });
+      // Provenance memorisee sur le telephone a l'arrivee (lib/provenance.ts),
+      // enregistree une seule fois, ici, a la creation du compte.
+      const provenance = await lireProvenanceRequete(req);
+      const { error: erreurInsertion } = await supabaseAdmin.from("artisans").insert({
+        user_id: user.id,
+        abonnement_actif: true,
+        derniere_ouverture_le: new Date().toISOString(),
+        provenance_source: provenance.source,
+        provenance_medium: provenance.medium,
+        provenance_campagne: provenance.campagne,
+        provenance_referent: provenance.referent,
+      });
+      // Filet de securite : si les colonnes de suivi n'existent pas encore
+      // (SQL pas joue), on cree le compte sans elles plutot que d'echouer.
+      if (erreurInsertion) {
+        await supabaseAdmin.from("artisans").insert({ user_id: user.id, abonnement_actif: true });
+      }
 
       // Nouvelle inscription gratuite : notification push a Marley via ntfy.sh
       // (abonnement au canal depuis l'appli ntfy sur son telephone). C'est le

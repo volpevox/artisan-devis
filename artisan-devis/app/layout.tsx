@@ -2,6 +2,7 @@ import { Poppins, Montserrat, Patrick_Hand, Roboto } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 import { Traceurs } from "@/components/Traceurs";
+import { CaptureProvenance } from "@/components/CaptureProvenance";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -69,6 +70,7 @@ export default function RootLayout({
           <BottomNav />
         </div>
         <Traceurs />
+        <CaptureProvenance />
       </body>
     </html>
   );

@@ -65,6 +65,16 @@ export default function Parametres() {
 
   const [lienRecoCopie, setLienRecoCopie] = useState(false);
   const [videoOuverte, setVideoOuverte] = useState(false);
+  // Tuile "Tableau de bord" : affichee seulement si le SERVEUR confirme que
+  // c'est Marley (ADMIN_EMAIL, voir /api/admin). Personne d'autre ne la voit.
+  const [estAdmin, setEstAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!session?.access_token) return;
+    fetch("/api/admin?verif=1", { headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((r) => setEstAdmin(r.ok))
+      .catch(() => {});
+  }, [session?.access_token]);
 
   // Partage natif du telephone (WhatsApp, SMS...) avec un message pret ;
   // a defaut (ordinateur), le message est copie.
@@ -310,6 +320,28 @@ export default function Parametres() {
           <span className="pastille-etat ok">{MODE_GRATUIT ? "Lancement · Gratuit" : "Abonnement actif"}</span>
         </div>
       </div>
+
+      {estAdmin && (
+        <div className="reglages-groupe">
+          <p className="reglages-groupe-titre">Admin</p>
+          <div className="reglages-liste">
+            <Link href="/admin" className="reglages-item">
+              <span className="reglages-item-icone">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span className="reglages-item-corps">
+                <span className="reglages-item-titre">Tableau de bord</span>
+                <span className="reglages-item-sous">Inscrits et utilisation de l'appli</span>
+              </span>
+              <span className="reglages-item-fin">
+                <Chevron />
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* --- Bien demarrer --- */}
       <div className="reglages-groupe">
