@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
+import { ProposerApresEnvoi } from "@/components/ProposerApresEnvoi";
 import { BanniereRodage } from "@/components/BanniereRodage";
 import { SplashEcran } from "@/components/SplashEcran";
 import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
@@ -1481,6 +1482,12 @@ export default function Home() {
 
         {envoiConfirme ? (
           <div className="envoi-confirme">
+            <ProposerApresEnvoi
+              session={session}
+              artisanId={artisanId}
+              nomClient={envoiConfirme.nom}
+              typeDocument={typeDocument}
+            />
             <p className="envoi-confirme-titre">
               ✓ {typeDocument === "facture" ? "Facture envoyée" : "Devis envoyé"}
               {envoiConfirme.nom ? ` à ${envoiConfirme.nom}` : ""}

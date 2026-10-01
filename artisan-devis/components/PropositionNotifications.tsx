@@ -2,10 +2,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
 import {
   notificationsPossibles,
-  abonnementActuel,
   activerNotifications,
   resynchroniserPush,
   pushEtaitActive,
@@ -16,63 +14,32 @@ interface PropositionNotificationsProps {
   artisanId: string | null;
 }
 
-// "cache"       -> rien a afficher
-// "proposition" -> premiere ouverture : on propose d'activer (une seule fois)
-// "reactivation" -> l'artisan avait active, iOS a retire l'autorisation :
-//                   on ne peut pas reparer seul, on lui demande un geste
-type Mode = "cache" | "proposition" | "reactivation";
-
-// A la premiere ouverture de l'appli : propose d'activer les notifications
-// push (une seule fois par artisan, marque en base via
-// notifications_proposees_le).
+// A chaque ouverture de la page de dictee : si l'artisan avait active les
+// notifications sur cet appareil, tente de reparer en silence l'abonnement
+// (iOS l'invalide regulierement sans prevenir). Si iOS a carrement retire
+// l'autorisation, affiche un rappel pour la redonner plutot que de laisser
+// l'artisan sans notification sans le savoir.
 //
-// Aux ouvertures suivantes : si l'artisan les avait deja activees sur cet
-// appareil, tente de reparer en silence l'abonnement (iOS l'invalide
-// regulierement sans prevenir). Si iOS a carrement retire l'autorisation,
-// affiche un rappel pour la redonner plutot que de laisser l'artisan sans
-// notification sans le savoir.
+// La premiere proposition d'activation ne se fait plus ici (elle
+// interrompait le nouvel inscrit avant son premier devis) mais apres le
+// premier envoi : voir components/ProposerApresEnvoi.tsx.
 export function PropositionNotifications({ session, artisanId }: PropositionNotificationsProps) {
-  const [mode, setMode] = useState<Mode>("cache");
+  const [reactivation, setReactivation] = useState(false);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState("");
 
   useEffect(() => {
-    if (!artisanId || !session || !notificationsPossibles()) return;
+    if (!artisanId || !session || !notificationsPossibles() || !pushEtaitActive()) return;
 
     let actif = true;
-
-    async function verifier() {
-      // Cas 1 : les notifications ont deja ete activees sur cet appareil.
-      // On repare l'abonnement en silence si besoin.
-      if (pushEtaitActive()) {
-        const etat = await resynchroniserPush(session!.access_token);
-        if (actif && etat === "permission-perdue") setMode("reactivation");
-        return;
-      }
-
-      // Cas 2 : jamais activees ici -> proposition initiale, une seule fois.
-      if (Notification.permission === "denied") return;
-
-      const [{ data }, abonnement] = await Promise.all([
-        supabase.from("artisans").select("notifications_proposees_le").eq("id", artisanId).maybeSingle(),
-        abonnementActuel(),
-      ]);
-
-      if (actif && !data?.notifications_proposees_le && !abonnement) {
-        setMode("proposition");
-      }
-    }
-    verifier();
+    resynchroniserPush(session.access_token).then((etat) => {
+      if (actif && etat === "permission-perdue") setReactivation(true);
+    });
 
     return () => {
       actif = false;
     };
   }, [artisanId, session]);
-
-  async function marquerProposee() {
-    if (!artisanId) return;
-    await supabase.from("artisans").update({ notifications_proposees_le: new Date().toISOString() }).eq("id", artisanId);
-  }
 
   async function activer() {
     if (!session) return;
@@ -81,27 +48,14 @@ export function PropositionNotifications({ session, artisanId }: PropositionNoti
 
     try {
       await activerNotifications(session.access_token);
-      if (mode === "proposition") await marquerProposee();
-      setMode("cache");
+      setReactivation(false);
     } catch (e: any) {
       setErreur(e.message || "Erreur");
       setEnCours(false);
     }
   }
 
-  async function plusTard() {
-    if (mode === "proposition") await marquerProposee();
-    setMode("cache");
-  }
-
-  if (mode === "cache") return null;
-
-  const titre = mode === "reactivation" ? "Réactive tes notifications" : "Active les notifications";
-  const texte =
-    mode === "reactivation"
-      ? "iOS a coupé tes notifications. Réactive-les pour rester alerté dès qu'un client signe un devis ou paie une facture."
-      : "Sois alerté dès qu'un client signe un devis ou paie une facture, sans avoir à ouvrir l'appli.";
-  const boutonActiver = mode === "reactivation" ? "Réactiver" : "Activer les notifications";
+  if (!reactivation) return null;
 
   // Portail directement dans <body>, voir PropositionCommentCaMarche.tsx :
   // meme structure de popup, meme risque que le bouton se retrouve
@@ -119,14 +73,17 @@ export function PropositionNotifications({ session, artisanId }: PropositionNoti
           />
           <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
-        <p className="notif-propose-titre">{titre}</p>
-        <p className="notif-propose-texte">{texte}</p>
+        <p className="notif-propose-titre">Réactive tes notifications</p>
+        <p className="notif-propose-texte">
+          iOS a coupé tes notifications. Réactive-les pour rester alerté dès qu&apos;un client signe un devis ou paie une
+          facture.
+        </p>
         {erreur && <p className="message">{erreur}</p>}
         <div className="notif-propose-actions">
           <button type="button" className="btn btn-primary" onClick={activer} disabled={enCours}>
-            {boutonActiver}
+            Réactiver
           </button>
-          <button type="button" className="btn btn-outline" onClick={plusTard} disabled={enCours}>
+          <button type="button" className="btn btn-outline" onClick={() => setReactivation(false)} disabled={enCours}>
             Plus tard
           </button>
         </div>
