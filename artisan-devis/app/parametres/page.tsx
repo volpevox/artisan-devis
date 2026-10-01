@@ -44,6 +44,7 @@ export default function Parametres() {
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [nomComplet, setNomComplet] = useState("");
   const [nomEntreprise, setNomEntreprise] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
   const [stripeAccountId, setStripeAccountId] = useState("");
   const [stripePaiementActif, setStripePaiementActif] = useState(false);
   const [enCoursStripe, setEnCoursStripe] = useState(false);
@@ -91,13 +92,14 @@ export default function Parametres() {
       const { data } = await supabase
         .from("artisans")
         .select(
-          "nom_complet, nom_entreprise, stripe_account_id, stripe_paiement_actif, relances_actives, copie_envois"
+          "nom_complet, nom_entreprise, logo_url, stripe_account_id, stripe_paiement_actif, relances_actives, copie_envois"
         )
         .eq("id", artisanId)
         .maybeSingle();
       if (data) {
         setNomComplet(data.nom_complet || "");
         setNomEntreprise(data.nom_entreprise || "");
+        setLogoUrl(data.logo_url || "");
         setStripeAccountId(data.stripe_account_id || "");
         setStripePaiementActif(!!data.stripe_paiement_actif);
         setRelancesActives(data.relances_actives !== false);
@@ -294,11 +296,18 @@ export default function Parametres() {
 
       {/* --- Carte compte (identite des cartes « ticket ») --- */}
       <div className="fiche fiche-compte">
-        <div className="fiche-compte-avatar">{initiales(nomEntreprise || nomComplet) || "?"}</div>
+        {/* Le logo de l'artisan s'il en a un, sinon ses initiales. */}
+        {logoUrl ? (
+          <div className="fiche-compte-avatar fiche-compte-avatar--logo">
+            <img src={logoUrl} alt="" />
+          </div>
+        ) : (
+          <div className="fiche-compte-avatar">{initiales(nomEntreprise || nomComplet) || "?"}</div>
+        )}
         <div className="fiche-compte-corps">
           <p className="fiche-compte-nom">{nomEntreprise || nomComplet || "Mon compte"}</p>
           {session?.user?.email ? <p className="fiche-compte-email">{session.user.email}</p> : null}
-          <span className="pastille-etat ok">{MODE_GRATUIT ? "Accès lancement · Gratuit" : "Abonnement actif"}</span>
+          <span className="pastille-etat ok">{MODE_GRATUIT ? "Lancement · Gratuit" : "Abonnement actif"}</span>
         </div>
       </div>
 

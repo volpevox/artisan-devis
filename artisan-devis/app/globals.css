@@ -3599,6 +3599,19 @@ h1 + .lien-archives {
   font-size: 19px;
 }
 
+.fiche-compte-avatar--logo {
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.fiche-compte-avatar--logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
 .fiche-compte-corps {
   flex: 1 1 auto;
   min-width: 0;
