@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase, getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
-import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
+import { nomAffichageDocument, mentionSociete, nomCourt } from "@/lib/nomAffichage";
 import {
   emailClientHtml,
   echapperHtml,
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         </div>`;
 
     const { error: erreurResend } = await resend.emails.send({
-      from: expediteur(nomArtisan),
+      from: expediteur(nomCourt(profil)),
       replyTo: emailArtisan || undefined,
       to: devis.client_email,
       // Copie cachee a l'artisan s'il a active "Recevoir une copie de mes

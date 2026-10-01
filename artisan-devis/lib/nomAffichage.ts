@@ -38,3 +38,10 @@ export function mentionSociete(profil: ProfilPourNom | null | undefined) {
   const rcs = profil.rcs_ville?.trim();
   return [profil.forme_capital?.trim(), rcs ? `RCS ${rcs}` : null].filter(Boolean).join(" · ") || null;
 }
+
+// Nom court pour l'expediteur des mails ("Plomberie Durand via VolpeVox") :
+// le nom de l'entreprise s'il existe, sinon prenom et nom. Le nom long des
+// documents ("Jean Durand — Plomberie Durand") est trop long pour un "De :".
+export function nomCourt(profil: ProfilPourNom | null | undefined) {
+  return profil?.nom_entreprise?.trim() || profil?.nom_complet?.trim() || "";
+}

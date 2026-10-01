@@ -88,6 +88,8 @@ export function formaterEuros(montant: number) {
 // qui casseraient l'en-tete email (<>",) sont retires.
 export function expediteur(nomArtisan: string | null | undefined) {
   const nom = String(nomArtisan ?? "").replace(/[<>",;]/g, "").trim();
+  // Pas de "VolpeVox via VolpeVox" (artisan dont l entreprise s appelle ainsi).
+  if (nom.toLowerCase() === "volpevox") return "VolpeVox <devis@volpevox.fr>";
   return nom ? `${nom} via VolpeVox <devis@volpevox.fr>` : "VolpeVox <devis@volpevox.fr>";
 }
 
