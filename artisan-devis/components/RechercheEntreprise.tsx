@@ -8,6 +8,8 @@ import { useEffect, useRef, useState } from "react";
 
 export interface InfosEntreprise {
   nomComplet: string;
+  prenom: string;
+  nom: string;
   nomEntreprise: string;
   adresse: string;
   codePostal: string;
@@ -46,14 +48,16 @@ function versInfos(e: any): InfosEntreprise {
   // comprise) : le nom de l'entreprise est celui de la personne.
   const individuel = String(e.nature_juridique || "").startsWith("1");
   const dirigeant = (e.dirigeants || []).find((d: any) => d.type_dirigeant === "personne physique");
-  const personne = dirigeant
-    ? `${casse(String(dirigeant.prenoms || "").split(/\s+/)[0])} ${casse(sansParentheses(dirigeant.nom))}`.trim()
-    : "";
+  const prenom = dirigeant ? casse(String(dirigeant.prenoms || "").split(/\s+/)[0]) : "";
+  const nom = dirigeant ? casse(sansParentheses(dirigeant.nom)) : "";
+  const personne = `${prenom} ${nom}`.trim();
   // Entrepreneur individuel : "JEAN DUPONT (DUPONT RENOV)" -> le nom
   // commercial entre parentheses devient le nom de l'entreprise.
   const nomCommercial = individuel ? (String(e.nom_complet || "").match(/\(([^)]+)\)/)?.[1] ?? "") : "";
   return {
     nomComplet: personne || casse(sansParentheses(e.nom_complet)),
+    prenom,
+    nom,
     nomEntreprise: individuel ? casse(nomCommercial) : casse(e.nom_raison_sociale || e.nom_complet),
     adresse: casse(adresse || s.complement_adresse),
     codePostal: s.code_postal || "",

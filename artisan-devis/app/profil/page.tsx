@@ -9,12 +9,16 @@ import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "@/lib/mentionsDocuments";
 import { RechercheEntreprise, type InfosEntreprise } from "@/components/RechercheEntreprise";
 import { FicheRubrique, ICONES } from "@/components/FicheRubrique";
+import { separerNomComplet } from "@/lib/prenom";
 
 export default function Profil() {
   const router = useRouter();
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [etaitIncomplet, setEtaitIncomplet] = useState(false);
-  const [nomComplet, setNomComplet] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [nom, setNom] = useState("");
+  // "Prenom Nom" : ce qui s'affiche sur les devis et factures (nom_complet).
+  const nomComplet = `${prenom.trim()} ${nom.trim()}`.trim();
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [telephone, setTelephone] = useState("");
   const [adresse, setAdresse] = useState("");
@@ -61,7 +65,9 @@ export default function Profil() {
       const { data } = await supabase.from("artisans").select("*").eq("id", artisanId).maybeSingle();
       if (data) {
         setEtaitIncomplet(!profilComplet(data));
-        setNomComplet(data.nom_complet || "");
+        const separe = separerNomComplet(data.nom_complet || "", data.prenom);
+        setPrenom(separe.prenom);
+        setNom(separe.nom);
         setNomEntreprise(data.nom_entreprise || "");
         setTelephone(data.telephone || "");
         setAdresse(data.adresse || "");
@@ -97,7 +103,13 @@ export default function Profil() {
 
   // Pre-remplissage depuis l'annuaire des entreprises (ecran de depart).
   function remplirDepuisAnnuaire(infos: InfosEntreprise) {
-    if (infos.nomComplet) setNomComplet(infos.nomComplet);
+    if (infos.prenom || infos.nom) {
+      setPrenom(infos.prenom);
+      setNom(infos.nom);
+    } else if (infos.nomComplet) {
+      setPrenom("");
+      setNom(infos.nomComplet);
+    }
     setNomEntreprise(infos.nomEntreprise);
     if (infos.adresse) setAdresse(infos.adresse);
     if (infos.codePostal) setCodePostal(infos.codePostal);
@@ -131,7 +143,7 @@ export default function Profil() {
   }
 
   async function enregistrer() {
-    if (!nomComplet.trim() || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
+    if (!prenom.trim() || !nom.trim() || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
       setMessage("Merci de remplir tous les champs obligatoires (marqués d'un *).");
       return;
     }
@@ -176,6 +188,7 @@ export default function Profil() {
 
     const infos: Record<string, unknown> = {
       nom_complet: nomComplet,
+      prenom: prenom.trim(),
       nom_entreprise: nomEntreprise,
       telephone,
       adresse,
@@ -261,10 +274,28 @@ export default function Profil() {
           <p className="form-bloc-titre">2. Vérifie</p>
           <div className="form-carte">
             <div className="champ">
-              <label className="champ-label" htmlFor="d-nom">
-                Prénom et nom <span className="obligatoire">*</span>
+              <label className="champ-label" htmlFor="d-prenom">
+                Prénom <span className="obligatoire">*</span>
               </label>
-              <input id="d-nom" className="field" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
+              <input
+                id="d-prenom"
+                className="field"
+                autoComplete="given-name"
+                value={prenom}
+                onChange={(e) => setPrenom(e.target.value)}
+              />
+            </div>
+            <div className="champ">
+              <label className="champ-label" htmlFor="d-nom">
+                Nom <span className="obligatoire">*</span>
+              </label>
+              <input
+                id="d-nom"
+                className="field"
+                autoComplete="family-name"
+                value={nom}
+                onChange={(e) => setNom(e.target.value)}
+              />
             </div>
             <div className="champ">
               <label className="champ-label" htmlFor="d-entreprise">
@@ -355,7 +386,7 @@ export default function Profil() {
   // --- Etat des rubriques (bord vert = complet, or = a completer, gris =
   // facultatif) et parcours de la carte de visite. Calcule sur les valeurs
   // en cours de saisie : la carte se met a jour en direct.
-  const okIdentite = Boolean(nomComplet.trim() && telephone.trim());
+  const okIdentite = Boolean(prenom.trim() && nom.trim() && telephone.trim());
   const okAdresse = Boolean(adresse.trim() && codePostal.trim() && ville.trim());
   const okLegal = Boolean(siret.trim() && tauxTva.trim());
   const okMentions = Boolean(assurancePro.trim());
@@ -435,10 +466,28 @@ export default function Profil() {
         resume={resume(nomComplet, nomEntreprise, telephone) || "Ton nom et ton téléphone"}
       >
         <div className="champ">
-          <label className="champ-label" htmlFor="p-nom">
-            Prénom et nom <span className="obligatoire">*</span>
+          <label className="champ-label" htmlFor="p-prenom">
+            Prénom <span className="obligatoire">*</span>
           </label>
-          <input id="p-nom" className="field" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
+          <input
+            id="p-prenom"
+            className="field"
+            autoComplete="given-name"
+            value={prenom}
+            onChange={(e) => setPrenom(e.target.value)}
+          />
+        </div>
+        <div className="champ">
+          <label className="champ-label" htmlFor="p-nom">
+            Nom <span className="obligatoire">*</span>
+          </label>
+          <input
+            id="p-nom"
+            className="field"
+            autoComplete="family-name"
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+          />
         </div>
         <div className="champ">
           <label className="champ-label" htmlFor="p-entreprise">

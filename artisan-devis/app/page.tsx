@@ -170,7 +170,8 @@ export default function Home() {
   // a la table artisans propre a cet ecran).
   const nomEntreprise = profilArtisan?.nom_entreprise || "";
   // Salutation : le prenom de la personne si connu, sinon l'entreprise.
-  const nomSalutation = prenomDepuisNomComplet(profilArtisan?.nom_complet || "") || nomEntreprise;
+  const nomSalutation =
+    profilArtisan?.prenom?.trim() || prenomDepuisNomComplet(profilArtisan?.nom_complet || "") || nomEntreprise;
   const paiementEnLigneDisponible = Boolean(profilArtisan?.stripe_paiement_actif);
 
   const total = lignes.reduce((s, l) => s + (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0), 0);

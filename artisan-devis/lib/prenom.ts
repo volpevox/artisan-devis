@@ -15,3 +15,22 @@ export function prenomDepuisNomComplet(nomComplet: string): string {
     .map((m) => m.charAt(0).toUpperCase() + m.slice(1))
     .join("-");
 }
+
+// Pour les comptes crees avant le champ "Prenom" separe : on decoupe le
+// "Prenom et nom" enregistre en devinant le prenom (meme regle que
+// ci-dessus). L'artisan corrige au besoin dans "Mon compte".
+export function separerNomComplet(nomComplet: string, prenomConnu?: string | null): { prenom: string; nom: string } {
+  const complet = nomComplet.trim();
+  if (prenomConnu) {
+    const reste = complet.toLowerCase().startsWith(prenomConnu.toLowerCase() + " ")
+      ? complet.slice(prenomConnu.length).trim()
+      : complet;
+    return { prenom: prenomConnu, nom: reste };
+  }
+  const mots = complet.split(/\s+/).filter(Boolean);
+  if (mots.length < 2) return { prenom: "", nom: complet };
+  const enMajuscules = (m: string) => m.length > 1 && m === m.toUpperCase() && m !== m.toLowerCase();
+  const indexPrenom = enMajuscules(mots[0]) ? Math.max(0, mots.findIndex((m) => !enMajuscules(m))) : 0;
+  const prenom = mots[indexPrenom];
+  return { prenom, nom: mots.filter((_, i) => i !== indexPrenom).join(" ") };
+}
