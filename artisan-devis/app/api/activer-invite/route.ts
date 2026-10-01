@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabaseServerClient";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
-import { emailHtml, logoInline } from "@/lib/emailTemplate";
+import { emailBienvenueHtml, logoInline } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -117,21 +117,16 @@ export async function POST(req: NextRequest) {
           "Bonjour, j'ai une question sur VolpeVox :"
         )}`;
         await resend.emails.send({
-          from: "VolpeVox <devis@volpevox.fr>",
+          from: "Malcom Marley de VolpeVox <devis@volpevox.fr>",
+          // Les reponses arrivent chez Marley (devis@ n'est pas lue).
+          replyTo: "volpevox@outlook.fr",
           to: emailUtilisateur,
           bcc: "volpevox@outlook.fr",
-          subject: "Bienvenue sur VolpeVox 🦊",
-          html: emailHtml({
-            titre: "Bienvenue sur VolpeVox",
-            corpsHtml: `
-              <p style="margin:0 0 12px;">Bonjour,</p>
-              <p style="margin:0 0 12px;">Bienvenue sur VolpeVox ! Merci de vous être inscrit(e).</p>
-              <p style="margin:0 0 12px;">L'application vous permet de dicter à l'oral la description d'un chantier, et de récupérer un devis rempli automatiquement, prêt à envoyer et à faire signer en ligne par votre client. Une fois signé, il se transforme en facture en un clic.</p>
-              <p style="margin:0 0 20px;">L'app est actuellement gratuite pendant notre phase de lancement.</p>
-              <p style="margin:0;">Une question, un souci, une remarque ? N'hésitez surtout pas à m'écrire directement sur WhatsApp.</p>
-            `,
-            boutonUrl: lienWhatsapp,
-            boutonTexte: "Écrire sur WhatsApp",
+          subject: "Bienvenue ! Ton premier devis en 1 minute 🦊",
+          html: emailBienvenueHtml({
+            lienApp: "https://app.volpevox.fr/",
+            lienVideo: "https://app.volpevox.fr/tuto.mp4",
+            lienWhatsapp,
           }),
           attachments: await logoInline(),
         });

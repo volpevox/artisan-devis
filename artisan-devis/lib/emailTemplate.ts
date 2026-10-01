@@ -250,3 +250,87 @@ export function signatureArtisan(
     telephone: profil?.telephone,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Mail de bienvenue au nouvel artisan inscrit. But unique : qu'il revienne
+// faire son premier devis. On lui MONTRE ce qu'il dit au micro et le devis
+// qui en sort, puis un seul gros bouton. Signe Malcom Marley (une vraie personne
+// fait repondre bien plus qu'une marque).
+export function emailBienvenueHtml({ lienApp, lienVideo, lienWhatsapp }: { lienApp: string; lienVideo: string; lienWhatsapp: string }) {
+  const ligne = (libelle: string, montant: string) =>
+    `<tr><td style="padding:3px 0;font-size:13px;color:#1c2230;">${libelle}</td><td style="padding:3px 0 3px 10px;font-size:13px;color:#1c2230;text-align:right;white-space:nowrap;">${montant}</td></tr>`;
+  const etape = (n: string, titre: string, texte: string) => `
+    <tr>
+      <td style="width:40px;vertical-align:top;padding:0 0 12px;">
+        <div style="width:28px;height:28px;border-radius:14px;background:${BLEU};color:${OR};font-weight:800;font-size:14px;text-align:center;line-height:28px;">${n}</div>
+      </td>
+      <td style="vertical-align:top;padding:2px 0 12px;font-size:14px;line-height:1.45;color:#1c2230;">
+        <strong>${titre}</strong><br><span style="color:#56606e;">${texte}</span>
+      </td>
+    </tr>`;
+
+  return `
+    <div style="background:#f4f6f8;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+      <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e6ee;">
+        <div style="background:${BLEU};padding:20px 24px;text-align:center;border-bottom:3px solid ${OR};">
+          <div style="width:60px;height:60px;border-radius:30px;background:#ffffff;margin:0 auto 8px;text-align:center;"><img src="cid:volpevox-logo" alt="" width="48" height="48" style="display:inline-block;margin-top:6px;width:48px;height:48px;border:0;" /></div>
+          <span style="font-size:21px;font-weight:800;"><span style="color:#ffffff;">Volpe</span><span style="color:${OR};">Vox</span></span>
+        </div>
+
+        <div style="padding:26px 24px 8px;color:#1c2230;font-size:15px;line-height:1.55;">
+          <div style="font-size:22px;font-weight:800;color:${BLEU};line-height:1.25;margin-bottom:10px;">Bienvenue ! Ce soir, tes devis seront déjà faits.</div>
+          <p style="margin:0 0 18px;">Avec VolpeVox, tu fais ton devis <strong>sur le chantier, en parlant</strong>. Plus besoin de rallumer l'ordi le soir pour tout retaper.</p>
+
+          <div style="font-size:12px;font-weight:700;color:#6b7686;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">🎙️ Tu dis</div>
+          <div style="background:#eef2f8;border-radius:12px 12px 12px 2px;padding:12px 14px;font-size:14px;font-style:italic;color:#1c2230;margin-bottom:12px;">
+            « Chez Mme Martin, remplacement du chauffe-eau 200 litres, 980 euros, et la dépose de l'ancien, 120 euros. »
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#6b7686;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">📄 VolpeVox prépare</div>
+          <div style="background:#f8f6ef;border:1px solid #ece4c8;border-radius:10px;padding:12px 14px;">
+            <div style="font-size:12px;font-weight:700;color:${BLEU};margin-bottom:6px;">DEVIS · MME MARTIN</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              ${ligne("Remplacement chauffe-eau 200 L", "980,00&nbsp;€")}
+              ${ligne("Dépose de l'ancien ballon", "120,00&nbsp;€")}
+              <tr><td colspan="2" style="padding:6px 0 4px;"><div style="border-top:1px dashed #cdbf8f;"></div></td></tr>
+              <tr>
+                <td style="font-size:14px;font-weight:700;color:#1c2230;">Total</td>
+                <td style="font-size:18px;font-weight:800;color:${BLEU};text-align:right;white-space:nowrap;">1&nbsp;100,00&nbsp;€</td>
+              </tr>
+            </table>
+            <div style="font-size:12px;color:#1a7a4a;font-weight:700;margin-top:6px;">✓ Prêt à envoyer · ta cliente signe sur son téléphone</div>
+          </div>
+
+          <a href="${lienApp}" style="display:block;text-align:center;margin:24px 0 8px;padding:16px 12px;background:${OR};color:${BLEU};text-decoration:none;border-radius:10px;font-weight:800;font-size:17px;">Faire mon premier devis</a>
+          <div style="text-align:center;font-size:12px;color:#6b7686;">Gratuit pendant le lancement · sans carte bancaire</div>
+          <a href="${lienVideo}" style="display:block;margin:16px 0 4px;padding:10px 14px;border:2px solid ${BLEU};border-radius:10px;text-decoration:none;background:#ffffff;">
+            <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 auto;">
+              <tr>
+                <td style="vertical-align:middle;padding-right:12px;">
+                  <div style="width:36px;height:36px;border-radius:18px;background:${BLEU};color:${OR};font-size:15px;text-align:center;line-height:36px;">&#9654;</div>
+                </td>
+                <td style="vertical-align:middle;text-align:left;">
+                  <div style="font-size:15px;font-weight:800;color:${BLEU};">Voir VolpeVox en vidéo</div>
+                  <div style="font-size:12px;color:#6b7686;">1 minute pour tout comprendre</div>
+                </td>
+              </tr>
+            </table>
+          </a>
+
+          <div style="margin:24px 0 6px;font-size:15px;font-weight:800;color:${BLEU};">Ensuite, tout s'enchaîne :</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            ${etape("1", "Tu dictes", "comme si tu expliquais le chantier à un collègue.")}
+            ${etape("2", "Ton client signe", "sur son téléphone, sans rien imprimer. Tu es prévenu tout de suite.")}
+            ${etape("3", "Tu factures en 1 clic", "et ton client peut payer en ligne. Les relances partent toutes seules.")}
+          </table>
+
+          <div style="margin-top:14px;padding-top:18px;border-top:1px solid #e2e6ee;font-size:14px;line-height:1.6;">
+            Moi c'est Malcom Marley. J'ai créé VolpeVox pour que les artisans arrêtent de passer leurs soirées sur la paperasse.
+            Si quelque chose te bloque, <strong>réponds simplement à ce mail</strong> ou <a href="${lienWhatsapp}" style="color:${BLEU};font-weight:700;">écris-moi sur WhatsApp</a> : c'est moi qui réponds.
+            <br><br><strong>Malcom Marley</strong><br><span style="color:#6b7686;">Fondateur de VolpeVox</span>
+          </div>
+        </div>
+        <div style="height:18px;"></div>
+      </div>
+    </div>
+  `;
+}
