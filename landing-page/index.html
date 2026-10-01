@@ -27,8 +27,14 @@
     --red:#ff6b6b;
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  header, main#top, footer{max-width:none !important;}
+  /* Le theme WordPress entoure la page d'une marge (has-global-padding) et
+     espace les blocs : on les annule pour que chaque bande de couleur aille
+     d'un bord a l'autre. Pas de scroll-behavior:smooth : il bloque les liens
+     d'ancre (#comment) sur ce WordPress. */
+  .entry-content.has-global-padding,.wp-block-post-content{padding-left:0 !important;padding-right:0 !important;}
+  .entry-content > *{margin-block-start:0 !important;margin-block-end:0 !important;}
+  .wp-site-blocks{padding:0 !important;}
+  header, main#top, footer{max-width:none !important;margin:0 !important;}
   body{
     margin:0;background:var(--bg);color:var(--cream);
     font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -95,11 +101,19 @@
   .phone img{width:100%;height:100%;object-fit:cover;object-position:top;}
 
   /* ---------- En-tete ---------- */
+  /* En-tete fixe (et non sticky : le sticky ne tient pas dans ce WordPress
+     sur iPhone). main#top laisse la place en dessous. */
   header{
-    position:sticky;top:0;z-index:50;
+    position:fixed;top:0;left:0;right:0;z-index:50;
     background:rgba(13,27,42,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     border-bottom:1px solid rgba(42,58,82,.6);
   }
+  main#top{padding-top:64px;}
+  #comment{scroll-margin-top:72px;}
+  body.admin-bar header{top:32px;}
+  @media (max-width:782px){body.admin-bar header{top:46px;}}
+  /* < 600px, la barre admin WordPress defile avec la page : pas de decalage. */
+  @media (max-width:600px){body.admin-bar header{top:0;}}
   .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px;}
   .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:20px;}
   .brand img{width:34px;height:34px;}
@@ -319,6 +333,13 @@
   .pied-liens a:hover{color:var(--gold);}
   .pied-liens svg{width:20px;height:20px;}
 
+  /* Bouton retour en haut : apparait apres un peu de defilement */
+  .haut{position:fixed;right:20px;bottom:24px;z-index:55;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
+    background:var(--gold);color:#0d1b2a;box-shadow:0 12px 28px -10px rgba(0,0,0,.7);text-decoration:none;
+    opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .25s ease, transform .25s ease;}
+  .haut svg{width:22px;height:22px;}
+  html.vv-defile .haut{opacity:1;transform:none;pointer-events:auto;}
+
   /* Barre d'inscription collee en bas (mobile) */
   .barre-mobile{display:none;}
 
@@ -363,6 +384,7 @@
     }
     .barre-mobile .btn{padding:14px;font-size:15px;}
     footer{padding-bottom:96px;}
+    .haut{right:16px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;}
     .douleur,.atout{display:grid;grid-template-columns:44px 1fr;column-gap:14px;padding:18px;}
     .douleur .ico,.atout .ico{grid-row:span 2;margin-bottom:0;}
     .douleur p,.atout p{margin-top:4px;font-size:14px;}
@@ -706,6 +728,8 @@
   </div>
 </footer>
 
+<a class="haut" href="#top" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></a>
+
 <div class="barre-mobile">
   <a class="btn" href="https://app.volpevox.fr/connexion?mode=inscription">Créer mon compte gratuitement</a>
 </div>
@@ -769,5 +793,10 @@
 })();
 </script>
 <img src="vv-provenance-trigger" alt="" style="display:none" onerror="(function(){ if(window.__vvProv) return; window.__vvProv = 1; var CLE = 'vv-provenance', p = {}; try { p = JSON.parse(sessionStorage.getItem(CLE) || '{}'); } catch(e) {} if(!p.utm_source &amp;&amp; !p.vv_ref){ var q = new URLSearchParams(location.search), n = {}; ['utm_source','utm_medium','utm_campaign'].forEach(function(k){ var v = q.get(k); if(v) n[k] = v.slice(0,100); }); if(!n.utm_source){ if(q.get('fbclid')) n.utm_source = 'meta'; else if(q.get('gclid') || q.get('gbraid') || q.get('wbraid')) n.utm_source = 'google'; else if(q.get('ttclid')) n.utm_source = 'tiktok'; } try { var h = document.referrer ? new URL(document.referrer).hostname : ''; if(h &amp;&amp; !/(^|\.)volpevox\.fr$/.test(h)) n.vv_ref = h; } catch(e) {} if(n.utm_source || n.vv_ref){ p = n; try { sessionStorage.setItem(CLE, JSON.stringify(p)); } catch(e) {} } } if(!p.utm_source &amp;&amp; !p.vv_ref) return; function lier(){ document.querySelectorAll('a').forEach(function(a){ if(a.href.indexOf('https://app.volpevox.fr/connexion') !== 0) return; try { var u = new URL(a.href); Object.keys(p).forEach(function(k){ if(!u.searchParams.has(k)) u.searchParams.set(k, p[k]); }); a.href = u.toString(); } catch(e) {} }); } if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lier); else lier(); })();">
+<!-- Bouton retour en haut : l'affiche apres 600 px de defilement (meme double forme que les autres scripts). -->
+<script>
+(function(){ if(window.__vvHaut) return; window.__vvHaut = 1; function maj(){ document.documentElement.classList.toggle('vv-defile', (window.scrollY || document.documentElement.scrollTop) > 600); } window.addEventListener('scroll', maj, { passive: true }); maj(); })();
+</script>
+<img src="vv-haut-trigger" alt="" style="display:none" onerror="(function(){ if(window.__vvHaut) return; window.__vvHaut = 1; function maj(){ document.documentElement.classList.toggle('vv-defile', (window.scrollY || document.documentElement.scrollTop) > 600); } window.addEventListener('scroll', maj, { passive: true }); maj(); })();">
 </body>
 </html>
