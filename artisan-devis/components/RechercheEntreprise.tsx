@@ -11,6 +11,10 @@ export interface InfosEntreprise {
   prenom: string;
   nom: string;
   nomEntreprise: string;
+  // Societe (SARL, SAS...) plutot qu'entrepreneur individuel, et sa forme
+  // juridique ("SARL"), pour pre-remplir "Forme et capital".
+  estSociete: boolean;
+  formeJuridique: string;
   adresse: string;
   codePostal: string;
   ville: string;
@@ -41,6 +45,18 @@ function sansParentheses(texte: string | null | undefined) {
   return (texte || "").replace(/\s*\(.*?\)\s*/g, " ").trim();
 }
 
+// Code "nature juridique" de l'INSEE -> forme courte. Codes les plus
+// frequents chez les artisans ; vide sinon (l'artisan la tape lui-meme).
+function formeJuridique(code: string) {
+  if (code === "5498") return "EURL";
+  if (code.startsWith("54")) return "SARL";
+  if (code === "5710") return "SAS";
+  if (code === "5720") return "SASU";
+  if (code.startsWith("55") || code.startsWith("56")) return "SA";
+  if (code.startsWith("52")) return "SNC";
+  return "";
+}
+
 function versInfos(e: any): InfosEntreprise {
   const s = e.siege || {};
   const adresse = [s.numero_voie, s.indice_repetition, s.type_voie, s.libelle_voie].filter(Boolean).join(" ");
@@ -59,6 +75,8 @@ function versInfos(e: any): InfosEntreprise {
     prenom,
     nom,
     nomEntreprise: individuel ? casse(nomCommercial) : casse(e.nom_raison_sociale || e.nom_complet),
+    estSociete: !individuel,
+    formeJuridique: individuel ? "" : formeJuridique(String(e.nature_juridique || "")),
     adresse: casse(adresse || s.complement_adresse),
     codePostal: s.code_postal || "",
     ville: casse(s.libelle_commune),

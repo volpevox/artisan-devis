@@ -20,6 +20,11 @@ export default function Profil() {
   // "Prenom Nom" : ce qui s'affiche sur les devis et factures (nom_complet).
   const nomComplet = `${prenom.trim()} ${nom.trim()}`.trim();
   const [nomEntreprise, setNomEntreprise] = useState("");
+  // "A ton nom" (false) ou "En societe" (true) ; null = pas encore repondu
+  // (comptes crees avant la question). Voir lib/nomAffichage.ts.
+  const [estSociete, setEstSociete] = useState<boolean | null>(null);
+  const [formeCapital, setFormeCapital] = useState("");
+  const [rcsVille, setRcsVille] = useState("");
   const [telephone, setTelephone] = useState("");
   const [adresse, setAdresse] = useState("");
   const [codePostal, setCodePostal] = useState("");
@@ -69,6 +74,9 @@ export default function Profil() {
         setPrenom(separe.prenom);
         setNom(separe.nom);
         setNomEntreprise(data.nom_entreprise || "");
+        setEstSociete(typeof data.est_societe === "boolean" ? data.est_societe : null);
+        setFormeCapital(data.forme_capital || "");
+        setRcsVille(data.rcs_ville || "");
         setTelephone(data.telephone || "");
         setAdresse(data.adresse || "");
         setCodePostal(data.code_postal || "");
@@ -111,6 +119,12 @@ export default function Profil() {
       setNom(infos.nomComplet);
     }
     setNomEntreprise(infos.nomEntreprise);
+    setEstSociete(infos.estSociete);
+    // "SARL au capital de " : il ne reste qu'a taper le montant.
+    if (infos.estSociete && infos.formeJuridique && !formeCapital.trim()) {
+      setFormeCapital(`${infos.formeJuridique} au capital de `);
+    }
+    if (infos.estSociete && infos.ville && !rcsVille.trim()) setRcsVille(infos.ville);
     if (infos.adresse) setAdresse(infos.adresse);
     if (infos.codePostal) setCodePostal(infos.codePostal);
     if (infos.ville) setVille(infos.ville);
@@ -145,6 +159,18 @@ export default function Profil() {
   async function enregistrer() {
     if (!prenom.trim() || !nom.trim() || !telephone.trim() || !adresse.trim() || !codePostal.trim() || !ville.trim() || !siret.trim() || !tauxTva.trim()) {
       setMessage("Merci de remplir tous les champs obligatoires (marqués d'un *).");
+      return;
+    }
+    if (estSociete === null) {
+      setMessage("Dis-nous si tu travailles à ton nom ou en société.");
+      return;
+    }
+    if (estSociete && (!nomEntreprise.trim() || !formeCapital.trim() || !rcsVille.trim())) {
+      setMessage("En société, le nom de la société, la forme et le capital, et la ville du RCS sont obligatoires.");
+      return;
+    }
+    if (estSociete && !/\d/.test(formeCapital)) {
+      setMessage("Indique le montant du capital (ex : SARL au capital de 5 000 €).");
       return;
     }
 
@@ -190,6 +216,9 @@ export default function Profil() {
       nom_complet: nomComplet,
       prenom: prenom.trim(),
       nom_entreprise: nomEntreprise,
+      est_societe: estSociete,
+      forme_capital: formeCapital.trim() || null,
+      rcs_ville: rcsVille.trim() || null,
       telephone,
       adresse,
       code_postal: codePostal,
@@ -238,6 +267,80 @@ export default function Profil() {
     setMessage("Profil enregistré !");
   }
 
+  // Question "A ton nom / En societe" et champs propres aux societes,
+  // communs a l'ecran de depart (prefixe "d") et au profil complet ("p").
+  const choixStatut = (
+    <div className="champ">
+      <p className="champ-label">
+        Tu travailles <span className="obligatoire">*</span>
+      </p>
+      <div className="choix-tva">
+        <button type="button" className={estSociete === false ? "actif" : ""} onClick={() => setEstSociete(false)}>
+          <strong>À ton nom</strong>
+          <small>Micro-entreprise, EI</small>
+        </button>
+        <button type="button" className={estSociete === true ? "actif" : ""} onClick={() => setEstSociete(true)}>
+          <strong>En société</strong>
+          <small>SARL, EURL, SAS…</small>
+        </button>
+      </div>
+    </div>
+  );
+
+  const champEntreprise = (prefixe: string) => (
+    <div className="champ">
+      <label className="champ-label" htmlFor={`${prefixe}-entreprise`}>
+        {estSociete ? (
+          <>
+            Nom de la société <span className="obligatoire">*</span>
+          </>
+        ) : (
+          <>
+            Nom de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif)</span>
+          </>
+        )}
+      </label>
+      <input
+        id={`${prefixe}-entreprise`}
+        className="field"
+        value={nomEntreprise}
+        onChange={(e) => setNomEntreprise(e.target.value)}
+      />
+      {estSociete ? <p className="champ-aide">C'est lui qui apparaît en premier sur tes documents.</p> : null}
+    </div>
+  );
+
+  const champsSociete = (prefixe: string) =>
+    estSociete ? (
+      <>
+        <div className="champ">
+          <label className="champ-label" htmlFor={`${prefixe}-forme`}>
+            Forme et capital <span className="obligatoire">*</span>
+          </label>
+          <input
+            id={`${prefixe}-forme`}
+            className="field"
+            placeholder="Ex : SARL au capital de 5 000 €"
+            value={formeCapital}
+            onChange={(e) => setFormeCapital(e.target.value)}
+          />
+        </div>
+        <div className="champ">
+          <label className="champ-label" htmlFor={`${prefixe}-rcs`}>
+            Ville du RCS <span className="obligatoire">*</span>
+          </label>
+          <input
+            id={`${prefixe}-rcs`}
+            className="field"
+            placeholder="Ex : Lyon"
+            value={rcsVille}
+            onChange={(e) => setRcsVille(e.target.value)}
+          />
+          <p className="champ-aide">La ville du greffe où ta société est immatriculée (sur ton Kbis : « RCS Lyon »).</p>
+        </div>
+      </>
+    ) : null;
+
   if (chargementSession || chargement) {
     return (
       <main className="page-shell">
@@ -259,7 +362,7 @@ export default function Profil() {
 
         <h1 className="page-title">Tes infos</h1>
         <p className="hint" style={{ margin: "0 0 16px" }}>
-          Elles apparaissent en haut de tes devis et factures. Ça prend une minute.
+          Elles apparaissent sur tes devis et factures. Ça prend une minute.
         </p>
 
         <div className="form-bloc">
@@ -273,6 +376,7 @@ export default function Profil() {
         <div className="form-bloc">
           <p className="form-bloc-titre">2. Vérifie</p>
           <div className="form-carte">
+            {choixStatut}
             <div className="champ">
               <label className="champ-label" htmlFor="d-prenom">
                 Prénom <span className="obligatoire">*</span>
@@ -297,17 +401,7 @@ export default function Profil() {
                 onChange={(e) => setNom(e.target.value)}
               />
             </div>
-            <div className="champ">
-              <label className="champ-label" htmlFor="d-entreprise">
-                Nom de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif)</span>
-              </label>
-              <input
-                id="d-entreprise"
-                className="field"
-                value={nomEntreprise}
-                onChange={(e) => setNomEntreprise(e.target.value)}
-              />
-            </div>
+            {champEntreprise("d")}
             <div className="champ">
               <label className="champ-label" htmlFor="d-tel">
                 Téléphone <span className="obligatoire">*</span>
@@ -320,6 +414,7 @@ export default function Profil() {
               </label>
               <input id="d-siret" className="field" inputMode="numeric" value={siret} onChange={(e) => setSiret(e.target.value)} />
             </div>
+            {champsSociete("d")}
             <div className="champ">
               <label className="champ-label" htmlFor="d-adresse">
                 Adresse <span className="obligatoire">*</span>
@@ -386,9 +481,11 @@ export default function Profil() {
   // --- Etat des rubriques (bord vert = complet, or = a completer, gris =
   // facultatif) et parcours de la carte de visite. Calcule sur les valeurs
   // en cours de saisie : la carte se met a jour en direct.
-  const okIdentite = Boolean(prenom.trim() && nom.trim() && telephone.trim());
+  const okIdentite = Boolean(
+    prenom.trim() && nom.trim() && telephone.trim() && estSociete !== null && (!estSociete || nomEntreprise.trim())
+  );
   const okAdresse = Boolean(adresse.trim() && codePostal.trim() && ville.trim());
-  const okLegal = Boolean(siret.trim() && tauxTva.trim());
+  const okLegal = Boolean(siret.trim() && tauxTva.trim() && (!estSociete || (formeCapital.trim() && rcsVille.trim())));
   const okMentions = Boolean(assurancePro.trim());
   const okLogo = Boolean(logoApercu);
   const okPaiement = Boolean(conditionsPaiement.trim() || iban.trim());
@@ -429,11 +526,11 @@ export default function Profil() {
             {logoApercu ? <img src={logoApercu} alt="" /> : initialesVisite || "?"}
           </div>
           <div style={{ minWidth: 0 }}>
-            <p className="fiche-visite-nom">{nomComplet || "Ton nom"}</p>
+            <p className="fiche-visite-nom">{(estSociete ? nomEntreprise : nomComplet) || nomComplet || "Ton nom"}</p>
             <p className="fiche-visite-meta">
-              {nomEntreprise ? (
+              {(estSociete ? nomComplet : nomEntreprise) ? (
                 <>
-                  {nomEntreprise}
+                  {estSociete ? nomComplet : nomEntreprise}
                   <br />
                 </>
               ) : null}
@@ -470,6 +567,7 @@ export default function Profil() {
         titre="Identité"
         resume={resume(nomComplet, nomEntreprise, telephone) || "Ton nom et ton téléphone"}
       >
+        {choixStatut}
         <div className="champ">
           <label className="champ-label" htmlFor="p-prenom">
             Prénom <span className="obligatoire">*</span>
@@ -494,12 +592,7 @@ export default function Profil() {
             onChange={(e) => setNom(e.target.value)}
           />
         </div>
-        <div className="champ">
-          <label className="champ-label" htmlFor="p-entreprise">
-            Nom de l'entreprise <span style={{ fontWeight: 400 }}>(facultatif)</span>
-          </label>
-          <input id="p-entreprise" className="field" value={nomEntreprise} onChange={(e) => setNomEntreprise(e.target.value)} />
-        </div>
+        {champEntreprise("p")}
         <div className="champ">
           <label className="champ-label" htmlFor="p-tel">
             Téléphone <span className="obligatoire">*</span>
@@ -548,6 +641,7 @@ export default function Profil() {
           </label>
           <input id="p-siret" className="field" inputMode="numeric" value={siret} onChange={(e) => setSiret(e.target.value)} />
         </div>
+        {champsSociete("p")}
         <div className="champ">
           <label className="champ-label" htmlFor="p-tva">
             Taux de TVA <span className="obligatoire">*</span>

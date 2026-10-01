@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
-import { nomAffichageDocument } from "@/lib/nomAffichage";
+import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
 import { enNombre } from "@/lib/nombre";
 
 // Aperçu PDF d'un devis / d'une facture PAS ENCORE enregistré : on rend le
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     <DevisPDF
       entreprise={{
         nom: nomAffichageDocument(artisan),
+        mentionSociete: mentionSociete(artisan),
         telephone: artisan?.telephone,
         adresse: artisan?.adresse,
         codePostal: artisan?.code_postal,

@@ -2,22 +2,39 @@ interface ProfilPourNom {
   taux_tva?: number | string | null;
   nom_complet?: string | null;
   nom_entreprise?: string | null;
+  est_societe?: boolean | null;
+  forme_capital?: string | null;
+  rcs_ville?: string | null;
 }
 
-// Un taux de TVA a 0% indique le plus souvent une franchise en base
-// (auto-entrepreneur en nom propre) : on affiche alors le nom et prenom,
-// complete par le nom d'entreprise s'il est renseigne. Un taux superieur a
-// 0% indique le plus souvent une societe en raison sociale : on affiche
-// alors seulement le nom d'entreprise (ou le nom et prenom en secours s'il
-// n'est pas renseigne).
+// En societe : le nom de l'entreprise (raison sociale) seul. A son nom
+// (micro, EI) : nom et prenom, complete par le nom d'entreprise s'il est
+// renseigne.
+//
+// Comptes qui n'ont pas encore repondu a la question "A ton nom / En
+// societe" (est_societe vide) : ancienne regle, devinee d'apres la TVA. Un
+// taux a 0% indique le plus souvent une franchise en base (nom propre), un
+// taux superieur une societe.
+export function estEnSociete(profil: ProfilPourNom | null | undefined) {
+  if (profil?.est_societe === true || profil?.est_societe === false) return profil.est_societe;
+  return (Number(profil?.taux_tva) || 0) > 0;
+}
+
 export function nomAffichageDocument(profil: ProfilPourNom | null | undefined) {
-  const tauxTva = Number(profil?.taux_tva) || 0;
   const nomEntreprise = profil?.nom_entreprise?.trim();
   const nomComplet = profil?.nom_complet?.trim();
 
-  if (tauxTva > 0) {
+  if (estEnSociete(profil)) {
     return nomEntreprise || nomComplet || "";
   }
 
   return [nomComplet, nomEntreprise].filter(Boolean).join(" — ");
+}
+
+// Mentions propres aux societes, au pied des documents :
+// "SARL au capital de 5 000 € · RCS Lyon". Rien pour un artisan a son nom.
+export function mentionSociete(profil: ProfilPourNom | null | undefined) {
+  if (profil?.est_societe !== true) return null;
+  const rcs = profil.rcs_ville?.trim();
+  return [profil.forme_capital?.trim(), rcs ? `RCS ${rcs}` : null].filter(Boolean).join(" · ") || null;
 }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
-import { nomAffichageDocument } from "@/lib/nomAffichage";
+import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
 
 // Devis de demonstration (bouton « Voir un exemple de devis » de Mon compte) :
 // les vraies infos de l'artisan (en-tete, mentions, pied de page) avec un
@@ -24,6 +24,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     <DevisPDF
       entreprise={{
         nom: nomAffichageDocument(profil),
+        mentionSociete: mentionSociete(profil),
         telephone: profil.telephone,
         adresse: profil.adresse,
         codePostal: profil.code_postal,

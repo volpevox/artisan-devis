@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
-import { nomAffichageDocument } from "@/lib/nomAffichage";
+import { nomAffichageDocument, mentionSociete } from "@/lib/nomAffichage";
 
 // Le PDF change (statut, signature, facturation) apres sa premiere
 // generation : ne jamais le mettre en cache, ni cote serveur ni navigateur.
@@ -35,6 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     <DevisPDF
       entreprise={{
         nom: nomAffichageDocument(profil),
+        mentionSociete: mentionSociete(profil),
         telephone: profil?.telephone,
         adresse: profil?.adresse,
         codePostal: profil?.code_postal,

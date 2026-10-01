@@ -379,6 +379,8 @@ interface LigneDevisPdf {
 interface DevisPdfProps {
   entreprise: {
     nom?: string | null;
+    // Societe : "SARL au capital de 5 000 € · RCS Lyon" (lib/nomAffichage.ts).
+    mentionSociete?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     codePostal?: string | null;
@@ -449,6 +451,7 @@ export function DevisPDF({
 
   const infosPied = [
     entreprise.nom,
+    entreprise.mentionSociete,
     entreprise.siret ? `SIRET ${entreprise.siret}` : null,
     entreprise.numeroTva ? `TVA intracom. ${entreprise.numeroTva}` : null,
     entreprise.iban ? `IBAN ${entreprise.iban.replace(/ /g, " ")}` : null,
