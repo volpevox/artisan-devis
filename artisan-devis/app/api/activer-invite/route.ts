@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabaseServerClient";
 import { MODE_GRATUIT } from "@/lib/modeGratuit";
+import { notifierNouvelInscrit } from "@/lib/notifInscription";
 import { emailBienvenueHtml, logoInline } from "@/lib/emailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -117,6 +118,9 @@ export async function POST(req: NextRequest) {
       if (!artisanExistant.abonnement_actif) {
         await supabaseAdmin.from("artisans").update({ abonnement_actif: true }).eq("id", artisanExistant.id);
       }
+      // Rattrapage : si l'appel d'inscription a ete coupe avant la
+      // notification, elle part ici (sinon, rien : deja notifiee).
+      await notifierNouvelInscrit(supabaseAdmin, user.id, emailUtilisateur);
     } else {
       // Provenance memorisee sur le telephone a l'arrivee (lib/provenance.ts),
       // enregistree une seule fois, ici, a la creation du compte.
@@ -136,20 +140,9 @@ export async function POST(req: NextRequest) {
         await supabaseAdmin.from("artisans").insert({ user_id: user.id, abonnement_actif: true });
       }
 
-      // Nouvelle inscription gratuite : notification push a Marley via ntfy.sh
-      // (abonnement au canal depuis l'appli ntfy sur son telephone). C'est le
-      // seul endroit ou une ligne "artisans" issue de l'acces gratuit est
-      // creee pour la premiere fois -- donc "une inscription = un envoi".
-      // A l'inscription, le profil n'est pas encore rempli : on n'a que l'email.
-      try {
-        await fetch("https://ntfy.sh/volpevox-signup-a58k2", {
-          method: "POST",
-          headers: { Title: "Nouvelle inscription VolpeVox", Tags: "tada", Priority: "5" },
-          body: `Nouvel artisan inscrit : ${emailUtilisateur}`,
-        });
-      } catch {
-        // ignore : une notif ratee ne doit jamais bloquer l'inscription
-      }
+      // Nouvel inscrit : notification dans l'appli VolpeVox de Marley
+      // (lib/notifInscription.ts, une seule par inscrit).
+      await notifierNouvelInscrit(supabaseAdmin, user.id, emailUtilisateur);
 
       // Email de bienvenue au nouvel artisan (une fois, a la creation de la
       // ligne artisans). Un echec d'envoi ne doit jamais bloquer l'inscription.
