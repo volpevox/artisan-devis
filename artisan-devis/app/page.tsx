@@ -125,6 +125,9 @@ export default function Home() {
   // Adresse de la prestation, seulement si differente de celle du client.
   const [adressePrestation, setAdressePrestation] = useState("");
   const [adressePrestationOuverte, setAdressePrestationOuverte] = useState(false);
+  // Cases « À compléter » du resume : une case vide y entre et y reste
+  // (sinon elle disparaitrait des la premiere lettre tapee).
+  const [casesDemandees, setCasesDemandees] = useState<string[]>([]);
   const [datePrestation, setDatePrestation] = useState("");
   const [dateAffichage, setDateAffichage] = useState("");
   const [modePaiement, setModePaiement] = useState(MODES_PAIEMENT_FACTURE[1].valeur);
@@ -200,6 +203,21 @@ export default function Home() {
   // reforme de la facturation electronique.
   const sirenSaisi = estPro ? normaliserSiren(clientSiren) : null;
   const sirenClient = sirenSaisi === "invalide" ? null : sirenSaisi;
+
+  // Resume : on ne demande que ce qui manque. Adresse du client toujours
+  // (seule case qui bloque l'envoi) ; nom de l'entreprise pour un pro ;
+  // SIREN pour une facture a un pro.
+  useEffect(() => {
+    if (!vueResume) return;
+    const vides: string[] = [];
+    if (!clientAdresse.trim()) vides.push("adresse");
+    if (estPro && !clientRaisonSociale.trim()) vides.push("entreprise");
+    if (estPro && typeDocument === "facture" && !clientSiren.trim()) vides.push("siren");
+    if (vides.length > 0) setCasesDemandees((c) => Array.from(new Set([...c, ...vides])));
+  }, [vueResume, clientAdresse, estPro, clientRaisonSociale, clientSiren, typeDocument]);
+  const caseDemandee = (nom: string) =>
+    casesDemandees.includes(nom) &&
+    (nom === "adresse" || (estPro && (nom === "entreprise" || typeDocument === "facture")));
 
   function majLigne(index: number, champ: keyof Ligne, valeur: string | boolean) {
     setLignes((ls) => ls.map((l, i) => (i === index ? { ...l, [champ]: valeur } : l)));
@@ -305,6 +323,13 @@ export default function Home() {
       }
       if (donnees.clientTelephone) setClientTelephone(donnees.clientTelephone);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
+      if (donnees.clientType === "professionnel") setClientType("professionnel");
+      if (donnees.clientSiren) setClientSiren(String(donnees.clientSiren));
+      const lieu = String(donnees.adressePrestation || "").trim();
+      if (lieu && lieu.toLowerCase() !== String(donnees.clientAdresse || "").trim().toLowerCase()) {
+        setAdressePrestation(lieu);
+        setAdressePrestationOuverte(true);
+      }
       if (donnees.clientEmail) setClientEmail(String(donnees.clientEmail).toLowerCase().replace(/\s/g, ""));
 
       // Client deja connu (meme nom qu'un ancien devis/facture) : on reprend
@@ -599,6 +624,11 @@ export default function Home() {
       setMessage("Ajoute l'email du client pour lui envoyer. Sinon, utilise « Enregistrer sans envoyer ».");
       return;
     }
+    if (!clientAdresse.trim()) {
+      setMessage("Ajoute l'adresse du client : elle est obligatoire sur le document.");
+      document.getElementById(vueResume ? "resume-adresse" : "client-adresse")?.focus();
+      return;
+    }
     setEnvoiEnCours(true);
     const dejaEnregistre = devisEnregistre;
     const id = dejaEnregistre ? devisId : await enregistrer();
@@ -817,6 +847,7 @@ export default function Home() {
     setClientType("particulier");
     setAdressePrestation("");
     setAdressePrestationOuverte(false);
+    setCasesDemandees([]);
     setDatePrestation("");
     setDateAffichage("");
     setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
@@ -1025,6 +1056,26 @@ export default function Home() {
       {vueResume ? (
         <div className="form-bloc">
           <div className="form-carte resume-carte">
+            <div className="type-toggle" role="tablist" aria-label="Type de client" style={{ marginBottom: 12 }}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!estPro}
+                className={!estPro ? "actif" : ""}
+                onClick={() => setClientType("particulier")}
+              >
+                Particulier
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={estPro}
+                className={estPro ? "actif" : ""}
+                onClick={() => setClientType("professionnel")}
+              >
+                Professionnel
+              </button>
+            </div>
             {/* Nom seul (ex : « Monsieur Martin ») ou rien dicte : il s'affiche
                 dans la case « Nom du client » ci-dessous, pas en double ici. */}
             {clientPrenom.trim() || (estPro && clientRaisonSociale.trim()) ? (
@@ -1041,9 +1092,9 @@ export default function Home() {
                 />
               </div>
             )}
-            {(clientAdresse.trim() || clientTelephone.trim()) && (
+            {((clientAdresse.trim() && !caseDemandee("adresse")) || clientTelephone.trim()) && (
               <p className="resume-client-info">
-                {[clientAdresse.trim(), clientTelephone.trim()].filter(Boolean).join(" · ")}
+                {[caseDemandee("adresse") ? "" : clientAdresse.trim(), clientTelephone.trim()].filter(Boolean).join(" · ")}
               </p>
             )}
             {adressePrestation.trim() && (
@@ -1072,6 +1123,53 @@ export default function Home() {
                   onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
                 />
               </div>
+              {caseDemandee("adresse") && (
+                <div className="champ">
+                  <label className="champ-label" htmlFor="resume-adresse">
+                    Adresse du client <span style={{ fontWeight: 400 }}>— obligatoire</span>
+                  </label>
+                  <input
+                    id="resume-adresse"
+                    className="field"
+                    placeholder="12 rue des Lilas, 75011 Paris"
+                    value={clientAdresse}
+                    onChange={(e) => setClientAdresse(e.target.value)}
+                  />
+                </div>
+              )}
+              {caseDemandee("entreprise") && (
+                <div className="champ">
+                  <label className="champ-label" htmlFor="resume-entreprise">Nom de l'entreprise</label>
+                  <input
+                    id="resume-entreprise"
+                    className="field"
+                    placeholder="Ex : Dupont & Fils SARL"
+                    value={clientRaisonSociale}
+                    onChange={(e) => setClientRaisonSociale(e.target.value)}
+                  />
+                </div>
+              )}
+              {caseDemandee("siren") && (
+                <div className="champ">
+                  <label className="champ-label" htmlFor="resume-siren">
+                    SIREN de l'entreprise <span style={{ fontWeight: 400 }}>— obligatoire sur la facture</span>
+                  </label>
+                  <input
+                    id="resume-siren"
+                    className="field"
+                    inputMode="numeric"
+                    autoCorrect="off"
+                    placeholder="123 456 789"
+                    value={clientSiren}
+                    onChange={(e) => setClientSiren(e.target.value)}
+                  />
+                  {sirenSaisi === "invalide" ? (
+                    <p style={{ margin: "6px 0 0", fontSize: 13, color: "#c0392b" }}>
+                      9 chiffres attendus (ou le SIRET, 14 chiffres).
+                    </p>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             <div className="resume-lignes">

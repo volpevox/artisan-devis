@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
 - clientNom (texte, le nom de famille du client si mentionné, vide sinon)
 - clientRaisonSociale (texte, le nom de l'entreprise / raison sociale du client si le client est une société, vide sinon)
 - clientTelephone (texte, le numéro de téléphone du client si mentionné, vide sinon)
-- clientAdresse (texte, l'adresse du client si mentionnée, vide sinon)
+- clientType ("professionnel" si le client est une entreprise, une société, un commerce, une association, une collectivité ou un professionnel qui achète pour son activité ; "particulier" sinon, y compris quand rien ne permet de le savoir)
+- clientSiren (texte, le numéro SIREN ou SIRET du client s'il est dicté, chiffres seulement, vide sinon)
+- clientAdresse (texte, l'adresse du client si mentionnée, vide sinon. Si une seule adresse est dictée, c'est celle-ci)
+- adressePrestation (texte, l'adresse du lieu de la prestation SEULEMENT si la dictée indique clairement qu'elle est différente de l'adresse du client, ex : « il habite à Lyon mais c'est pour sa maison d'Annecy, 3 rue du Lac ». Vide sinon)
 - clientEmail (texte, l'adresse email du client si elle est dictée, reconstituée sans espaces : « arobase » ou « at » = @, « point » = ., « tiret » = -, « tiret du bas » = _ ; ex : « marie point dupont arobase gmail point com » = marie.dupont@gmail.com. Vide si aucun email n'est dicté ; n'en invente jamais)
 - lignes (tableau d'objets) : une entrée par prestation DISTINCTE mentionnée dans la dictée. Si la dictée ne décrit qu'une seule prestation, renvoie un tableau avec une seule entrée. Ne sépare en plusieurs lignes que des tâches réellement différentes (pas un simple découpage artificiel d'une même tâche). EXCEPTION : une même prestation réalisée dans des conditions différentes (de jour, de nuit, un dimanche, un jour férié) donne une ligne par condition, avec sa propre quantité (ex : "120 heures de nuit et 16 heures un dimanche" = 2 lignes). Chaque entrée contient :
   - description (texte, le descriptif de cette prestation tel que dicté)
@@ -85,7 +88,10 @@ Règles pour prixCarnet : ne reprends un prix du carnet que si la prestation de 
       clientNom: "",
       clientRaisonSociale: "",
       clientTelephone: "",
+      clientType: "particulier",
+      clientSiren: "",
       clientAdresse: "",
+      adressePrestation: "",
       clientEmail: "",
       lignes: [ligneParDefaut],
     });
