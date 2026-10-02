@@ -212,11 +212,16 @@ export default function Home() {
   // Ref (et pas seulement un etat) pour que l'action relancee juste apres
   // « Plus tard » ne rouvre pas la fenetre.
   const popupProfilVue = useRef(false);
+  // Copie en etat pour reafficher le petit rappel des que la fenetre est vue.
+  const [popupProfilDejaVue, setPopupProfilDejaVue] = useState(false);
   const [popupProfil, setPopupProfil] = useState<null | "apercu" | "envoi">(null);
   const [popupProfilEnCours, setPopupProfilEnCours] = useState(false);
   const router = useRouter();
   useEffect(() => {
-    if (profilArtisan?.popup_profil_vue_le) popupProfilVue.current = true;
+    if (profilArtisan?.popup_profil_vue_le) {
+      popupProfilVue.current = true;
+      setPopupProfilDejaVue(true);
+    }
   }, [profilArtisan]);
   const profilAManque = Boolean(
     mentionsProfil &&
@@ -240,6 +245,7 @@ export default function Home() {
       return;
     }
     popupProfilVue.current = true;
+    setPopupProfilDejaVue(true);
     if (artisanId) {
       await supabase.from("artisans").update({ popup_profil_vue_le: new Date().toISOString() }).eq("id", artisanId);
     }
@@ -253,6 +259,7 @@ export default function Home() {
   async function popupProfilPlusTard() {
     const action = popupProfil;
     popupProfilVue.current = true;
+    setPopupProfilDejaVue(true);
     setPopupProfil(null);
     if (artisanId) {
       await supabase.from("artisans").update({ popup_profil_vue_le: new Date().toISOString() }).eq("id", artisanId);
@@ -1830,7 +1837,11 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {clientType === "particulier" && mentionsManquantes.length > 0 && (
+            {/* Pas en meme temps que la fenetre « Ton devis est presque pret » :
+                tant qu'elle n'a pas ete vue, c'est elle qui en parle. */}
+            {clientType === "particulier" &&
+              mentionsManquantes.length > 0 &&
+              !(typeDocument === "devis" && !popupProfilDejaVue && profilAManque) && (
               <div className="rappel-mentions">
                 <span>
                   Client particulier : {mentionsManquantes.join(" et ")}{" "}
