@@ -80,8 +80,8 @@ export default function Parametres() {
   // a defaut (ordinateur), le message est copie.
   async function recommander() {
     const texte = MODE_GRATUIT
-      ? "Salut ! J'utilise VolpeVox pour mes devis et factures : je dicte le chantier et le devis se fait tout seul. C'est gratuit en ce moment, teste :"
-      : "Salut ! J'utilise VolpeVox pour mes devis et factures : je dicte le chantier et le devis se fait tout seul. Teste :";
+      ? "Salut ! J'utilise VolpeVox pour mes devis et factures : je dicte ma prestation et le devis se fait tout seul. C'est gratuit en ce moment, teste :"
+      : "Salut ! J'utilise VolpeVox pour mes devis et factures : je dicte ma prestation et le devis se fait tout seul. Teste :";
     if (navigator.share) {
       try {
         await navigator.share({ text: texte, url: LIEN_RECOMMANDATION });

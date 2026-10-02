@@ -40,7 +40,7 @@ export default function Cgu() {
         <h2>4. Description du service</h2>
         <p>Le service permet notamment :</p>
         <ul>
-          <li>la dictée vocale d'un chantier, transcrite et structurée automatiquement par intelligence artificielle en devis ;</li>
+          <li>la dictée vocale d'une prestation, transcrite et structurée automatiquement par intelligence artificielle en devis ;</li>
           <li>la génération de documents PDF (devis, factures) ;</li>
           <li>la signature électronique du devis par le client de l'artisan ;</li>
           <li>la transformation du devis signé en facture ;</li>

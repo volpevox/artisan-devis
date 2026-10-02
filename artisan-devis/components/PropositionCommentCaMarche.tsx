@@ -67,7 +67,7 @@ export function PropositionCommentCaMarche() {
             <li>
               <span>2</span>
               <div>
-                <strong>Tu dictes ton chantier</strong>
+                <strong>Tu dictes ta prestation</strong>
                 <small>L&apos;IA remplit le devis : client, lignes, prix.</small>
               </div>
             </li>

@@ -152,7 +152,7 @@ export function useArtisanSession() {
     });
 
     // Le telephone met en pause les timers JS quand l'appli est en arriere-plan
-    // (verrouillage d'ecran, changement d'appli sur un chantier) : au retour,
+    // (verrouillage d'ecran, changement d'appli en intervention) : au retour,
     // on force une verification/rafraichissement immediat plutot que d'attendre
     // le prochain cycle automatique, qui peut arriver trop tard.
     function surRetourAuPremierPlan() {

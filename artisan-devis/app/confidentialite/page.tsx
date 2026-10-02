@@ -33,7 +33,7 @@ export default function Confidentialite() {
             de la licéité de cette collecte ; VolpeVox agit en tant que sous-traitant pour ces données ;
           </li>
           <li>
-            <strong>Enregistrements vocaux</strong> réalisés par l'artisan lors de la dictée d'un chantier, transmis
+            <strong>Enregistrements vocaux</strong> réalisés par l'artisan lors de la dictée d'une prestation, transmis
             de façon sécurisée à OpenAI pour transcription et structuration automatique du devis ;
           </li>
           <li>

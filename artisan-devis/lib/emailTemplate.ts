@@ -279,7 +279,7 @@ export function emailBienvenueHtml({ lienApp, lienVideo, lienWhatsapp }: { lienA
 
         <div style="padding:26px 24px 8px;color:#1c2230;font-size:15px;line-height:1.55;">
           <div style="font-size:22px;font-weight:800;color:${BLEU};line-height:1.25;margin-bottom:10px;">Bienvenue ! Ce soir, tes devis seront déjà faits.</div>
-          <p style="margin:0 0 18px;">Avec VolpeVox, tu fais ton devis <strong>sur le chantier, en parlant</strong>. Plus besoin de rallumer l'ordi le soir pour tout retaper.</p>
+          <p style="margin:0 0 18px;">Avec VolpeVox, tu fais ton devis <strong>sur place, en parlant</strong>. Plus besoin de rallumer l'ordi le soir pour tout retaper.</p>
 
           <div style="font-size:12px;font-weight:700;color:#6b7686;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">🎙️ Tu dis</div>
           <div style="background:#eef2f8;border-radius:12px 12px 12px 2px;padding:12px 14px;font-size:14px;font-style:italic;color:#1c2230;margin-bottom:12px;">
@@ -318,7 +318,7 @@ export function emailBienvenueHtml({ lienApp, lienVideo, lienWhatsapp }: { lienA
 
           <div style="margin:24px 0 6px;font-size:15px;font-weight:800;color:${BLEU};">Ensuite, tout s'enchaîne :</div>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-            ${etape("1", "Tu dictes", "comme si tu expliquais le chantier à un collègue.")}
+            ${etape("1", "Tu dictes", "comme si tu expliquais la prestation à un collègue.")}
             ${etape("2", "Ton client signe", "sur son téléphone, sans rien imprimer. Tu es prévenu tout de suite.")}
             ${etape("3", "Tu factures en 1 clic", "et ton client peut payer en ligne. Les relances partent toutes seules.")}
           </table>

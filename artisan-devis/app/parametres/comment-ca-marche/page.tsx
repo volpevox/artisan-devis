@@ -135,7 +135,7 @@ export default function CommentCaMarche() {
       <Chapitre etiquette="Le devis" titre="Tu dictes, il se remplit">
         <Etape
           n={2}
-          titre="Tu dictes le chantier"
+          titre="Tu dictes ta prestation"
           demo={
             <>
               <div className="ccm-mic-mini">
@@ -152,7 +152,7 @@ export default function CommentCaMarche() {
             </>
           }
         >
-          Appuie sur le micro et raconte : le client, les travaux, les quantités, ton prix. Comme si tu l'expliquais à
+          Appuie sur le micro et raconte : le client, ce que tu fais, les quantités, ton prix. Comme si tu l'expliquais à
           un collègue, sans rien taper.
         </Etape>
         <Etape
@@ -214,7 +214,7 @@ export default function CommentCaMarche() {
             </div>
           }
         >
-          Chantier terminé : « Transformer en facture », tu indiques la date de la prestation, c'est numéroté
+          Prestation terminée : « Transformer en facture », tu indiques la date de la prestation, c'est numéroté
           automatiquement. Tout s'est dit à l'oral ? Dicte directement une facture avec l'interrupteur
           Devis / Facture.
         </Etape>

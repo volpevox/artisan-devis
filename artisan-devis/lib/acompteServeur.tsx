@@ -137,7 +137,7 @@ export async function envoyerAcompte({
         etiquette: `Facture d'acompte n°${numero}`,
         corpsHtml: `
           <p style="margin:0 0 10px;">Bonjour${devis.client_nom ? ` ${echapperHtml(devis.client_nom)}` : ""},</p>
-          <p style="margin:0;">Merci d'avoir signé le devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} ! Voici la facture d'acompte qui permet de lancer les travaux. Le solde vous sera facturé à la fin de la prestation.</p>
+          <p style="margin:0;">Merci d'avoir signé le devis${devis.numero_devis ? ` n°${devis.numero_devis}` : ""} ! Voici la facture d'acompte qui permet de lancer la prestation. Le solde vous sera facturé à la fin de la prestation.</p>
         `,
         ticket: {
           lignes: [{ libelle: acompte.lignes[0].description, montant: "" }],

@@ -82,8 +82,8 @@ export function PopupDatePrestation({ dateConnue, enCours, onValider, onAnnuler 
       <div className="notif-propose-feuille">
         <p className="notif-propose-titre">Date de la prestation</p>
         <p className="notif-propose-texte">
-          Elle apparaîtra sur la facture. Par défaut, c&apos;est la date d&apos;aujourd&apos;hui : change-la si le
-          chantier a eu lieu un autre jour.
+          Elle apparaîtra sur la facture. Par défaut, c&apos;est la date d&apos;aujourd&apos;hui : change-la si
+          l&apos;intervention a eu lieu un autre jour.
         </p>
         <div className="champ" style={{ marginBottom: 20 }}>
           <input

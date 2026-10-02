@@ -800,7 +800,7 @@ export default function Profil() {
           titre="Assurance et médiateur"
           resume={
             resume(assurancePro ? "Assurance renseignée" : "", mediateurConso ? "médiateur renseigné" : "") ||
-            "Assurance décennale, médiateur"
+            "Assurance pro, médiateur"
           }
         >
           <div className="champ">
@@ -810,11 +810,11 @@ export default function Profil() {
             <textarea
               id="p-assurance"
               className="field"
-              placeholder="Ex : Assurance décennale n° 123456 souscrite auprès de [Assureur], couvrant les chantiers en France métropolitaine."
+              placeholder="Ex : Assurance responsabilité civile professionnelle n° 123456 souscrite auprès de [Assureur], couvrant la France métropolitaine."
               value={assurancePro}
               onChange={(e) => setAssurancePro(e.target.value)}
             />
-            <p className="champ-aide">Mention obligatoire sur les devis et factures pour les métiers du bâtiment.</p>
+            <p className="champ-aide">Obligatoire sur les devis et factures pour les métiers du bâtiment (assurance décennale).</p>
           </div>
           <div className="champ">
             <label className="champ-label" htmlFor="p-mediateur">
