@@ -4013,3 +4013,28 @@ h1 + .lien-archives {
   cursor: pointer;
   white-space: nowrap;
 }
+
+/* Profil > Paiement : moyens acceptes (plusieurs choix possibles) */
+.choix-moyens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choix-moyens button {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.choix-moyens button.actif {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}

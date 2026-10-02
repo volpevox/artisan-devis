@@ -9,6 +9,7 @@ import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "@/lib/mentionsDocuments";
 import { RechercheEntreprise, type InfosEntreprise } from "@/components/RechercheEntreprise";
 import { FicheRubrique, ICONES } from "@/components/FicheRubrique";
+import { MOYENS_PAIEMENT, moyensAcceptes, type MoyenPaiement } from "@/lib/moyensPaiement";
 import { separerNomComplet } from "@/lib/prenom";
 
 export default function Profil() {
@@ -40,6 +41,9 @@ export default function Profil() {
   const [siret, setSiret] = useState("");
   const [numeroTva, setNumeroTva] = useState("");
   const [iban, setIban] = useState("");
+  const [bic, setBic] = useState("");
+  const [titulaireCompte, setTitulaireCompte] = useState("");
+  const [moyensPaiement, setMoyensPaiement] = useState<MoyenPaiement[]>(moyensAcceptes(null));
   const [conditionsPaiement, setConditionsPaiement] = useState("");
   const [assurancePro, setAssurancePro] = useState("");
   const [mediateurConso, setMediateurConso] = useState("");
@@ -93,6 +97,9 @@ export default function Profil() {
         setSiret(data.siret || "");
         setNumeroTva(data.numero_tva || "");
         setIban(data.iban || "");
+        setBic(data.bic || "");
+        setTitulaireCompte(data.titulaire_compte || "");
+        setMoyensPaiement(moyensAcceptes(data.moyens_paiement));
         setConditionsPaiement(data.conditions_paiement || "");
         setAssurancePro(data.assurance_pro || "");
         setMediateurConso(data.mediateur_conso || "");
@@ -240,6 +247,9 @@ export default function Profil() {
       siret,
       numero_tva: numeroTva,
       iban,
+      bic: bic.trim().toUpperCase() || null,
+      titulaire_compte: titulaireCompte.trim() || null,
+      moyens_paiement: moyensPaiement,
       conditions_paiement: conditionsPaiement,
       assurance_pro: assurancePro,
       mediateur_conso: mediateurConso,
@@ -772,7 +782,8 @@ export default function Profil() {
         resume={
           resume(
             conditionsPaiement,
-            iban ? "IBAN renseigné" : "",
+            moyensPaiement.map((v) => MOYENS_PAIEMENT.find((m) => m.valeur === v)?.libelle).join(", "),
+            moyensPaiement.includes("virement") && iban ? "IBAN renseigné" : "",
             validiteDevis !== "0" ? `devis valables ${validiteDevis} j` : ""
           ) || "Conditions, IBAN, validité des devis"
         }
@@ -790,11 +801,74 @@ export default function Profil() {
           />
         </div>
         <div className="champ">
-          <label className="champ-label" htmlFor="p-iban">
-            IBAN <span style={{ fontWeight: 400 }}>(affiché sur les factures, facultatif)</span>
-          </label>
-          <input id="p-iban" className="field" value={iban} onChange={(e) => setIban(e.target.value)} />
+          <p className="champ-label">Moyens de paiement acceptés</p>
+          <div className="choix-moyens">
+            {MOYENS_PAIEMENT.map((m) => {
+              const coche = moyensPaiement.includes(m.valeur);
+              return (
+                <button
+                  key={m.valeur}
+                  type="button"
+                  aria-pressed={coche}
+                  className={coche ? "actif" : ""}
+                  onClick={() =>
+                    setMoyensPaiement((liste) =>
+                      coche ? liste.filter((v) => v !== m.valeur) : moyensAcceptes([...liste, m.valeur])
+                    )
+                  }
+                >
+                  {coche ? "✓ " : ""}
+                  {m.libelle}
+                </button>
+              );
+            })}
+          </div>
+          <p className="champ-aide">Proposés au client dans le mail de la facture et sur la facture.</p>
         </div>
+        {moyensPaiement.includes("virement") && (
+          <>
+            <div className="champ">
+              <label className="champ-label" htmlFor="p-iban">IBAN</label>
+              <input
+                id="p-iban"
+                className="field"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                placeholder="FR76 1234 5678 9012 3456 7890 123"
+                value={iban}
+                onChange={(e) => setIban(e.target.value)}
+              />
+            </div>
+            <div className="champ champ-duo">
+              <div>
+                <label className="champ-label" htmlFor="p-bic">BIC</label>
+                <input
+                  id="p-bic"
+                  className="field"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  placeholder="BNPAFRPPXXX"
+                  value={bic}
+                  onChange={(e) => setBic(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="champ-label" htmlFor="p-titulaire">Titulaire du compte</label>
+                <input
+                  id="p-titulaire"
+                  className="field"
+                  placeholder={nomComplet || "Jean Dupont"}
+                  value={titulaireCompte}
+                  onChange={(e) => setTitulaireCompte(e.target.value)}
+                />
+              </div>
+            </div>
+            <p className="champ-aide" style={{ marginTop: -6, marginBottom: 18 }}>
+              Ils sont sur ton RIB (application de ta banque). Affichés sur tes factures pour que le client puisse te
+              payer par virement.
+            </p>
+          </>
+        )}
         <div className="champ">
           <label className="champ-label" htmlFor="p-validite">Durée de validité des devis</label>
           <select id="p-validite" className="field" value={validiteDevis} onChange={(e) => setValiditeDevis(e.target.value)}>
