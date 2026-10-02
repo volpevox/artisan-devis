@@ -15,6 +15,7 @@ import { useArtisanSession } from "@/lib/useArtisan";
 import { UNITES } from "@/lib/unites";
 import { enNombre } from "@/lib/nombre";
 import { normaliserSiren } from "@/lib/siren";
+import { PopupAssuranceMediateur } from "@/components/PopupAssuranceMediateur";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
 const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
@@ -186,6 +187,25 @@ export default function Home() {
     prenomDepuisNomComplet(profilArtisan?.nom_complet || "") ||
     nomEntreprise;
   const paiementEnLigneDisponible = Boolean(profilArtisan?.stripe_paiement_actif);
+
+  // Assurance pro et mediateur (profil) : rappel non bloquant avant l'envoi a
+  // un particulier s'il en manque un. Copie locale, mise a jour par la popup
+  // pour que le rappel disparaisse sans recharger le profil.
+  const [mentionsProfil, setMentionsProfil] = useState<{ assurance: string; mediateur: string } | null>(null);
+  const [popupMentions, setPopupMentions] = useState(false);
+  useEffect(() => {
+    if (profilArtisan && mentionsProfil === null) {
+      setMentionsProfil({
+        assurance: profilArtisan.assurance_pro || "",
+        mediateur: profilArtisan.mediateur_conso || "",
+      });
+    }
+  }, [profilArtisan, mentionsProfil]);
+  const mentionsManquantes = mentionsProfil
+    ? [!mentionsProfil.assurance.trim() && "ton assurance pro", !mentionsProfil.mediateur.trim() && "ton médiateur"].filter(
+        Boolean
+      )
+    : [];
 
   const total = lignes.reduce((s, l) => s + (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0), 0);
 
@@ -1687,6 +1707,29 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {clientType === "particulier" && mentionsManquantes.length > 0 && (
+              <div className="rappel-mentions">
+                <span>
+                  Client particulier : {mentionsManquantes.join(" et ")}{" "}
+                  {mentionsManquantes.length > 1 ? "doivent" : "doit"} figurer sur le document.
+                </span>
+                <button type="button" onClick={() => setPopupMentions(true)}>
+                  {mentionsManquantes.length > 1 ? "Les ajouter" : "L'ajouter"} →
+                </button>
+              </div>
+            )}
+            {popupMentions && artisanId && mentionsProfil && (
+              <PopupAssuranceMediateur
+                artisanId={artisanId}
+                assurance={mentionsProfil.assurance}
+                mediateur={mentionsProfil.mediateur}
+                onEnregistre={(valeurs) => {
+                  setMentionsProfil(valeurs);
+                  setPopupMentions(false);
+                }}
+                onFermer={() => setPopupMentions(false)}
+              />
+            )}
             <button className="btn btn-primary btn-bloc" onClick={envoyerDirect} disabled={envoiEnCours}>
               {envoiEnCours
                 ? "Envoi en cours..."
