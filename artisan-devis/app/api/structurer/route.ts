@@ -27,6 +27,15 @@ export async function POST(req: NextRequest) {
       ? prixConnus.map((p) => `- ${p.prestation} (par ${p.unite}) : ${p.prix_moyen} €/${p.unite}`).join("\n")
       : "(aucun prix appris pour l'instant)";
 
+  // Date du jour, pour transformer « lundi », « demain »... en vraie date.
+  const aujourdhui = new Date().toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Paris",
+  });
+
   const reponse = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     // Meme dictee = meme resultat (sans ca l'IA hesite d'un essai a l'autre,
@@ -45,6 +54,8 @@ export async function POST(req: NextRequest) {
 - clientSiren (texte, le numéro SIREN ou SIRET du client s'il est dicté, chiffres seulement, vide sinon)
 - clientAdresse (texte, l'adresse du client si mentionnée, vide sinon. Si une seule adresse est dictée, c'est celle-ci)
 - adressePrestation (texte, l'adresse du lieu de la prestation SEULEMENT si la dictée indique clairement qu'elle est différente de l'adresse du client, ex : « il habite à Lyon mais c'est pour sa maison d'Annecy, 3 rue du Lac ». Vide sinon)
+- debutPrestation (texte, la date ou période de début de la prestation si elle est dictée, vide sinon. Nous sommes le ${aujourdhui} : une date relative devient une date complète (« lundi » = le prochain lundi, ex : « lundi 6 octobre 2026 » ; « demain » = la date de demain). Une période vague reste telle quelle (« début novembre », « semaine prochaine » devient « semaine du 6 octobre 2026 »))
+- dureePrestation (texte court, la durée estimée de la prestation si elle est dictée, ex : « 3 jours », « une demi-journée », « 2 semaines ». Vide sinon. Ne la déduis JAMAIS des quantités d'heures ou de jours facturées)
 - clientEmail (texte, l'adresse email du client si elle est dictée, reconstituée sans espaces : « arobase » ou « at » = @, « point » = ., « tiret » = -, « tiret du bas » = _ ; ex : « marie point dupont arobase gmail point com » = marie.dupont@gmail.com. Vide si aucun email n'est dicté ; n'en invente jamais)
 - lignes (tableau d'objets) : une entrée par prestation DISTINCTE mentionnée dans la dictée. Si la dictée ne décrit qu'une seule prestation, renvoie un tableau avec une seule entrée. Ne sépare en plusieurs lignes que des tâches réellement différentes (pas un simple découpage artificiel d'une même tâche). EXCEPTION : une même prestation réalisée dans des conditions différentes (de jour, de nuit, un dimanche, un jour férié) donne une ligne par condition, avec sa propre quantité (ex : "120 heures de nuit et 16 heures un dimanche" = 2 lignes). Chaque entrée contient :
   - description (texte, le descriptif de cette prestation tel que dicté)
@@ -92,6 +103,8 @@ Règles pour prixCarnet : ne reprends un prix du carnet que si la prestation de 
       clientSiren: "",
       clientAdresse: "",
       adressePrestation: "",
+      debutPrestation: "",
+      dureePrestation: "",
       clientEmail: "",
       lignes: [ligneParDefaut],
     });

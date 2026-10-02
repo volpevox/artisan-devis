@@ -424,6 +424,9 @@ interface DevisPdfProps {
   // Absent (anciens documents) : particulier sauf si un SIREN est connu.
   clientType?: string | null;
   adressePrestation?: string | null;
+  // Devis : debut et duree estimee, en texte libre.
+  debutPrestation?: string | null;
+  dureePrestation?: string | null;
   lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
@@ -450,6 +453,8 @@ export function DevisPDF({
   clientSiren,
   clientType,
   adressePrestation,
+  debutPrestation,
+  dureePrestation,
   lignes,
   tauxTva,
   date,
@@ -585,6 +590,17 @@ export function DevisPDF({
               {estAvoir && avoirDe ? (
                 <Text style={styles.clientPrestation}>
                   Annule la facture n° {avoirDe.numero ?? "—"} du {formaterDate(avoirDe.date)}
+                </Text>
+              ) : null}
+              {!estFacture && (debutPrestation || dureePrestation) ? (
+                <Text style={styles.clientPrestation}>
+                  {[
+                    debutPrestation ? `Début prévu : ${debutPrestation}` : null,
+                    dureePrestation ? `durée estimée : ${dureePrestation}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" — ")
+                    .replace(/^d/, "D")}
                 </Text>
               ) : null}
               {estFacture && datePrestation ? (

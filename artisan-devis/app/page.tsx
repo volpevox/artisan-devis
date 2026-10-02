@@ -126,6 +126,9 @@ export default function Home() {
   // Adresse de la prestation, seulement si differente de celle du client.
   const [adressePrestation, setAdressePrestation] = useState("");
   const [adressePrestationOuverte, setAdressePrestationOuverte] = useState(false);
+  // Devis : date de debut et duree estimee (texte libre, tel que dicte).
+  const [debutPrestation, setDebutPrestation] = useState("");
+  const [dureePrestation, setDureePrestation] = useState("");
   // Cases « À compléter » du resume : une case vide y entre et y reste
   // (sinon elle disparaitrait des la premiere lettre tapee).
   const [casesDemandees, setCasesDemandees] = useState<string[]>([]);
@@ -344,6 +347,8 @@ export default function Home() {
       if (donnees.clientTelephone) setClientTelephone(donnees.clientTelephone);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
       if (donnees.clientType === "professionnel") setClientType("professionnel");
+      if (donnees.debutPrestation) setDebutPrestation(String(donnees.debutPrestation));
+      if (donnees.dureePrestation) setDureePrestation(String(donnees.dureePrestation));
       if (donnees.clientSiren) setClientSiren(String(donnees.clientSiren));
       const lieu = String(donnees.adressePrestation || "").trim();
       if (lieu && lieu.toLowerCase() !== String(donnees.clientAdresse || "").trim().toLowerCase()) {
@@ -456,6 +461,8 @@ export default function Home() {
           clientSiren: sirenClient,
           clientType,
           adressePrestation: adressePrestation.trim() || null,
+          debutPrestation: debutPrestation.trim() || null,
+          dureePrestation: dureePrestation.trim() || null,
           clientAdresse,
           datePrestation: datePrestation || null,
           modePaiement,
@@ -572,7 +579,12 @@ export default function Home() {
           moyen_paiement: modePaiement,
           statut: "brouillon",
         }
-      : { numero_devis: numero, statut: "brouillon" };
+      : {
+          numero_devis: numero,
+          statut: "brouillon",
+          debut_prestation: debutPrestation.trim() || null,
+          duree_prestation: dureePrestation.trim() || null,
+        };
 
     const { data: devis, error: erreurDevis } = await supabase
       .from("devis")
@@ -680,7 +692,9 @@ export default function Home() {
         client_type: clientType,
         adresse_prestation: adressePrestation.trim() || null,
         total,
-        ...(estFacture ? { date_prestation: datePrestation || null, moyen_paiement: modePaiement } : {}),
+        ...(estFacture
+          ? { date_prestation: datePrestation || null, moyen_paiement: modePaiement }
+          : { debut_prestation: debutPrestation.trim() || null, duree_prestation: dureePrestation.trim() || null }),
       })
       .eq("id", id);
     if (erreurDevis) {
@@ -759,6 +773,8 @@ export default function Home() {
             clientSiren: sirenClient,
             clientType,
             adressePrestation: adressePrestation.trim() || null,
+            debutPrestation: debutPrestation.trim() || null,
+            dureePrestation: dureePrestation.trim() || null,
             clientAdresse,
             lignes: lignes.map((l) => ({
               description: l.description,
@@ -830,6 +846,8 @@ export default function Home() {
       setClientAdresse(d.client_adresse || "");
       setAdressePrestation(d.adresse_prestation || "");
       setAdressePrestationOuverte(Boolean(d.adresse_prestation));
+      setDebutPrestation(d.debut_prestation || "");
+      setDureePrestation(d.duree_prestation || "");
       setLignes(
         lignesBase && lignesBase.length > 0
           ? lignesBase.map((l: any) => ({
@@ -872,6 +890,8 @@ export default function Home() {
     setAdressePrestation("");
     setAdressePrestationOuverte(false);
     setCasesDemandees([]);
+    setDebutPrestation("");
+    setDureePrestation("");
     setDatePrestation("");
     setDateAffichage("");
     setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
@@ -1123,6 +1143,16 @@ export default function Home() {
             )}
             {adressePrestation.trim() && (
               <p className="resume-client-info">Lieu de la prestation : {adressePrestation.trim()}</p>
+            )}
+            {typeDocument === "devis" && (debutPrestation.trim() || dureePrestation.trim()) && (
+              <p className="resume-client-info">
+                {[
+                  debutPrestation.trim() && `Début : ${debutPrestation.trim()}`,
+                  dureePrestation.trim() && `Durée : ${dureePrestation.trim()}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
             )}
             {typeDocument === "facture" && (
               <p className="resume-client-info">
@@ -1482,6 +1512,36 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {typeDocument === "devis" && (
+        <div className="form-bloc">
+          <p className="form-bloc-titre">Délais (facultatif)</p>
+          <div className="form-carte">
+            <div className="champ champ-duo">
+              <div>
+                <label className="champ-label" htmlFor="debut-presta">Début prévu</label>
+                <input
+                  id="debut-presta"
+                  className="field"
+                  placeholder="Ex : lundi 6 octobre"
+                  value={debutPrestation}
+                  onChange={(e) => setDebutPrestation(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="champ-label" htmlFor="duree-presta">Durée estimée</label>
+                <input
+                  id="duree-presta"
+                  className="field"
+                  placeholder="Ex : 3 jours"
+                  value={dureePrestation}
+                  onChange={(e) => setDureePrestation(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {typeDocument === "facture" && (
         <div className="form-bloc">

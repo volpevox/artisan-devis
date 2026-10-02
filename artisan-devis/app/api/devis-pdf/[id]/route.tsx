@@ -60,6 +60,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       clientSiren={devis.client_siren}
       clientType={devis.client_type}
       adressePrestation={devis.adresse_prestation}
+      debutPrestation={devis.debut_prestation}
+      dureePrestation={devis.duree_prestation}
       lignes={acompte ? acompte.lignes : (lignes || []).map((l) => ({
         description: l.description || "",
         quantite: l.quantite || 1,

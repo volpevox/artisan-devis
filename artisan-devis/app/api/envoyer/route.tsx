@@ -18,7 +18,7 @@ import {
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { clientEmail, clientNom, clientTelephone, clientSiren, clientType, adressePrestation, clientAdresse, lignes, prix, devisId } =
+  const { clientEmail, clientNom, clientTelephone, clientSiren, clientType, adressePrestation, debutPrestation, dureePrestation, clientAdresse, lignes, prix, devisId } =
     await req.json();
 
   if (!clientEmail) {
@@ -82,6 +82,8 @@ export async function POST(req: NextRequest) {
         clientSiren={clientSiren || null}
         clientType={clientType || null}
         adressePrestation={adressePrestation || null}
+        debutPrestation={debutPrestation || null}
+        dureePrestation={dureePrestation || null}
         lignes={lignes}
         tauxTva={tauxTva}
         date={date}
