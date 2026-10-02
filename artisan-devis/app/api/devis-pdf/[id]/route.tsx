@@ -90,6 +90,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             }
       }
       datePrestation={!acompte && devis.date_prestation ? new Date(devis.date_prestation) : null}
+      lienPaiement={profil?.stripe_paiement_actif ? `${req.nextUrl.origin}/signer/${params.id}` : null}
     />
   );
 

@@ -123,6 +123,7 @@ export async function envoyerAcompte({
         numero={numero}
         acompteSur={acompte.acompteSur}
         paiement={acompte.paiement}
+        lienPaiement={profil?.stripe_paiement_actif ? `${origin}/signer/${devis.id}` : null}
       />
     );
 

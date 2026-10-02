@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, Link, StyleSheet, Font } from "@react-pdf/renderer";
 import {
   MENTION_PENALITES_RETARD_DEFAUT,
   MENTION_PENALITES_RETARD_PARTICULIER,
@@ -290,6 +290,7 @@ const styles = StyleSheet.create({
 
   // --- Reglement (facture) ---
   reglementTexte: { fontSize: 9, fontWeight: 500, color: TEXTE, lineHeight: 1.45 },
+  reglementLien: { color: ENCRE, fontWeight: 700, textDecoration: "underline" },
   reglementCoordonnees: { fontFamily: "Roboto", fontSize: 10, fontWeight: 700, color: ENCRE, marginVertical: 3 },
 
   // --- Formulaire de retractation (2e page, devis a un particulier) ---
@@ -452,6 +453,8 @@ interface DevisPdfProps {
   numero?: number | null;
   paiement?: { payeeLe: Date | null; moyenPaiement: string | null } | null;
   datePrestation?: Date | null;
+  // Facture : page client ou payer en ligne (artisan connecte a Stripe).
+  lienPaiement?: string | null;
 }
 
 export function DevisPDF({
@@ -477,6 +480,7 @@ export function DevisPDF({
   avoirDe,
   acompteSur,
   acompteDeduit,
+  lienPaiement,
 }: DevisPdfProps) {
   const totalHT = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
   const montantTva = (totalHT * tauxTva) / 100;
@@ -510,8 +514,12 @@ export function DevisPDF({
   const autresMoyens = MOYENS_PAIEMENT.filter((m) => m.valeur !== "virement" && moyens.includes(m.valeur)).map(
     (m) => m.libelle
   );
+  const lienEnLigne = estFacture && !estAvoir && !paiement?.payeeLe ? lienPaiement || null : null;
   const afficherReglement =
-    estFacture && !estAvoir && !paiement?.payeeLe && (Boolean(ibanAffiche) || autresMoyens.length > 0);
+    estFacture &&
+    !estAvoir &&
+    !paiement?.payeeLe &&
+    (Boolean(lienEnLigne) || Boolean(ibanAffiche) || autresMoyens.length > 0);
   const numeroAffiche = estAvoir ? `AV-${numero}` : numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV");
 
   // Devis : date limite de validite = date d'emission + N jours (reglage
@@ -748,10 +756,18 @@ export function DevisPDF({
           {afficherReglement ? (
             <View style={styles.mentionLegale} wrap={false}>
               <Text style={styles.mentionTitre}>Règlement</Text>
+              {lienEnLigne ? (
+                <Text style={[styles.reglementTexte, ibanAffiche || autresMoyens.length > 0 ? { marginBottom: 6 } : {}]}>
+                  Paiement par carte en ligne :{" "}
+                  <Link src={lienEnLigne} style={styles.reglementLien}>
+                    {lienEnLigne.replace(/^https?:\/\//, "")}
+                  </Link>
+                </Text>
+              ) : null}
               {ibanAffiche ? (
                 <>
                   <Text style={styles.reglementTexte}>
-                    Par virement{entreprise.titulaireCompte ? ` à ${entreprise.titulaireCompte}` : ""}
+                    {lienEnLigne ? "Ou par virement" : "Par virement"}{entreprise.titulaireCompte ? ` à ${entreprise.titulaireCompte}` : ""}
                   </Text>
                   <Text style={styles.reglementCoordonnees}>
                     IBAN {ibanAffiche}

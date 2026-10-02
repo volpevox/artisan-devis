@@ -111,6 +111,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         }}
         datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
         acompteDeduit={acompteDeduit(devis)}
+        lienPaiement={profil?.stripe_paiement_actif ? `${req.nextUrl.origin}/signer/${params.id}` : null}
       />
     );
 
