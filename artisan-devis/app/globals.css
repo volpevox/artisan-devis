@@ -3931,3 +3931,39 @@ h1 + .lien-archives {
     padding: 3px 9px;
   }
 }
+
+/* ---- Fenetre « Demander un acompte » (components/PopupAcompte.tsx) ---- */
+.acompte-champs {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.acompte-champs .champ {
+  margin: 0;
+  min-width: 0;
+}
+
+.acompte-saisie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.acompte-saisie .field {
+  min-width: 0;
+  text-align: right;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.acompte-saisie span {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.acompte-champs .champ-label {
+  display: block;
+  margin-bottom: 4px;
+}

@@ -14,16 +14,12 @@ export async function POST(req: NextRequest) {
 
   const { data: devis } = await supabase
     .from("devis")
-    .select("artisan_id, payee_le, client_nom, numero_facture")
+    .select("artisan_id, payee_le, client_nom, numero_facture, acompte_numero, acompte_payee_le")
     .eq("id", devisId)
     .maybeSingle();
 
   if (!devis) {
     return NextResponse.json({ erreur: "Facture introuvable" }, { status: 404 });
-  }
-
-  if (devis.payee_le) {
-    return NextResponse.json({ succes: true, payee_le: devis.payee_le, moyen_paiement: "Carte bancaire (en ligne)" });
   }
 
   const { data: artisan } = await supabase
@@ -44,16 +40,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: "Paiement non confirmé" }, { status: 400 });
   }
 
-  const payeeLe = new Date().toISOString();
   const moyenPaiement = "Carte bancaire (en ligne)";
+  const acompte = session.metadata?.acompte === "1";
 
-  await supabase.from("devis").update({ payee_le: payeeLe, moyen_paiement: moyenPaiement }).eq("id", devisId);
+  // Deja marquee (le webhook de secours est passe avant) : rien a refaire.
+  const dejaPayee = acompte ? devis.acompte_payee_le : devis.payee_le;
+  if (dejaPayee) {
+    return NextResponse.json({ succes: true, acompte, payee_le: dejaPayee, moyen_paiement: moyenPaiement });
+  }
+
+  const payeeLe = new Date().toISOString();
+  await supabase
+    .from("devis")
+    .update(
+      acompte
+        ? { acompte_payee_le: payeeLe, acompte_moyen_paiement: moyenPaiement }
+        : { payee_le: payeeLe, moyen_paiement: moyenPaiement }
+    )
+    .eq("id", devisId);
 
   await envoyerNotificationPush(devis.artisan_id, {
-    titre: "Facture payée !",
-    corps: `${devis.client_nom || "Un client"} a payé sa facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} en ligne.`,
-    url: "/factures",
+    titre: acompte ? "Acompte payé !" : "Facture payée !",
+    corps: acompte
+      ? `${devis.client_nom || "Un client"} a payé son acompte (facture n°${devis.acompte_numero}) en ligne.`
+      : `${devis.client_nom || "Un client"} a payé sa facture${devis.numero_facture ? ` n°${devis.numero_facture}` : ""} en ligne.`,
+    url: acompte ? "/devis" : "/factures",
   });
 
-  return NextResponse.json({ succes: true, payee_le: payeeLe, moyen_paiement: moyenPaiement });
+  return NextResponse.json({ succes: true, acompte, payee_le: payeeLe, moyen_paiement: moyenPaiement });
 }

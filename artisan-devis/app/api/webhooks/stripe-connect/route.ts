@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
       const { data: devis, error: erreurLecture } = await supabaseAdmin
         .from("devis")
-        .select("artisan_id, payee_le, client_nom, numero_facture")
+        .select("artisan_id, payee_le, client_nom, numero_facture, acompte_numero, acompte_payee_le")
         .eq("id", devisId)
         .maybeSingle();
 
@@ -45,6 +45,24 @@ export async function POST(req: NextRequest) {
         console.error(`[webhook stripe-connect] lecture du devis ${devisId} echouee :`, erreurLecture.message);
       } else if (!devis) {
         console.error(`[webhook stripe-connect] devis ${devisId} introuvable (session ${session.id})`);
+      } else if (session.metadata?.acompte === "1") {
+        // Paiement de la facture d'acompte (supabase/acompte.sql).
+        if (!devis.acompte_payee_le) {
+          const { error: erreurUpdate } = await supabaseAdmin
+            .from("devis")
+            .update({ acompte_payee_le: new Date().toISOString(), acompte_moyen_paiement: "Carte bancaire (en ligne)" })
+            .eq("id", devisId);
+
+          if (erreurUpdate) {
+            console.error(`[webhook stripe-connect] acompte du devis ${devisId} non mis a jour :`, erreurUpdate.message);
+          } else {
+            await envoyerNotificationPush(devis.artisan_id, {
+              titre: "Acompte payé !",
+              corps: `${devis.client_nom || "Un client"} a payé son acompte (facture n°${devis.acompte_numero}) en ligne.`,
+              url: "/devis",
+            });
+          }
+        }
       } else if (!devis.payee_le) {
         const { error: erreurUpdate } = await supabaseAdmin
           .from("devis")

@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { resteAPayer } from "@/lib/acompte";
 
 function euros(n: number) {
   return `${(Number(n) || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, " ")} €`;
@@ -102,18 +103,23 @@ function SignerContenu() {
         return;
       }
 
-      setDevis((prev: any) => ({ ...prev, payee_le: data.payee_le, moyen_paiement: data.moyen_paiement }));
+      setDevis((prev: any) =>
+        data.acompte
+          ? { ...prev, acompte_payee_le: data.payee_le, acompte_moyen_paiement: data.moyen_paiement }
+          : { ...prev, payee_le: data.payee_le, moyen_paiement: data.moyen_paiement }
+      );
       setMessage("");
     }
     confirmer();
   }, [searchParams, devisId]);
 
-  async function payer() {
+  // acompte : payer la facture d'acompte du devis signe (sinon la facture).
+  async function payer(acompte = false) {
     setEnCoursPaiement(true);
     setMessage("");
 
     try {
-      const res = await fetch(`/api/payer-facture/${devisId}`, { method: "POST" });
+      const res = await fetch(`/api/payer-facture/${devisId}${acompte ? "?acompte=1" : ""}`, { method: "POST" });
       const data = await res.json();
 
       if (data.erreur || !data.url) {
@@ -219,6 +225,8 @@ function SignerContenu() {
       signe_le: new Date().toISOString(),
       lieu_signature: lieuSignature.trim(),
       signature_url: data.url,
+      // Facture d'acompte creee a la signature : « Payer l'acompte » s'affiche.
+      ...(data.acompte || {}),
     }));
     setMessage("");
   }
@@ -262,6 +270,61 @@ function SignerContenu() {
     .replace(/(.{4})/g, "$1 ")
     .trim();
   const jour = (iso: string) => new Date(iso).toLocaleDateString("fr-FR");
+  // Facture d'acompte (supabase/acompte.sql) : payee a part sur le devis
+  // signe, puis deduite de la facture finale.
+  const aAcompte = Boolean(devis.acompte_numero);
+  const montantAcompte = Number(devis.acompte_montant) || 0;
+  const reste = resteAPayer(devis, tauxTva);
+
+  // Bouton « Payer en ligne » + autres moyens (virement, cheque, especes).
+  const blocPaiement = (montant: number, acompte: boolean, reference: string) => (
+    <>
+      {paiementEnLigneActif && (
+        <>
+          <button onClick={() => payer(acompte)} disabled={enCoursPaiement} style={{ ...boutonOr, marginTop: 18 }}>
+            {enCoursPaiement ? "Ouverture du paiement..." : `Payer ${acompte ? "l'acompte de " : ""}${euros(montant)} en ligne`}
+          </button>
+          <div style={{ textAlign: "center", fontSize: 12, color: C.gris, marginTop: 6 }}>
+            Carte bancaire, Apple Pay ou Google Pay · paiement sécurisé
+          </div>
+        </>
+      )}
+      <div style={{ marginTop: paiementEnLigneActif ? 24 : 16, fontSize: 14, lineHeight: 1.6, color: C.texte }}>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>
+          {paiementEnLigneActif
+            ? "Vous préférez un autre moyen ?"
+            : acompte
+            ? "Pour régler l'acompte :"
+            : "Pour régler cette facture :"}
+        </div>
+        {iban && (
+          <div style={{ marginBottom: 10 }}>
+            <strong>Virement</strong>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "Consolas, Menlo, monospace", fontSize: 13, userSelect: "all" }}>{iban}</span>
+              <button onClick={() => copierIban(iban)} style={boutonPetit}>
+                {ibanCopie ? "Copié ✓" : "Copier"}
+              </button>
+            </div>
+            <div style={{ fontSize: 13, color: C.gris }}>Référence : {reference}</div>
+          </div>
+        )}
+        <div>
+          <strong>Chèque ou espèces</strong> : à convenir directement avec {profil?.nom_complet || nomArtisan || "l'artisan"}
+          {profil?.telephone ? (
+            <>
+              {" "}
+              au{" "}
+              <a href={`tel:${String(profil.telephone).replace(/\s+/g, "")}`} style={{ ...lienStyle, whiteSpace: "nowrap" }}>
+                {profil.telephone}
+              </a>
+            </>
+          ) : null}
+          .
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <Fond>
@@ -326,6 +389,17 @@ function SignerContenu() {
                 {euros(totalTTC)}
               </span>
             </div>
+            {estFacture && aAcompte && !devis.avoir_numero && (
+              <>
+                <LigneTotal libelle={`Acompte déjà facturé (n°${devis.acompte_numero})`} montant={`-${euros(montantAcompte)}`} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: C.texte }}>Reste à payer</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: C.bleu, fontFamily: "var(--font-roboto), Arial, sans-serif" }}>
+                    {euros(reste)}
+                  </span>
+                </div>
+              </>
+            )}
             {estFacture && profil?.conditions_paiement && !devis.payee_le && (
               <div style={{ fontSize: 12, color: C.gris, marginTop: 6 }}>Conditions : {profil.conditions_paiement}</div>
             )}
@@ -353,50 +427,10 @@ function SignerContenu() {
                 {devis.moyen_paiement ? ` (${devis.moyen_paiement})` : ""}. Merci !
               </Encadre>
             ) : (
-              <>
-                {paiementEnLigneActif && (
-                  <>
-                    <button onClick={payer} disabled={enCoursPaiement} style={{ ...boutonOr, marginTop: 18 }}>
-                      {enCoursPaiement ? "Ouverture du paiement..." : `Payer ${euros(totalTTC)} en ligne`}
-                    </button>
-                    <div style={{ textAlign: "center", fontSize: 12, color: C.gris, marginTop: 6 }}>
-                      Carte bancaire, Apple Pay ou Google Pay · paiement sécurisé
-                    </div>
-                  </>
-                )}
-                <div style={{ marginTop: paiementEnLigneActif ? 24 : 16, fontSize: 14, lineHeight: 1.6, color: C.texte }}>
-                  <div style={{ fontWeight: 700, marginBottom: 8 }}>
-                    {paiementEnLigneActif ? "Vous préférez un autre moyen ?" : "Pour régler cette facture :"}
-                  </div>
-                  {iban && (
-                    <div style={{ marginBottom: 10 }}>
-                      <strong>Virement</strong>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontFamily: "Consolas, Menlo, monospace", fontSize: 13, userSelect: "all" }}>{iban}</span>
-                        <button onClick={() => copierIban(iban)} style={boutonPetit}>
-                          {ibanCopie ? "Copié ✓" : "Copier"}
-                        </button>
-                      </div>
-                      <div style={{ fontSize: 13, color: C.gris }}>Référence : {numero ? `Facture n°${numero}` : "votre nom"}</div>
-                    </div>
-                  )}
-                  <div>
-                    <strong>Chèque ou espèces</strong> : à convenir directement avec {profil?.nom_complet || nomArtisan || "l'artisan"}
-                    {profil?.telephone ? (
-                      <>
-                        {" "}
-                        au{" "}
-                        <a href={`tel:${String(profil.telephone).replace(/\s+/g, "")}`} style={{ ...lienStyle, whiteSpace: "nowrap" }}>
-                          {profil.telephone}
-                        </a>
-                      </>
-                    ) : null}
-                    .
-                  </div>
-                </div>
-              </>
+              blocPaiement(reste, false, numero ? `Facture n°${numero}` : "votre nom")
             )
           ) : devis.statut === "signe" ? (
+            <>
             <Encadre vert>
               <div>
                 ✓ Devis signé le {devis.signe_le ? jour(devis.signe_le) : ""}
@@ -409,10 +443,36 @@ function SignerContenu() {
                   style={{ maxWidth: 200, background: "#fff", border: `1px solid ${C.bord}`, borderRadius: 6, marginTop: 10 }}
                 />
               )}
-              <div style={{ fontSize: 13, color: C.gris, marginTop: 8 }}>
-                {nomArtisan || "L'artisan"} est prévenu et reviendra vers vous.
-              </div>
+              {!aAcompte && (
+                <div style={{ fontSize: 13, color: C.gris, marginTop: 8 }}>
+                  {nomArtisan || "L'artisan"} est prévenu et reviendra vers vous.
+                </div>
+              )}
             </Encadre>
+            {aAcompte && (
+              <div style={{ marginTop: 22 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.bleu }}>
+                  Acompte : {euros(montantAcompte)}
+                </div>
+                <div style={{ fontSize: 13, color: C.gris, margin: "2px 0 6px" }}>
+                  Facture d&apos;acompte n°{devis.acompte_numero}
+                  {devis.acompte_pourcentage ? ` (${String(devis.acompte_pourcentage).replace(".", ",")} % du devis)` : ""}. Le
+                  solde sera facturé à la fin de la prestation.
+                </div>
+                <a href={`/api/devis-pdf/${devisId}?acompte=1&t=${Date.now()}`} target="_blank" rel="noreferrer" style={lienStyle}>
+                  📄 Voir la facture d&apos;acompte (PDF)
+                </a>
+                {devis.acompte_payee_le ? (
+                  <Encadre vert>
+                    ✓ Acompte réglé le {jour(devis.acompte_payee_le)}
+                    {devis.acompte_moyen_paiement ? ` (${devis.acompte_moyen_paiement})` : ""}. Merci !
+                  </Encadre>
+                ) : (
+                  blocPaiement(montantAcompte, true, `Facture d'acompte n°${devis.acompte_numero}`)
+                )}
+              </div>
+            )}
+            </>
           ) : (
             <div style={{ marginTop: 18 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: C.bleu, marginBottom: 4 }}>Signer le devis</div>

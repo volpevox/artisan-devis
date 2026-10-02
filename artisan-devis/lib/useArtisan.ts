@@ -76,7 +76,7 @@ export function useArtisanSession() {
         supabase
           .from("artisans")
           .select(
-            "id, abonnement_actif, prenom, nom_complet, nom_entreprise, est_societe, telephone, adresse, code_postal, ville, siret, taux_tva, stripe_paiement_actif"
+            "id, abonnement_actif, prenom, nom_complet, nom_entreprise, est_societe, telephone, adresse, code_postal, ville, siret, taux_tva, stripe_paiement_actif, conditions_paiement"
           )
           .eq("user_id", sessionValide.user.id)
           .maybeSingle()

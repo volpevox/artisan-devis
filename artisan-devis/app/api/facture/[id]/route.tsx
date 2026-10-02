@@ -4,11 +4,13 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createAdminSupabase, getArtisanConnecte } from "@/lib/supabaseServerClient";
 import { DevisPDF } from "@/lib/devisPdf";
 import { nomAffichageDocument, mentionSociete, nomCourt } from "@/lib/nomAffichage";
+import { acompteDeduit, resteAPayer } from "@/lib/acompte";
 import {
   blocAutresMoyens,
   emailClientHtml,
   echapperHtml,
   expediteur,
+  formaterEuros,
   lignesTicket,
   logoInline,
   nomFichierPdf,
@@ -103,6 +105,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           moyenPaiement: devis.moyen_paiement || null,
         }}
         datePrestation={devis.date_prestation ? new Date(devis.date_prestation) : null}
+        acompteDeduit={acompteDeduit(devis)}
       />
     );
 
@@ -119,7 +122,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const noteTicket = dejaPayee
       ? `Réglée le ${dateFr(devis.payee_le)}${devis.moyen_paiement ? ` (${echapperHtml(devis.moyen_paiement)})` : ""} · merci !`
       : [conditions ? `Conditions : ${echapperHtml(conditions)}` : null, "Facture jointe en PDF"].filter(Boolean).join(" · ");
-    const montantTTC = totauxTicket(totalHT, tauxTva).total;
+    // Acompte deja facture : le ticket montre le total puis la deduction, et
+    // le bouton ne fait payer que le reste.
+    const acompte = acompteDeduit(devis);
+    const totaux = totauxTicket(totalHT, tauxTva);
+    const ticketTotaux = acompte
+      ? {
+          totaux: [
+            ...totaux.totaux,
+            { libelle: totaux.totalLibelle, montant: totaux.total },
+            { libelle: `Acompte déjà facturé (n°${acompte.numero})`, montant: `-${formaterEuros(acompte.montant)}` },
+          ],
+          totalLibelle: "Reste à payer",
+          total: formaterEuros(resteAPayer(devis, tauxTva)),
+        }
+      : totaux;
+    const montantTTC = ticketTotaux.total;
 
     // Un seul mail, quel que soit le mode de paiement choisi a la creation :
     // le client choisit. Bouton "Payer en ligne" si l'artisan a active le
@@ -152,7 +170,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
               prixUnitaire: l.prix_unitaire,
             }))
           ),
-          ...totauxTicket(totalHT, tauxTva),
+          ...ticketTotaux,
           note: noteTicket,
         },
         boutonUrl: enLigne ? lienSuivi : null,

@@ -97,6 +97,8 @@ const styles = StyleSheet.create({
 
   titreBloc: { alignItems: "flex-end" },
   titre: { fontFamily: "Poppins", fontWeight: 800, fontSize: 30, color: OR, letterSpacing: 3, textTransform: "uppercase" },
+  // « Facture d'acompte » : trop long pour la taille du titre normal.
+  titreLong: { fontSize: 19, letterSpacing: 1.5 },
   titreMeta: { fontSize: 8.5, fontWeight: 600, color: SUR_BLEU, marginTop: 2 },
   titreNumero: { fontFamily: "Roboto", fontWeight: 700, fontSize: 10, color: "#ffffff", marginTop: 4, lineHeight: 1.2 },
 
@@ -193,6 +195,7 @@ const styles = StyleSheet.create({
     color: MUTED,
   },
   libelleTotal: { fontSize: 9.5, fontWeight: 600, color: MUTED, lineHeight: 1.3 },
+  libelleAcompte: { fontSize: 7.5, color: MUTED, lineHeight: 1.3 },
   noteTva: {
     fontSize: 8.5,
     color: TEXTE,
@@ -405,7 +408,11 @@ interface DevisPdfProps {
   signatureUrl?: string | null;
   signeLe?: Date | null;
   lieuSignature?: string | null;
-  type?: "devis" | "facture" | "avoir";
+  type?: "devis" | "facture" | "avoir" | "acompte";
+  // Facture d'acompte : le devis sur lequel elle porte (lib/acompte.ts).
+  acompteSur?: { numeroDevis: number | null; signeLe: Date | null; totalTTC: number; pourcentage: number | null } | null;
+  // Facture finale : l'acompte deja facture, deduit du montant a payer.
+  acompteDeduit?: { numero: number; date: Date; montant: number } | null;
   // Avoir : la facture qu'il annule (numero + date).
   avoirDe?: { numero: number | null; date: Date } | null;
   numero?: number | null;
@@ -430,6 +437,8 @@ export function DevisPDF({
   paiement,
   datePrestation,
   avoirDe,
+  acompteSur,
+  acompteDeduit,
 }: DevisPdfProps) {
   const totalHT = lignes.reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0), 0);
   const montantTva = (totalHT * tauxTva) / 100;
@@ -437,8 +446,12 @@ export function DevisPDF({
   // Un avoir suit la mise en page d'une facture (montants en negatif, passes
   // tels quels dans les lignes), sans paiement ni penalites.
   const estAvoir = type === "avoir";
-  const estFacture = type === "facture" || estAvoir;
-  const motDocument = estAvoir ? "Avoir" : estFacture ? "Facture" : "Devis";
+  const estAcompte = type === "acompte";
+  const estFacture = type === "facture" || estAvoir || estAcompte;
+  const motDocument = estAvoir ? "Avoir" : estAcompte ? "Facture d'acompte" : estFacture ? "Facture" : "Devis";
+  // Facture finale apres acompte : le client ne doit plus que le reste.
+  const deduction = type === "facture" && acompteDeduit ? acompteDeduit.montant : 0;
+  const netAPayer = Math.max(0, Math.round((totalTTC - deduction) * 100) / 100);
 
   // Facture : "Fait a" (ville de l'artisan) en haut. Devis : le lieu de
   // signature du client est indique dans le cadre de signature.
@@ -507,7 +520,7 @@ export function DevisPDF({
           </View>
 
           <View style={styles.titreBloc}>
-            <Text style={styles.titre}>{motDocument}</Text>
+            <Text style={estAcompte ? [styles.titre, styles.titreLong] : styles.titre}>{motDocument}</Text>
             <Text style={styles.titreNumero}>
               N° {estAvoir ? `AV-${numero}` : numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")}
             </Text>
@@ -543,10 +556,18 @@ export function DevisPDF({
             </View>
             <View style={styles.carteMontant}>
               <Text style={[styles.etiquette, styles.etiquetteClaire]}>
-                {estAvoir ? "Montant de l'avoir" : estFacture ? "Total de la facture" : "Montant du devis"}
+                {estAvoir
+                  ? "Montant de l'avoir"
+                  : estAcompte
+                  ? "Montant de l'acompte"
+                  : deduction
+                  ? "Reste à payer"
+                  : estFacture
+                  ? "Total de la facture"
+                  : "Montant du devis"}
               </Text>
               <View>
-                <Text style={styles.montantValeur}>{euros(totalTTC)}</Text>
+                <Text style={styles.montantValeur}>{euros(deduction ? netAPayer : totalTTC)}</Text>
                 <Text style={styles.montantNote}>{noteMontant}</Text>
               </View>
             </View>
@@ -603,7 +624,34 @@ export function DevisPDF({
               <View style={styles.ticketPointilles} />
               <Text style={styles.totalTTCValeur}>{euros(totalTTC)}</Text>
             </View>
+            {deduction && acompteDeduit ? (
+              <>
+                <View style={[styles.ligneTotal, { marginTop: 6 }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.libelleTotal}>Acompte déjà facturé</Text>
+                    <Text style={styles.libelleAcompte}>
+                      Facture n° {acompteDeduit.numero} du {formaterDate(acompteDeduit.date)}
+                    </Text>
+                  </View>
+                  <Text style={styles.chiffre}>-{euros(deduction)}</Text>
+                </View>
+                <View style={styles.ligneTotal}>
+                  <Text style={[styles.libelleTotal, { color: ENCRE, fontWeight: 800 }]}>Reste à payer</Text>
+                  <Text style={styles.chiffreFort}>{euros(netAPayer)}</Text>
+                </View>
+              </>
+            ) : null}
           </View>
+
+          {estAcompte && acompteSur ? (
+            <Text style={styles.bandeauInfo}>
+              Acompte{acompteSur.pourcentage ? ` de ${nombre(acompteSur.pourcentage)} %` : ""} sur le devis n°{" "}
+              {acompteSur.numeroDevis ?? "—"}
+              {acompteSur.signeLe ? ` signé le ${formaterDate(acompteSur.signeLe)}` : ""}, d'un montant total de{" "}
+              {euros(acompteSur.totalTTC)}
+              {tauxTva > 0 ? " TTC" : ""}. Le solde sera facturé à la fin de la prestation.
+            </Text>
+          ) : null}
 
           {dateValidite ? (
             <Text style={styles.bandeauInfo}>

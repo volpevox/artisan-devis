@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminSupabase } from "@/lib/supabaseServerClient";
-import { echapperHtml, emailHtml, logoInline, totauxTicket } from "@/lib/emailTemplate";
+import { echapperHtml, emailHtml, formaterEuros, logoInline, totauxTicket } from "@/lib/emailTemplate";
 import { envoyerNotificationPush } from "@/lib/pushNotifications";
+import { acompteDepuisPourcentage, pourcentageAcompte } from "@/lib/acompte";
+import { creerAcompte, envoyerAcompte } from "@/lib/acompteServeur";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -45,12 +47,15 @@ export async function POST(req: NextRequest) {
       lieu_signature: lieuSignature || null,
     })
     .eq("id", devisId)
-    .select("artisan_id, client_nom, numero_devis, total")
+    .select("*")
     .maybeSingle();
 
   if (erreurUpdate) {
     return NextResponse.json({ erreur: erreurUpdate.message }, { status: 500 });
   }
+
+  // Facture d'acompte creee d'office a la signature (lib/acompteServeur.tsx).
+  let acompte: { numero: number; montant: number } | null = null;
 
   // Previent l'artisan par email et par notification push des qu'un client
   // signe.
@@ -64,13 +69,33 @@ export async function POST(req: NextRequest) {
     try {
       const { data: artisan } = await supabaseAdmin
         .from("artisans")
-        .select("user_id, taux_tva")
+        .select("*")
         .eq("id", devisSigne.artisan_id)
         .maybeSingle();
 
       if (artisan?.user_id) {
         const { data: userData } = await supabaseAdmin.auth.admin.getUserById(artisan.user_id);
         const emailArtisan = userData?.user?.email;
+
+        // Conditions de paiement de l'artisan qui annoncent un acompte
+        // (« Acompte 30 % à la commande ») : la facture d'acompte part tout
+        // de suite, et le client peut la payer sur la page ou il vient de
+        // signer. Sans pourcentage : rien, l'artisan peut la demander a la main.
+        const pct = pourcentageAcompte(artisan.conditions_paiement);
+        if (pct && !devisSigne.acompte_numero) {
+          const taux = Number(artisan.taux_tva ?? 20);
+          const creation = await creerAcompte(
+            supabaseAdmin,
+            devisSigne,
+            taux,
+            acompteDepuisPourcentage(devisSigne.total, pct, taux),
+            pct
+          );
+          if ("numero" in creation) {
+            acompte = { numero: creation.numero, montant: Number(devisSigne.acompte_montant) || 0 };
+            await envoyerAcompte({ devis: devisSigne, profil: artisan, emailArtisan, origin: req.nextUrl.origin });
+          }
+        }
 
         if (emailArtisan) {
           const client = echapperHtml(devisSigne.client_nom) || "Ton client";
@@ -92,7 +117,13 @@ export async function POST(req: NextRequest) {
                     total.totalLibelle === "Total TTC" ? ` <span style="font-size:13px;font-weight:400;color:#56606e;">TTC</span>` : ""
                   }</div>
                 </div>
-                <p style="margin:0 0 12px;">Bravo, c'est validé ! Le devis signé est enregistré dans VolpeVox.</p>
+                <p style="margin:0 0 12px;">Bravo, c'est validé ! Le devis signé est enregistré dans VolpeVox.</p>${
+                  acompte
+                    ? `<p style="margin:0 0 12px;">La <strong>facture d'acompte n°${acompte.numero}</strong> (${formaterEuros(acompte.montant)}) est partie automatiquement ${
+                        devisSigne.client_email ? "à ton client" : "(pas d'email client : partage-la depuis tes devis)"
+                      }, comme prévu dans tes conditions de paiement.</p>`
+                    : ""
+                }
                 <p style="margin:0 0 4px;"><strong>Prochaine étape :</strong> une fois le travail fait, ouvre tes devis et appuie sur <strong>« Transformer en facture »</strong>, puis envoie-la depuis l'onglet <strong>Factures</strong>.</p>
                 <p style="margin:12px 0 0;"><a href="${req.nextUrl.origin}/api/devis-pdf/${devisId}" style="color:#0b2a5b;font-weight:700;">Voir le devis signé (PDF)</a></p>
               `,
@@ -107,5 +138,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ url: data.publicUrl });
+  return NextResponse.json({
+    url: data.publicUrl,
+    // La page du client affiche tout de suite « Payer l'acompte ».
+    acompte: acompte
+      ? {
+          acompte_numero: devisSigne?.acompte_numero,
+          acompte_montant: devisSigne?.acompte_montant,
+          acompte_pourcentage: devisSigne?.acompte_pourcentage,
+          acompte_cree_le: devisSigne?.acompte_cree_le,
+        }
+      : null,
+  });
 }

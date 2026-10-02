@@ -16,7 +16,7 @@ import { createPortal } from "react-dom";
 // alors recouvrir le champ et les boutons. On cale donc le fond sur la zone
 // reellement visible (visualViewport), qui se reduit quand le clavier sort.
 
-function useZoneVisible(): CSSProperties | undefined {
+export function useZoneVisible(): CSSProperties | undefined {
   const [zone, setZone] = useState<CSSProperties>();
   useEffect(() => {
     const vv = window.visualViewport;

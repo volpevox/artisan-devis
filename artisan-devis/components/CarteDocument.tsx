@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { PopupDatePrestation } from "./PopupDatePrestation";
+import { PopupAcompte } from "./PopupAcompte";
 import { chargerPdf, preparerVisionneuse, urlApiPdf } from "@/lib/prechargementPdf";
 
 // Lien vers la visionneuse : le PDF est demande au serveur des que le doigt
@@ -22,6 +23,12 @@ interface CarteDocumentProps {
   onSupprimer?: (id: string) => void;
   onAnnulerParAvoir?: (id: string) => void;
   onArchiver?: (id: string, archiver: boolean) => void;
+  // Facture d'acompte (devis signe, lib/acompte.ts).
+  onDemanderAcompte?: (id: string, montant: number, pourcentage: number | null) => void;
+  onMarquerAcomptePaye?: (id: string, moyenPaiement: string) => void;
+  onRenvoyerAcompte?: (id: string) => void;
+  tauxTva?: number;
+  conditionsPaiement?: string | null;
 }
 
 const MOYENS_PAIEMENT = ["Carte bancaire", "Virement bancaire", "Chèque", "Espèces"];
@@ -49,12 +56,18 @@ export function CarteDocument({
   onSupprimer,
   onAnnulerParAvoir,
   onArchiver,
+  onDemanderAcompte,
+  onMarquerAcomptePaye,
+  onRenvoyerAcompte,
+  tauxTva = 20,
+  conditionsPaiement,
 }: CarteDocumentProps) {
   const [moyenChoisi, setMoyenChoisi] = useState(MOYENS_PAIEMENT[0]);
   const [lienCopie, setLienCopie] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
-  const [confirmation, setConfirmation] = useState<"" | "suppression" | "avoir" | "paiement">("");
+  const [confirmation, setConfirmation] = useState<"" | "suppression" | "avoir" | "paiement" | "acompte">("");
   const [demandeDatePrestation, setDemandeDatePrestation] = useState(false);
+  const [demandeAcompte, setDemandeAcompte] = useState(false);
   const carteRef = useRef<HTMLDivElement>(null);
 
   const estFacture = type === "facture";
@@ -68,6 +81,11 @@ export function CarteDocument({
   const annulee = estFacture && Boolean(d.avoir_numero);
   const payee = estFacture && Boolean(d.payee_le);
   const lienPdf = `/devis-pdf/${d.id}`;
+  // Facture d'acompte : emise une fois, elle ne se supprime plus (comme une
+  // facture envoyee), donc le devis non plus.
+  const aAcompte = Boolean(d.acompte_numero);
+  const acomptePaye = Boolean(d.acompte_payee_le);
+  const peutDemanderAcompte = !estFacture && d.statut === "signe" && !aAcompte && Boolean(onDemanderAcompte);
 
   // Visionneuse PDF chargee en tache de fond pendant qu'on regarde la liste.
   useEffect(() => {
@@ -193,10 +211,19 @@ export function CarteDocument({
       elementsMenu.push({ texte: "🗄 Archiver", action: () => onArchiver(d.id, true) });
     }
   }
+  if (aAcompte && !annulee) {
+    elementsMenu.push({ texte: "📄 Voir la facture d'acompte", lien: `${lienPdf}?acompte=1` });
+    if (!estFacture && !acomptePaye && onMarquerAcomptePaye) {
+      elementsMenu.push({ texte: "✓ Acompte reçu", action: () => setConfirmation("acompte") });
+    }
+    if (!estFacture && d.client_email && onRenvoyerAcompte) {
+      elementsMenu.push({ texte: "✉ Renvoyer l'acompte par email", action: () => onRenvoyerAcompte(d.id) });
+    }
+  }
   if (factureEnvoyee && !annulee && onAnnulerParAvoir) {
     elementsMenu.push({ texte: "⊘ Annuler par un avoir", action: () => setConfirmation("avoir"), rouge: true });
   }
-  if (!factureEnvoyee && onSupprimer) {
+  if (!factureEnvoyee && !aAcompte && onSupprimer) {
     elementsMenu.push({ texte: "🗑 Supprimer", action: () => setConfirmation("suppression"), rouge: true });
   }
 
@@ -231,6 +258,15 @@ export function CarteDocument({
       )}
 
       {statut.texte && <p className={`carte-doc-statut ${statut.ton}`}>{statut.texte}</p>}
+      {aAcompte && !annulee && (
+        <p className={`carte-doc-statut ${estFacture || acomptePaye ? "vert" : "or"}`}>
+          {estFacture
+            ? `Acompte de ${euros(d.acompte_montant)} déduit (facture n°${d.acompte_numero})`
+            : acomptePaye
+            ? `✓ Acompte de ${euros(d.acompte_montant)} reçu le ${jour(d.acompte_payee_le)}`
+            : `⏳ Acompte de ${euros(d.acompte_montant)} demandé (facture n°${d.acompte_numero})`}
+        </p>
+      )}
 
       {confirmation === "" && (
         <div className="carte-doc-actions">
@@ -250,6 +286,16 @@ export function CarteDocument({
               disabled={occupe}
             >
               {principale.texte}
+            </button>
+          )}
+          {peutDemanderAcompte && (
+            <button
+              type="button"
+              className="carte-doc-secondaire"
+              onClick={() => setDemandeAcompte(true)}
+              disabled={occupe}
+            >
+              Demander un acompte
             </button>
           )}
           <button
@@ -325,6 +371,35 @@ export function CarteDocument({
         </div>
       )}
 
+      {confirmation === "acompte" && onMarquerAcomptePaye && (
+        <div className="carte-doc-confirmation">
+          <span>Acompte réglé par :</span>
+          <select className="field" value={moyenChoisi} onChange={(e) => setMoyenChoisi(e.target.value)}>
+            {MOYENS_PAIEMENT.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <div className="carte-doc-confirmation-boutons">
+            <button
+              type="button"
+              className="carte-doc-principal"
+              disabled={occupe}
+              onClick={() => {
+                setConfirmation("");
+                onMarquerAcomptePaye(d.id, moyenChoisi);
+              }}
+            >
+              Valider
+            </button>
+            <button type="button" className="carte-doc-secondaire" onClick={() => setConfirmation("")}>
+              Retour
+            </button>
+          </div>
+        </div>
+      )}
+
       {confirmation === "avoir" && onAnnulerParAvoir && (
         <div className="carte-doc-confirmation">
           <span className="rouge">
@@ -382,6 +457,21 @@ export function CarteDocument({
             onTransformerEnFacture(d.id, date);
           }}
           onAnnuler={() => setDemandeDatePrestation(false)}
+        />
+      )}
+
+      {demandeAcompte && onDemanderAcompte && (
+        <PopupAcompte
+          totalHT={Number(d.total) || 0}
+          tauxTva={tauxTva}
+          conditionsPaiement={conditionsPaiement}
+          clientEmail={d.client_email}
+          enCours={occupe}
+          onValider={(montant, pourcentage) => {
+            setDemandeAcompte(false);
+            onDemanderAcompte(d.id, montant, pourcentage);
+          }}
+          onAnnuler={() => setDemandeAcompte(false)}
         />
       )}
 

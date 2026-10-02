@@ -7,7 +7,7 @@ import { useDevisRealtime } from "@/lib/useDevisRealtime";
 import { CarteDocument, euros } from "@/components/CarteDocument";
 
 export default function MesDevis() {
-  const { artisanId, loading: chargementSession } = useArtisanSession();
+  const { session, artisanId, profilArtisan, loading: chargementSession } = useArtisanSession();
   const [devis, setDevis] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string>("");
@@ -76,6 +76,76 @@ export default function MesDevis() {
     setMessages((m) => ({ ...m, [id]: "Devis transformé en facture ! Retrouve-le dans l'onglet Factures." }));
   }
 
+  // Facture d'acompte : numero, PDF et email faits cote serveur.
+  async function demanderAcompte(id: string, montant: number, pourcentage: number | null) {
+    setEnCours(id);
+    setMessages((m) => ({ ...m, [id]: "Création de la facture d'acompte..." }));
+
+    const res = await fetch(`/api/acompte/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ montant, pourcentage }),
+    });
+    const data = await res.json();
+
+    setEnCours("");
+
+    if (data.erreur) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + data.erreur }));
+      return;
+    }
+
+    await charger();
+    setMessages((m) => ({
+      ...m,
+      [id]: data.envoye
+        ? `Facture d'acompte n°${data.numero} créée et envoyée au client.`
+        : `Facture d'acompte n°${data.numero} créée${
+            data.erreurEnvoi ? " (l'email n'a pas pu partir : partage le PDF)" : " (pas d'email client : partage le PDF)"
+          }.`,
+    }));
+  }
+
+  async function renvoyerAcompte(id: string) {
+    setEnCours(id);
+    setMessages((m) => ({ ...m, [id]: "Envoi de la facture d'acompte..." }));
+
+    const res = await fetch(`/api/acompte/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ renvoyer: true }),
+    });
+    const data = await res.json();
+
+    setEnCours("");
+    setMessages((m) => ({
+      ...m,
+      [id]: data.erreur ? "Erreur : " + data.erreur : data.envoye ? "Facture d'acompte renvoyée au client." : "L'email n'a pas pu partir.",
+    }));
+  }
+
+  async function marquerAcomptePaye(id: string, moyenPaiement: string) {
+    setEnCours(id);
+    const payeeLe = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("devis")
+      .update({ acompte_payee_le: payeeLe, acompte_moyen_paiement: moyenPaiement })
+      .eq("id", id);
+
+    setEnCours("");
+
+    if (error) {
+      setMessages((m) => ({ ...m, [id]: "Erreur : " + error.message }));
+      return;
+    }
+
+    setDevis((liste) =>
+      liste.map((d) => (d.id === id ? { ...d, acompte_payee_le: payeeLe, acompte_moyen_paiement: moyenPaiement } : d))
+    );
+    setMessages((m) => ({ ...m, [id]: "Acompte marqué comme reçu !" }));
+  }
+
   async function supprimer(id: string) {
     setEnCours(id);
 
@@ -129,6 +199,11 @@ export default function MesDevis() {
           message={messages[d.id]}
           onTransformerEnFacture={transformerEnFacture}
           onSupprimer={supprimer}
+          onDemanderAcompte={demanderAcompte}
+          onMarquerAcomptePaye={marquerAcomptePaye}
+          onRenvoyerAcompte={renvoyerAcompte}
+          tauxTva={Number(profilArtisan?.taux_tva ?? 20)}
+          conditionsPaiement={profilArtisan?.conditions_paiement}
         />
       ))}
     </main>

@@ -10,8 +10,10 @@ import {
   logoInline,
   signatureArtisan,
   totauxTicket,
+  formaterEuros,
 } from "@/lib/emailTemplate";
 import { nomAffichageDocument, nomCourt } from "@/lib/nomAffichage";
+import { resteAPayer } from "@/lib/acompte";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const UN_JOUR_MS = 24 * 60 * 60 * 1000;
@@ -223,8 +225,11 @@ async function envoyerRelanceFacture(
   const nomArtisan = nomAffichageDocument(profil);
   const numero = facture.numero_facture;
   const tauxTva = Number(profil?.taux_tva ?? 20);
-  // Montant TTC, comme sur la facture (avant : le total HT brut).
-  const total = totauxTicket(Number(facture.total) || 0, tauxTva);
+  // Montant TTC, comme sur la facture (avant : le total HT brut). Apres une
+  // facture d'acompte, seulement le reste a payer.
+  const total = facture.acompte_numero
+    ? { totalLibelle: "Reste à payer", total: formaterEuros(resteAPayer(facture, tauxTva)) }
+    : totauxTicket(Number(facture.total) || 0, tauxTva);
   const enLigne = Boolean(profil?.stripe_paiement_actif);
   const dateFacture = dateFr(facture.facture_creee_le || facture.facture_envoyee_le);
 

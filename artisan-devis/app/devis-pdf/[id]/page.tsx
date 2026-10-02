@@ -16,10 +16,12 @@ export default function VoirPdf({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { avoir?: string };
+  searchParams: { avoir?: string; acompte?: string };
 }) {
   const router = useRouter();
-  const url = `/api/devis-pdf/${params.id}${searchParams.avoir === "1" ? "?avoir=1" : ""}`;
+  const url = `/api/devis-pdf/${params.id}${
+    searchParams.avoir === "1" ? "?avoir=1" : searchParams.acompte === "1" ? "?acompte=1" : ""
+  }`;
 
   // Le PDF est demande tout de suite, en parallele du chargement de la
   // visionneuse (s'il n'a pas deja ete demande au toucher du bouton).

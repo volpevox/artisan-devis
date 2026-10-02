@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
+import { acompteNormalise } from "@/lib/acompte";
 
 type ClePeriode = "ce-mois" | "mois-dernier" | "ce-trimestre" | "cette-annee" | "personnalise";
 
@@ -209,21 +210,33 @@ export default function ExportComptable() {
       .gte("avoir_cree_le", debutDuJour(bornes.debut).toISOString())
       .lte("avoir_cree_le", bornes.fin.toISOString());
 
+    // Factures d'acompte emises sur la periode (supabase/acompte.sql).
+    const { data: acomptes, error: erreurAcomptes } = await supabase
+      .from("devis")
+      .select("*")
+      .eq("artisan_id", artisanId)
+      .not("acompte_numero", "is", null)
+      .gte("acompte_cree_le", debutDuJour(bornes.debut).toISOString())
+      .lte("acompte_cree_le", bornes.fin.toISOString());
+
     setEnCours(false);
 
-    if (error || erreurAvoirs) {
-      setMessage("Erreur : " + (error || erreurAvoirs)?.message);
+    if (error || erreurAvoirs || erreurAcomptes) {
+      setMessage("Erreur : " + (error || erreurAvoirs || erreurAcomptes)?.message);
       return;
     }
 
+    // Facture finale apres acompte : seulement le net (total - acompte), la
+    // facture d'acompte ayant sa propre ligne -- la somme des deux = le devis.
     const lignesFactures: LigneExport[] = (data || []).map((d) => {
-      const ht = Number(d.total) || 0;
+      const acompteHt = d.acompte_numero ? acompteNormalise(Number(d.acompte_montant) || 0, taux).ht : 0;
+      const ht = (Number(d.total) || 0) - acompteHt;
       const tva = (ht * taux) / 100;
       return {
         numero: d.numero_facture != null ? String(d.numero_facture) : null,
         dateFacture: d.facture_creee_le,
         datePrestation: d.date_prestation,
-        client: d.client_nom || "",
+        client: `${d.client_nom || ""}${d.acompte_numero ? ` (acompte n°${d.acompte_numero} déduit)` : ""}`,
         ht,
         tva,
         ttc: ht + tva,
@@ -251,7 +264,23 @@ export default function ExportComptable() {
       };
     });
 
-    const lignes = [...lignesFactures, ...lignesAvoirs].sort(
+    const lignesAcomptes: LigneExport[] = (acomptes || []).map((d) => {
+      const { ht, ttc } = acompteNormalise(Number(d.acompte_montant) || 0, taux);
+      return {
+        numero: String(d.acompte_numero),
+        dateFacture: d.acompte_cree_le,
+        datePrestation: null,
+        client: `${d.client_nom || ""} (acompte devis n°${d.numero_devis ?? ""})`,
+        ht,
+        tva: ttc - ht,
+        ttc,
+        paye: Boolean(d.acompte_payee_le),
+        datePaiement: d.acompte_payee_le,
+        moyenPaiement: d.acompte_moyen_paiement,
+      };
+    });
+
+    const lignes = [...lignesFactures, ...lignesAvoirs, ...lignesAcomptes].sort(
       (a, b) => new Date(a.dateFacture || 0).getTime() - new Date(b.dateFacture || 0).getTime()
     );
 
