@@ -426,6 +426,22 @@ function SignerContenu() {
                 ✓ Facture réglée le {jour(devis.payee_le)}
                 {devis.moyen_paiement ? ` (${devis.moyen_paiement})` : ""}. Merci !
               </Encadre>
+            ) : aAcompte && !devis.acompte_payee_le ? (
+              // Devis passe en facture avant le reglement de l'acompte : le
+              // client regle d'abord l'acompte (facture a part), puis le reste.
+              <>
+                <div style={{ marginTop: 18, fontSize: 16, fontWeight: 800, color: C.bleu }}>
+                  1. Acompte à régler : {euros(montantAcompte)}
+                </div>
+                <a href={`/api/devis-pdf/${devisId}?acompte=1&t=${Date.now()}`} target="_blank" rel="noreferrer" style={lienStyle}>
+                  📄 Voir la facture d&apos;acompte n°{devis.acompte_numero} (PDF)
+                </a>
+                {blocPaiement(montantAcompte, true, `Facture d'acompte n°${devis.acompte_numero}`)}
+                <div style={{ marginTop: 28, fontSize: 16, fontWeight: 800, color: C.bleu }}>
+                  2. Puis le reste : {euros(reste)}
+                </div>
+                {blocPaiement(reste, false, numero ? `Facture n°${numero}` : "votre nom")}
+              </>
             ) : (
               blocPaiement(reste, false, numero ? `Facture n°${numero}` : "votre nom")
             )
