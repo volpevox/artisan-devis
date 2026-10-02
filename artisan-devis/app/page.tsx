@@ -119,6 +119,12 @@ export default function Home() {
   const [clientTelephone, setClientTelephone] = useState("");
   const [clientSiren, setClientSiren] = useState("");
   const [clientAdresse, setClientAdresse] = useState("");
+  // Particulier / professionnel : decide des cases affichees (entreprise,
+  // SIREN) et, sur le PDF, des mentions legales a ajouter.
+  const [clientType, setClientType] = useState<"particulier" | "professionnel">("particulier");
+  // Adresse de la prestation, seulement si differente de celle du client.
+  const [adressePrestation, setAdressePrestation] = useState("");
+  const [adressePrestationOuverte, setAdressePrestationOuverte] = useState(false);
   const [datePrestation, setDatePrestation] = useState("");
   const [dateAffichage, setDateAffichage] = useState("");
   const [modePaiement, setModePaiement] = useState(MODES_PAIEMENT_FACTURE[1].valeur);
@@ -180,18 +186,19 @@ export default function Home() {
 
   const total = lignes.reduce((s, l) => s + (enNombre(l.quantite) || 0) * (enNombre(l.prixUnitaire) || 0), 0);
 
-  // Nom affiche sur le document et dans les emails : la raison sociale prime
-  // (client = entreprise), sinon "Prenom Nom". Un seul champ client_nom est
+  // Nom affiche sur le document et dans les emails : le nom de l'entreprise
+  // prime (client professionnel), sinon "Prenom Nom". Un seul champ client_nom est
   // stocke en base -- pas de colonne prenom/raison sociale separee, pour rester
   // simple et ne rien casser cote PDF/emails/cartes qui lisent deja client_nom.
+  const estPro = clientType === "professionnel";
   const nomClientAffiche = (
-    clientRaisonSociale.trim() || [clientPrenom.trim(), clientNom.trim()].filter(Boolean).join(" ")
+    (estPro && clientRaisonSociale.trim()) || [clientPrenom.trim(), clientNom.trim()].filter(Boolean).join(" ")
   ).trim();
 
-  // SIREN du client : demande seulement quand le client est une entreprise
-  // (raison sociale remplie). Obligatoire sur les factures entre pros avec la
+  // SIREN du client : demande seulement pour un client professionnel.
+  // Obligatoire sur les factures entre pros avec la
   // reforme de la facturation electronique.
-  const sirenSaisi = clientRaisonSociale.trim() ? normaliserSiren(clientSiren) : null;
+  const sirenSaisi = estPro ? normaliserSiren(clientSiren) : null;
   const sirenClient = sirenSaisi === "invalide" ? null : sirenSaisi;
 
   function majLigne(index: number, champ: keyof Ligne, valeur: string | boolean) {
@@ -292,7 +299,10 @@ export default function Home() {
 
       if (donnees.clientPrenom) setClientPrenom(donnees.clientPrenom);
       if (donnees.clientNom) setClientNom(donnees.clientNom);
-      if (donnees.clientRaisonSociale) setClientRaisonSociale(donnees.clientRaisonSociale);
+      if (donnees.clientRaisonSociale) {
+        setClientRaisonSociale(donnees.clientRaisonSociale);
+        setClientType("professionnel");
+      }
       if (donnees.clientTelephone) setClientTelephone(donnees.clientTelephone);
       if (donnees.clientAdresse) setClientAdresse(donnees.clientAdresse);
       if (donnees.clientEmail) setClientEmail(String(donnees.clientEmail).toLowerCase().replace(/\s/g, ""));
@@ -307,7 +317,7 @@ export default function Home() {
       if (nomDicte && artisanId) {
         const { data: anciens } = await supabase
           .from("devis")
-          .select("client_email, client_telephone, client_adresse, client_siren")
+          .select("client_email, client_telephone, client_adresse, client_siren, client_type")
           .eq("artisan_id", artisanId)
           .ilike("client_nom", nomDicte.replace(/[%_\\]/g, (c: string) => `\\${c}`))
           .order("created_at", { ascending: false })
@@ -319,6 +329,7 @@ export default function Home() {
           if (ancien.client_telephone) setClientTelephone((a) => a || ancien.client_telephone);
           if (ancien.client_adresse) setClientAdresse((a) => a || ancien.client_adresse);
           if (ancien.client_siren) setClientSiren((a) => a || ancien.client_siren);
+          if (ancien.client_type === "professionnel" || ancien.client_siren) setClientType("professionnel");
         }
       }
       // Retro-compat : ancienne reponse IA avec un seul champ "client".
@@ -525,6 +536,8 @@ export default function Home() {
         client_telephone: clientTelephone.trim() || null,
         ...(sirenClient ? { client_siren: sirenClient } : {}),
         client_adresse: clientAdresse,
+        client_type: clientType,
+        adresse_prestation: adressePrestation.trim() || null,
         total,
         ...infosDocument,
       })
@@ -612,6 +625,8 @@ export default function Home() {
         client_telephone: clientTelephone.trim() || null,
         ...(sirenClient ? { client_siren: sirenClient } : {}),
         client_adresse: clientAdresse,
+        client_type: clientType,
+        adresse_prestation: adressePrestation.trim() || null,
         total,
         ...(estFacture ? { date_prestation: datePrestation || null, moyen_paiement: modePaiement } : {}),
       })
@@ -747,15 +762,20 @@ export default function Home() {
       const enTexte = (n: number | null) => (n === null || n === undefined ? "" : String(n).replace(".", ","));
 
       setTypeDocument("devis");
-      // Un seul champ client_nom en base : entreprise si un SIREN est connu,
-      // sinon on le remet tel quel dans « Nom du client ».
+      // Un seul champ client_nom en base : nom de l'entreprise pour un client
+      // pro (anciens documents sans type : pro si un SIREN est connu), sinon
+      // on le remet tel quel dans « Nom du client ».
+      const pro = d.client_type ? d.client_type === "professionnel" : Boolean(d.client_siren);
+      setClientType(pro ? "professionnel" : "particulier");
       setClientPrenom("");
-      setClientRaisonSociale(d.client_siren ? d.client_nom || "" : "");
-      setClientNom(d.client_siren ? "" : d.client_nom || "");
+      setClientRaisonSociale(pro ? d.client_nom || "" : "");
+      setClientNom(pro ? "" : d.client_nom || "");
       setClientEmail(d.client_email || "");
       setClientTelephone(d.client_telephone || "");
       setClientSiren(d.client_siren || "");
       setClientAdresse(d.client_adresse || "");
+      setAdressePrestation(d.adresse_prestation || "");
+      setAdressePrestationOuverte(Boolean(d.adresse_prestation));
       setLignes(
         lignesBase && lignesBase.length > 0
           ? lignesBase.map((l: any) => ({
@@ -794,6 +814,9 @@ export default function Home() {
     setClientTelephone("");
     setClientSiren("");
     setClientAdresse("");
+    setClientType("particulier");
+    setAdressePrestation("");
+    setAdressePrestationOuverte(false);
     setDatePrestation("");
     setDateAffichage("");
     setModePaiement(MODES_PAIEMENT_FACTURE[1].valeur);
@@ -1004,7 +1027,7 @@ export default function Home() {
           <div className="form-carte resume-carte">
             {/* Nom seul (ex : « Monsieur Martin ») ou rien dicte : il s'affiche
                 dans la case « Nom du client » ci-dessous, pas en double ici. */}
-            {clientPrenom.trim() || clientRaisonSociale.trim() ? (
+            {clientPrenom.trim() || (estPro && clientRaisonSociale.trim()) ? (
               <p className="resume-client-nom">{nomClientAffiche}</p>
             ) : (
               <div className="champ">
@@ -1022,6 +1045,9 @@ export default function Home() {
               <p className="resume-client-info">
                 {[clientAdresse.trim(), clientTelephone.trim()].filter(Boolean).join(" · ")}
               </p>
+            )}
+            {adressePrestation.trim() && (
+              <p className="resume-client-info">Lieu de la prestation : {adressePrestation.trim()}</p>
             )}
             {typeDocument === "facture" && (
               <p className="resume-client-info">
@@ -1201,6 +1227,26 @@ export default function Home() {
       <div className="form-bloc">
         <p className="form-bloc-titre">Client</p>
         <div className="form-carte">
+          <div className="type-toggle" role="tablist" aria-label="Type de client">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!estPro}
+              className={!estPro ? "actif" : ""}
+              onClick={() => setClientType("particulier")}
+            >
+              Particulier
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={estPro}
+              className={estPro ? "actif" : ""}
+              onClick={() => setClientType("professionnel")}
+            >
+              Professionnel
+            </button>
+          </div>
           <div className="champ champ-duo">
             <div>
               <label className="champ-label" htmlFor="client-prenom">Prénom</label>
@@ -1223,22 +1269,22 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="champ">
-            <label className="champ-label" htmlFor="client-raison">
-              Raison sociale <span style={{ fontWeight: 400 }}>— si le client est une entreprise</span>
-            </label>
-            <input
-              id="client-raison"
-              className="field"
-              placeholder="Ex : Dupont & Fils SARL"
-              value={clientRaisonSociale}
-              onChange={(e) => setClientRaisonSociale(e.target.value)}
-            />
-          </div>
-          {clientRaisonSociale.trim() ? (
+          {estPro ? (
+            <div className="champ">
+              <label className="champ-label" htmlFor="client-raison">Nom de l'entreprise</label>
+              <input
+                id="client-raison"
+                className="field"
+                placeholder="Ex : Dupont & Fils SARL"
+                value={clientRaisonSociale}
+                onChange={(e) => setClientRaisonSociale(e.target.value)}
+              />
+            </div>
+          ) : null}
+          {estPro ? (
             <div className="champ">
               <label className="champ-label" htmlFor="client-siren">
-                SIREN du client <span style={{ fontWeight: 400 }}>— obligatoire sur la facture</span>
+                SIREN de l'entreprise <span style={{ fontWeight: 400 }}>— obligatoire sur la facture</span>
               </label>
               <input
                 id="client-siren"
@@ -1270,7 +1316,9 @@ export default function Home() {
             />
           </div>
           <div className="champ">
-            <label className="champ-label" htmlFor="client-tel">Téléphone du client</label>
+            <label className="champ-label" htmlFor="client-tel">
+              Téléphone du client <span style={{ fontWeight: 400 }}>— facultatif</span>
+            </label>
             <input
               id="client-tel"
               className="field"
@@ -1292,6 +1340,24 @@ export default function Home() {
               onChange={(e) => setClientAdresse(e.target.value)}
             />
           </div>
+          {adressePrestationOuverte ? (
+            <div className="champ">
+              <label className="champ-label" htmlFor="adresse-prestation">
+                Adresse de la prestation <span style={{ fontWeight: 400 }}>— si différente</span>
+              </label>
+              <input
+                id="adresse-prestation"
+                className="field"
+                placeholder="5 avenue des Pins, 13008 Marseille"
+                value={adressePrestation}
+                onChange={(e) => setAdressePrestation(e.target.value)}
+              />
+            </div>
+          ) : (
+            <button type="button" className="resume-ajouter" onClick={() => setAdressePrestationOuverte(true)}>
+              + La prestation a lieu à une autre adresse
+            </button>
+          )}
         </div>
       </div>
 
