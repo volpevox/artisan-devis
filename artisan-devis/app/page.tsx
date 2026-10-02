@@ -1843,6 +1843,9 @@ export default function Home() {
             )}
             {popupProfil && (
               <PopupProfilIncomplet
+                manqueAssurance={!mentionsProfil?.assurance.trim()}
+                manqueMediateur={!mentionsProfil?.mediateur.trim()}
+                manqueLogo={!profilArtisan?.logo_url}
                 onCompleter={popupProfilCompleter}
                 onPlusTard={popupProfilPlusTard}
                 enCours={popupProfilEnCours}
