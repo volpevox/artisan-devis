@@ -4,6 +4,7 @@ import {
   MENTION_PENALITES_RETARD_PARTICULIER,
   MENTION_RETRACTATION,
 } from "./mentionsDocuments";
+import { MOYENS_PAIEMENT, formaterIban, moyensAcceptes } from "./moyensPaiement";
 import { formaterSiren } from "./siren";
 import fs from "fs";
 import path from "path";
@@ -287,6 +288,10 @@ const styles = StyleSheet.create({
   },
   merci: { marginTop: 14, fontFamily: "Poppins", fontWeight: 600, fontSize: 10, color: ENCRE },
 
+  // --- Reglement (facture) ---
+  reglementTexte: { fontSize: 9, fontWeight: 500, color: TEXTE, lineHeight: 1.45 },
+  reglementCoordonnees: { fontFamily: "Roboto", fontSize: 10, fontWeight: 700, color: ENCRE, marginVertical: 3 },
+
   // --- Formulaire de retractation (2e page, devis a un particulier) ---
   formulaire: { paddingHorizontal: 40, paddingTop: 40 },
   formulaireTitre: { fontFamily: "Poppins", fontWeight: 700, fontSize: 14, color: ENCRE, marginBottom: 4 },
@@ -411,6 +416,10 @@ interface DevisPdfProps {
     siret?: string | null;
     numeroTva?: string | null;
     iban?: string | null;
+    bic?: string | null;
+    titulaireCompte?: string | null;
+    // Moyens acceptes (profil > Paiement), vide = tous (lib/moyensPaiement.ts).
+    moyensPaiement?: string[] | null;
     conditionsPaiement?: string | null;
     assurancePro?: string | null;
     mediateurConso?: string | null;
@@ -494,6 +503,15 @@ export function DevisPDF({
   const mentionPenalites = estParticulier
     ? MENTION_PENALITES_RETARD_PARTICULIER
     : entreprise.penalitesRetard || MENTION_PENALITES_RETARD_DEFAUT;
+  // Facture a regler : comment payer (moyens acceptes, coordonnees du
+  // virement avec la reference a indiquer). Remplace l'IBAN du pied de page.
+  const moyens = moyensAcceptes(entreprise.moyensPaiement);
+  const ibanAffiche = moyens.includes("virement") ? formaterIban(entreprise.iban) : "";
+  const autresMoyens = MOYENS_PAIEMENT.filter((m) => m.valeur !== "virement" && moyens.includes(m.valeur)).map(
+    (m) => m.libelle
+  );
+  const afficherReglement =
+    estFacture && !estAvoir && !paiement?.payeeLe && (Boolean(ibanAffiche) || autresMoyens.length > 0);
   const numeroAffiche = estAvoir ? `AV-${numero}` : numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV");
 
   // Devis : date limite de validite = date d'emission + N jours (reglage
@@ -506,7 +524,6 @@ export function DevisPDF({
     entreprise.mentionSociete,
     entreprise.siret ? `SIRET ${entreprise.siret}` : null,
     entreprise.numeroTva ? `TVA intracom. ${entreprise.numeroTva}` : null,
-    entreprise.iban ? `IBAN ${entreprise.iban.replace(/ /g, " ")}` : null,
   ]
     .filter(Boolean)
     .join("  ·  ");
@@ -726,6 +743,30 @@ export function DevisPDF({
             </Text>
           ) : estFacture && paiement?.moyenPaiement ? (
             <Text style={styles.bandeauInfo}>Mode de paiement : {paiement.moyenPaiement}</Text>
+          ) : null}
+
+          {afficherReglement ? (
+            <View style={styles.mentionLegale} wrap={false}>
+              <Text style={styles.mentionTitre}>Règlement</Text>
+              {ibanAffiche ? (
+                <>
+                  <Text style={styles.reglementTexte}>
+                    Par virement{entreprise.titulaireCompte ? ` à ${entreprise.titulaireCompte}` : ""}
+                  </Text>
+                  <Text style={styles.reglementCoordonnees}>
+                    IBAN {ibanAffiche}
+                    {entreprise.bic ? `   ·   BIC ${String(entreprise.bic).toUpperCase()}` : ""}
+                  </Text>
+                  <Text style={styles.reglementTexte}>Référence à indiquer : Facture n° {numeroAffiche}</Text>
+                </>
+              ) : null}
+              {autresMoyens.length > 0 ? (
+                <Text style={[styles.reglementTexte, ibanAffiche ? { marginTop: 4 } : {}]}>
+                  {ibanAffiche ? "Également accepté" : "Moyens de paiement acceptés"} : {autresMoyens.join(", ").toLowerCase()}
+                  .
+                </Text>
+              ) : null}
+            </View>
           ) : null}
 
           {mentions.length > 0 ? (

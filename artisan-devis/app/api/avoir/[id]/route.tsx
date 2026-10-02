@@ -107,6 +107,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           siret: profil?.siret,
           numeroTva: profil?.numero_tva,
           iban: profil?.iban,
+          bic: profil?.bic,
+          titulaireCompte: profil?.titulaire_compte,
+          moyensPaiement: profil?.moyens_paiement,
           assurancePro: profil?.assurance_pro,
           mediateurConso: profil?.mediateur_conso,
         }}
