@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
       clientAdresse={body.clientAdresse || null}
       clientTelephone={body.clientTelephone || null}
       clientSiren={body.clientSiren || null}
+      clientType={body.clientType || null}
+      adressePrestation={body.adressePrestation || null}
       lignes={lignes}
       tauxTva={tauxTva}
       date={new Date()}

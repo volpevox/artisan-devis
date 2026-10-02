@@ -111,6 +111,8 @@ export async function envoyerAcompte({
         clientAdresse={devis.client_adresse}
         clientTelephone={devis.client_telephone}
         clientSiren={devis.client_siren}
+        clientType={devis.client_type}
+        adressePrestation={devis.adresse_prestation}
         lignes={acompte.lignes}
         tauxTva={tauxTva}
         date={acompte.date}

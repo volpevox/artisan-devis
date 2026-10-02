@@ -1,5 +1,9 @@
 import { Document, Page, Text, View, Image, StyleSheet, Font } from "@react-pdf/renderer";
-import { MENTION_PENALITES_RETARD_DEFAUT } from "./mentionsDocuments";
+import {
+  MENTION_PENALITES_RETARD_DEFAUT,
+  MENTION_PENALITES_RETARD_PARTICULIER,
+  MENTION_RETRACTATION,
+} from "./mentionsDocuments";
 import { formaterSiren } from "./siren";
 import fs from "fs";
 import path from "path";
@@ -283,6 +287,21 @@ const styles = StyleSheet.create({
   },
   merci: { marginTop: 14, fontFamily: "Poppins", fontWeight: 600, fontSize: 10, color: ENCRE },
 
+  // --- Formulaire de retractation (2e page, devis a un particulier) ---
+  formulaire: { paddingHorizontal: 40, paddingTop: 40 },
+  formulaireTitre: { fontFamily: "Poppins", fontWeight: 700, fontSize: 14, color: ENCRE, marginBottom: 4 },
+  formulaireConsigne: { fontSize: 8.5, fontWeight: 500, color: MUTED, marginBottom: 18, lineHeight: 1.45 },
+  formulaireTexte: { fontSize: 9.5, fontWeight: 500, color: TEXTE, lineHeight: 1.5, marginBottom: 10 },
+  formulaireChamp: {
+    fontSize: 9.5,
+    fontWeight: 500,
+    color: TEXTE,
+    marginTop: 14,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: LIGNE,
+  },
+
   // --- Signature (devis) ---
   signature: { flexDirection: "row", gap: 18, marginTop: 18 },
   signatureCadre: {
@@ -402,6 +421,9 @@ interface DevisPdfProps {
   clientAdresse?: string | null;
   clientTelephone?: string | null;
   clientSiren?: string | null;
+  // Absent (anciens documents) : particulier sauf si un SIREN est connu.
+  clientType?: string | null;
+  adressePrestation?: string | null;
   lignes: LigneDevisPdf[];
   tauxTva: number;
   date: Date;
@@ -426,6 +448,8 @@ export function DevisPDF({
   clientAdresse,
   clientTelephone,
   clientSiren,
+  clientType,
+  adressePrestation,
   lignes,
   tauxTva,
   date,
@@ -456,6 +480,16 @@ export function DevisPDF({
   // Facture : "Fait a" (ville de l'artisan) en haut. Devis : le lieu de
   // signature du client est indique dans le cadre de signature.
   const lieuFaitA = estFacture ? entreprise.ville : null;
+
+  // Mentions selon le client. Particulier : devis gratuit, retractation
+  // (+ formulaire), « devis recu avant l'execution des travaux », pas
+  // d'indemnite de 40 EUR. Professionnel : penalites + 40 EUR, devis compris.
+  const estParticulier = clientType ? clientType !== "professionnel" : !clientSiren;
+  const devisParticulier = !estFacture && estParticulier;
+  const mentionPenalites = estParticulier
+    ? MENTION_PENALITES_RETARD_PARTICULIER
+    : entreprise.penalitesRetard || MENTION_PENALITES_RETARD_DEFAUT;
+  const numeroAffiche = estAvoir ? `AV-${numero}` : numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV");
 
   // Devis : date limite de validite = date d'emission + N jours (reglage
   // "duree_validite_devis" du profil). N a 0 ou absent = pas de mention.
@@ -522,7 +556,7 @@ export function DevisPDF({
           <View style={styles.titreBloc}>
             <Text style={estAcompte ? [styles.titre, styles.titreLong] : styles.titre}>{motDocument}</Text>
             <Text style={styles.titreNumero}>
-              N° {estAvoir ? `AV-${numero}` : numero ?? numeroDocument(date, estFacture ? "FAC" : "DEV")}
+              N° {numeroAffiche}
             </Text>
             <Text style={styles.titreMeta}>
               {lieuFaitA ? `Fait à ${lieuFaitA}, le ` : ""}
@@ -541,6 +575,9 @@ export function DevisPDF({
               {clientAdresse ? <Text style={styles.clientInfo}>{clientAdresse}</Text> : null}
               {clientTelephone ? <Text style={styles.clientInfo}>Tél. {clientTelephone}</Text> : null}
               {clientSiren ? <Text style={styles.clientInfo}>SIREN {formaterSiren(clientSiren)}</Text> : null}
+              {adressePrestation ? (
+                <Text style={styles.clientInfo}>Lieu de la prestation : {adressePrestation}</Text>
+              ) : null}
               {/* Categorie de l'operation, mention obligatoire de la reforme
                   de la facturation electronique. Un artisan facture une
                   prestation (main d'oeuvre, fournitures comprises). */}
@@ -655,8 +692,11 @@ export function DevisPDF({
 
           {dateValidite ? (
             <Text style={styles.bandeauInfo}>
-              Ce devis est valable jusqu'au {formaterDate(dateValidite)} ({validiteJours} jours).
+              {devisParticulier ? "Devis gratuit. " : ""}Ce devis est valable jusqu'au {formaterDate(dateValidite)} (
+              {validiteJours} jours).
             </Text>
+          ) : devisParticulier ? (
+            <Text style={styles.bandeauInfo}>Devis gratuit.</Text>
           ) : null}
 
           {estAvoir ? (
@@ -686,11 +726,22 @@ export function DevisPDF({
           {estAvoir ? null : estFacture ? (
             <>
               <View style={styles.mentionLegale} wrap={false}>
-                <Text style={styles.mentionTexte}>{entreprise.penalitesRetard || MENTION_PENALITES_RETARD_DEFAUT}</Text>
+                <Text style={styles.mentionTexte}>{mentionPenalites}</Text>
               </View>
               <Text style={styles.merci}>Merci pour votre confiance.</Text>
             </>
           ) : (
+            <>
+            {devisParticulier ? (
+              <View style={styles.mentionLegale} wrap={false}>
+                <Text style={styles.mentionTitre}>Droit de rétractation</Text>
+                <Text style={styles.mentionTexte}>{MENTION_RETRACTATION}</Text>
+              </View>
+            ) : (
+              <View style={styles.mentionLegale} wrap={false}>
+                <Text style={styles.mentionTexte}>{mentionPenalites}</Text>
+              </View>
+            )}
             <View style={styles.signature} wrap={false}>
               <View style={styles.signatureCadre}>
                 <Text style={styles.signatureTitre}>Date</Text>
@@ -703,6 +754,9 @@ export function DevisPDF({
               </View>
               <View style={[styles.signatureCadre, styles.signatureCadreClient]}>
                 <Text style={styles.signatureTitre}>Bon pour accord — signature du client</Text>
+                {devisParticulier ? (
+                  <Text style={styles.signatureInfo}>Devis reçu avant l'exécution des travaux.</Text>
+                ) : null}
                 {signatureUrl ? (
                   <View style={styles.signatureImageFond}>
                     <Image src={signatureUrl} style={styles.signatureImage} />
@@ -710,6 +764,7 @@ export function DevisPDF({
                 ) : null}
               </View>
             </View>
+            </>
           )}
         </View>
 
@@ -723,6 +778,49 @@ export function DevisPDF({
           </View>
         </View>
       </Page>
+
+      {devisParticulier ? (
+        <Page size="A4" style={styles.page}>
+          <View style={styles.formulaire}>
+            <Text style={styles.formulaireTitre}>Formulaire de rétractation</Text>
+            <Text style={styles.formulaireConsigne}>
+              Veuillez compléter et renvoyer le présent formulaire uniquement si vous souhaitez vous rétracter du
+              contrat.
+            </Text>
+            <Text style={styles.formulaireTexte}>
+              À l'attention de{" "}
+              {[entreprise.nom, entreprise.adresse, [entreprise.codePostal, entreprise.ville].filter(Boolean).join(" ")]
+                .filter(Boolean)
+                .join(", ")}
+              {entreprise.telephone ? ` — Tél. ${entreprise.telephone}` : ""} :
+            </Text>
+            <Text style={styles.formulaireTexte}>
+              Je/Nous (*) vous notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat portant sur
+              la prestation de services ci-dessous :
+            </Text>
+            <Text style={styles.formulaireTexte}>
+              Devis n° {numeroAffiche} du {formaterDate(date)}
+            </Text>
+            <Text style={styles.formulaireChamp}>Commandé le (*) / reçu le (*) :</Text>
+            <Text style={styles.formulaireChamp}>Nom du (des) consommateur(s) : {clientNom}</Text>
+            <Text style={styles.formulaireChamp}>Adresse du (des) consommateur(s) : {clientAdresse || ""}</Text>
+            <Text style={styles.formulaireChamp}>
+              Signature du (des) consommateur(s) (uniquement en cas de notification du présent formulaire sur papier) :
+            </Text>
+            <Text style={styles.formulaireChamp}>Date :</Text>
+            <Text style={[styles.formulaireConsigne, { marginTop: 14 }]}>(*) Rayez la mention inutile.</Text>
+          </View>
+          <View style={styles.pied} fixed>
+          <Text style={styles.piedLegal}>{infosPied || " "}</Text>
+          <View style={styles.piedMarque}>
+            <Image src={LOGO_VOLPEVOX} style={styles.piedLogo} />
+            <Text style={styles.piedTexte}>
+              Propulsé par <Text style={styles.piedTexteMarque}>VolpeVox</Text>
+            </Text>
+          </View>
+        </View>
+        </Page>
+      ) : null}
     </Document>
   );
 }

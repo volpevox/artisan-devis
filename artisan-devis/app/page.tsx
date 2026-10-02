@@ -454,6 +454,8 @@ export default function Home() {
           clientNom: nomClientAffiche,
           clientTelephone: clientTelephone.trim() || null,
           clientSiren: sirenClient,
+          clientType,
+          adressePrestation: adressePrestation.trim() || null,
           clientAdresse,
           datePrestation: datePrestation || null,
           modePaiement,
@@ -755,6 +757,8 @@ export default function Home() {
             clientNom: nomClientAffiche,
             clientTelephone: clientTelephone.trim() || null,
             clientSiren: sirenClient,
+            clientType,
+            adressePrestation: adressePrestation.trim() || null,
             clientAdresse,
             lignes: lignes.map((l) => ({
               description: l.description,

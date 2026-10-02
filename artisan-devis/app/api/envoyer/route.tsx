@@ -18,7 +18,8 @@ import {
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { clientEmail, clientNom, clientTelephone, clientSiren, clientAdresse, lignes, prix, devisId } = await req.json();
+  const { clientEmail, clientNom, clientTelephone, clientSiren, clientType, adressePrestation, clientAdresse, lignes, prix, devisId } =
+    await req.json();
 
   if (!clientEmail) {
     return NextResponse.json({ erreur: "Aucun email de client fourni" }, { status: 400 });
@@ -79,6 +80,8 @@ export async function POST(req: NextRequest) {
         clientAdresse={clientAdresse}
         clientTelephone={clientTelephone}
         clientSiren={clientSiren || null}
+        clientType={clientType || null}
+        adressePrestation={adressePrestation || null}
         lignes={lignes}
         tauxTva={tauxTva}
         date={date}
