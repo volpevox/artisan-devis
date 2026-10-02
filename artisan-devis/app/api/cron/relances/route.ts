@@ -258,7 +258,7 @@ async function envoyerRelanceFacture(
       boutonUrl: enLigne ? `${origin}/signer/${facture.id}` : null,
       boutonTexte: `Payer ${total.total} en ligne`,
       sousBouton: "Carte bancaire, Apple Pay ou Google Pay · paiement sécurisé",
-      apresBoutonHtml: `${blocAutresMoyens({ enLigne, iban: profil?.iban, numero })}
+      apresBoutonHtml: `${blocAutresMoyens({ enLigne, profil, numero })}
         <div style="margin-top:14px;text-align:center;"><a href="${origin}/api/devis-pdf/${facture.id}" style="color:#0b2a5b;font-weight:700;font-size:14px;">Voir la facture (PDF)</a></div>`,
       signature: signatureArtisan(profil, nomArtisan),
     }),

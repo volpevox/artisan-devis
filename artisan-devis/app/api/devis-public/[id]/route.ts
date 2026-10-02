@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const { data: artisan } = await supabase
     .from("artisans")
-    .select("nom_complet, nom_entreprise, est_societe, telephone, taux_tva, stripe_paiement_actif, iban, conditions_paiement")
+    .select("nom_complet, nom_entreprise, est_societe, telephone, taux_tva, stripe_paiement_actif, iban, bic, titulaire_compte, moyens_paiement, conditions_paiement")
     .eq("id", devis.artisan_id)
     .maybeSingle();
 
@@ -38,6 +38,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         taux_tva: artisan.taux_tva,
         stripe_paiement_actif: artisan.stripe_paiement_actif,
         iban: devis.est_facture ? artisan.iban : null,
+        bic: devis.est_facture ? artisan.bic : null,
+        titulaire_compte: devis.est_facture ? artisan.titulaire_compte : null,
+        moyens_paiement: artisan.moyens_paiement,
         conditions_paiement: devis.est_facture ? artisan.conditions_paiement : null,
       }
     : null;

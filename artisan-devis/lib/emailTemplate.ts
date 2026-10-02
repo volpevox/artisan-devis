@@ -1,3 +1,4 @@
+import { MOYENS_PAIEMENT, moyensAcceptes } from "./moyensPaiement";
 interface EmailHtmlOptions {
   titre: string;
   corpsHtml: string;
@@ -336,31 +337,60 @@ export function emailBienvenueHtml({ lienApp, lienVideo, lienWhatsapp }: { lienA
 }
 
 // Sous le bouton "Payer en ligne" d'une facture (mail et relance) : les
-// autres moyens. IBAN ecrit dans le mail avec la reference, cheque ou
-// especes en repondant. Sans paiement en ligne, c'est le bloc principal.
+// autres moyens, selon ce que l'artisan accepte (profil > Paiement). Sans
+// paiement en ligne, c'est le bloc principal. Virement : titulaire, IBAN,
+// BIC et reference ; l'IBAN est ecrit d'un seul bloc (sans espaces) pour
+// qu'un appui long le selectionne en entier sur un telephone.
 export function blocAutresMoyens({
   enLigne,
-  iban: ibanBrut,
+  profil,
   numero,
 }: {
   enLigne: boolean;
-  iban?: string | null;
+  profil: any;
   numero?: string | number | null;
 }) {
-  const iban = String(ibanBrut || "")
-    .replace(/\s+/g, "")
-    .toUpperCase()
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
+  const moyens = moyensAcceptes(profil?.moyens_paiement);
+  const iban = String(profil?.iban || "").replace(/\s+/g, "").toUpperCase();
+  const bic = String(profil?.bic || "").replace(/\s+/g, "").toUpperCase();
+  const titulaire = String(profil?.titulaire_compte || profil?.nom_complet || "").trim();
+  const reference = numero ? `Facture n°${numero}` : "votre nom";
+  const ligne = (libelle: string, valeur: string, copiable = false) =>
+    `<tr><td style="padding:3px 12px 3px 0;color:#6b7686;font-size:13px;white-space:nowrap;vertical-align:top;">${libelle}</td><td style="padding:3px 0;font-size:14px;${
+      copiable
+        ? "font-family:Consolas,Menlo,monospace;font-weight:700;color:#0d1b2a;word-break:break-all;-webkit-user-select:all;user-select:all;"
+        : "color:#0d1b2a;"
+    }">${echapperHtml(valeur)}</td></tr>`;
+
+  const blocs: string[] = [];
+  if (moyens.includes("virement")) {
+    blocs.push(
+      iban
+        ? `<div style="background:#f8f6ef;border:1px solid #ece4c8;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+            <div style="font-weight:700;margin-bottom:6px;">Virement bancaire</div>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              ${titulaire ? ligne("Titulaire", titulaire) : ""}
+              ${ligne("IBAN", iban, true)}
+              ${bic ? ligne("BIC", bic, true) : ""}
+              ${ligne("Référence", reference)}
+            </table>
+            <div style="margin-top:6px;color:#6b7686;font-size:12px;">Sur téléphone : appui long sur l'IBAN pour le copier.</div>
+          </div>`
+        : `<div style="margin-bottom:6px;"><strong>Virement</strong> : répondez à ce mail pour recevoir les coordonnées bancaires.</div>`
+    );
+  }
+  const autres = MOYENS_PAIEMENT.filter((m) => m.valeur !== "virement" && moyens.includes(m.valeur)).map((m) => m.libelle);
+  if (autres.length > 0) {
+    blocs.push(
+      `<div><strong>${autres.join(" ou ")}</strong> : répondez simplement à ce mail pour convenir du règlement.</div>`
+    );
+  }
+  if (blocs.length === 0) {
+    if (enLigne) return "";
+    blocs.push(`<div>Répondez simplement à ce mail pour convenir du règlement.</div>`);
+  }
   return `<div style="margin-top:${enLigne ? "22px" : "4px"};font-size:14px;line-height:1.6;">
-      <div style="font-weight:700;margin-bottom:6px;">${enLigne ? "Vous préférez un autre moyen ?" : "Pour régler cette facture :"}</div>
-      ${
-        iban
-          ? `<div style="margin-bottom:6px;"><strong>Virement</strong><br>
-               IBAN : <span style="font-family:Consolas,Menlo,monospace;white-space:nowrap;">${echapperHtml(iban)}</span><br>
-               <span style="color:#6b7686;font-size:13px;">Référence : ${numero ? `Facture n°${numero}` : "votre nom"}</span></div>`
-          : ""
-      }
-      <div><strong>Chèque ou espèces</strong> : répondez simplement à ce mail pour convenir du règlement.</div>
+      <div style="font-weight:700;margin-bottom:8px;">${enLigne ? "Vous préférez un autre moyen ?" : "Pour régler cette facture :"}</div>
+      ${blocs.join("\n      ")}
     </div>`;
 }

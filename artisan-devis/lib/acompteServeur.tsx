@@ -149,7 +149,7 @@ export async function envoyerAcompte({
         boutonUrl: enLigne ? `${origin}/signer/${devis.id}` : null,
         boutonTexte: `Payer l'acompte de ${totaux.total} en ligne`,
         sousBouton: "Carte bancaire, Apple Pay ou Google Pay · paiement sécurisé",
-        apresBoutonHtml: dejaPaye ? "" : blocAutresMoyens({ enLigne, iban: profil?.iban, numero }),
+        apresBoutonHtml: dejaPaye ? "" : blocAutresMoyens({ enLigne, profil, numero }),
         signature: signatureArtisan(profil, nomArtisan),
       }),
       attachments: [

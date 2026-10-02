@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { MOYENS_PAIEMENT, formaterIban, moyensAcceptes } from "@/lib/moyensPaiement";
 import { resteAPayer } from "@/lib/acompte";
 
 function euros(n: number) {
@@ -264,11 +265,13 @@ function SignerContenu() {
   // creation -- c'est le client qui choisit comment regler.
   const paiementEnLigneActif = Boolean(profil?.stripe_paiement_actif);
   const lienPdf = `/api/devis-pdf/${devisId}?t=${Date.now()}`;
-  const iban = String(profil?.iban || "")
-    .replace(/\s+/g, "")
-    .toUpperCase()
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
+  const iban = formaterIban(profil?.iban);
+  const bic = String(profil?.bic || "").replace(/\s+/g, "").toUpperCase();
+  const titulaire = String(profil?.titulaire_compte || profil?.nom_complet || "").trim();
+  const moyens = moyensAcceptes(profil?.moyens_paiement);
+  const autresMoyens = MOYENS_PAIEMENT.filter((m) => m.valeur !== "virement" && moyens.includes(m.valeur)).map(
+    (m) => m.libelle
+  );
   const jour = (iso: string) => new Date(iso).toLocaleDateString("fr-FR");
   // Facture d'acompte (supabase/acompte.sql) : payee a part sur le devis
   // signe, puis deduite de la facture finale.
@@ -297,20 +300,30 @@ function SignerContenu() {
             ? "Pour régler l'acompte :"
             : "Pour régler cette facture :"}
         </div>
-        {iban && (
+        {moyens.includes("virement") && iban && (
           <div style={{ marginBottom: 10 }}>
-            <strong>Virement</strong>
+            <strong>Virement bancaire</strong>
+            {titulaire && <div style={{ fontSize: 13, color: C.gris }}>Titulaire : {titulaire}</div>}
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span style={{ fontFamily: "Consolas, Menlo, monospace", fontSize: 13, userSelect: "all" }}>{iban}</span>
               <button onClick={() => copierIban(iban)} style={boutonPetit}>
-                {ibanCopie ? "Copié ✓" : "Copier"}
+                {ibanCopie ? "Copié ✓" : "Copier l'IBAN"}
               </button>
             </div>
-            <div style={{ fontSize: 13, color: C.gris }}>Référence : {reference}</div>
+            {bic && <div style={{ fontSize: 13, color: C.gris }}>BIC : {bic}</div>}
+            <div style={{ fontSize: 13, color: C.gris }}>Référence à indiquer : {reference}</div>
           </div>
         )}
+        {(autresMoyens.length > 0 || (moyens.includes("virement") && !iban) || moyens.length === 0) && (
         <div>
-          <strong>Chèque ou espèces</strong> : à convenir directement avec {profil?.nom_complet || nomArtisan || "l'artisan"}
+          <strong>
+            {autresMoyens.length > 0
+              ? autresMoyens.join(" ou ")
+              : moyens.includes("virement") && !iban
+              ? "Virement"
+              : "Règlement"}
+          </strong>{" "}
+          : à convenir directement avec {profil?.nom_complet || nomArtisan || "l'artisan"}
           {profil?.telephone ? (
             <>
               {" "}
@@ -322,6 +335,7 @@ function SignerContenu() {
           ) : null}
           .
         </div>
+        )}
       </div>
     </>
   );

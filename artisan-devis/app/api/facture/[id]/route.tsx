@@ -146,7 +146,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // paiement en ligne, puis les autres moyens (IBAN dans le mail, cheque ou
     // especes en repondant). Facture deja reglee : ni bouton ni moyens.
     const enLigne = Boolean(profil?.stripe_paiement_actif) && !dejaPayee;
-    const autresMoyens = dejaPayee ? "" : blocAutresMoyens({ enLigne, iban: profil?.iban, numero });
+    const autresMoyens = dejaPayee ? "" : blocAutresMoyens({ enLigne, profil, numero });
 
     const { error: erreurResend } = await resend.emails.send({
       from: expediteur(nomCourt(profil)),
