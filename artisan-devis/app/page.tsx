@@ -16,6 +16,7 @@ import { UNITES } from "@/lib/unites";
 import { enNombre } from "@/lib/nombre";
 import { normaliserSiren } from "@/lib/siren";
 import { PopupAssuranceMediateur } from "@/components/PopupAssuranceMediateur";
+import { RappelIban } from "@/components/RappelIban";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
 const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
@@ -1782,6 +1783,7 @@ export default function Home() {
                 </button>
               </div>
             )}
+            {typeDocument === "facture" && <RappelIban profil={profilArtisan} artisanId={artisanId} />}
             {popupMentions && artisanId && mentionsProfil && (
               <PopupAssuranceMediateur
                 artisanId={artisanId}

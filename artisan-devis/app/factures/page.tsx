@@ -5,9 +5,10 @@ import { Topbar } from "@/components/Topbar";
 import { useArtisanSession } from "@/lib/useArtisan";
 import { useDevisRealtime } from "@/lib/useDevisRealtime";
 import { CarteDocument, euros } from "@/components/CarteDocument";
+import { RappelIban } from "@/components/RappelIban";
 
 export default function MesFactures() {
-  const { session, artisanId, loading: chargementSession } = useArtisanSession();
+  const { session, artisanId, profilArtisan, loading: chargementSession } = useArtisanSession();
   const [factures, setFactures] = useState<any[]>([]);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string>("");
@@ -191,6 +192,11 @@ export default function MesFactures() {
       <Topbar />
 
       <h1 className="page-title">{voirArchives ? "Factures archivées" : "Factures"}</h1>
+
+      {/* Rappel IBAN seulement s'il reste une facture a envoyer. */}
+      {!voirArchives && factures.some((d) => !d.facture_envoyee_le && !d.payee_le) && (
+        <RappelIban profil={profilArtisan} artisanId={artisanId} style={{ marginBottom: 16 }} />
+      )}
 
       {voirArchives && (
         <button type="button" className="lien-archives" onClick={() => setVoirArchives(false)}>
