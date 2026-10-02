@@ -15,6 +15,10 @@ export default function Profil() {
   const router = useRouter();
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [etaitIncomplet, setEtaitIncomplet] = useState(false);
+  // Ecran de depart : les champs a verifier n'apparaissent qu'une fois
+  // l'entreprise choisie dans l'annuaire, ou "Je ne me trouve pas" touche.
+  const [formulaireDepart, setFormulaireDepart] = useState<"" | "annuaire" | "main">("");
+  const blocFormulaireDepart = useRef<HTMLDivElement>(null);
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
   // "Prenom Nom" : ce qui s'affiche sur les devis et factures (nom_complet).
@@ -70,6 +74,8 @@ export default function Profil() {
       const { data } = await supabase.from("artisans").select("*").eq("id", artisanId).maybeSingle();
       if (data) {
         setEtaitIncomplet(!profilComplet(data));
+        // Deja commence lors d'une visite precedente : champs affiches.
+        if (data.siret || data.adresse || data.nom_complet) setFormulaireDepart("main");
         const separe = separerNomComplet(data.nom_complet || "", data.prenom);
         setPrenom(separe.prenom);
         setNom(separe.nom);
@@ -109,8 +115,15 @@ export default function Profil() {
     charger();
   }, [artisanId]);
 
+  // Champs a remplir : on les affiche et on fait defiler jusqu'a eux.
+  function ouvrirFormulaireDepart(mode: "annuaire" | "main") {
+    setFormulaireDepart(mode);
+    setTimeout(() => blocFormulaireDepart.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
+
   // Pre-remplissage depuis l'annuaire des entreprises (ecran de depart).
   function remplirDepuisAnnuaire(infos: InfosEntreprise) {
+    ouvrirFormulaireDepart("annuaire");
     if (infos.prenom || infos.nom) {
       setPrenom(infos.prenom);
       setNom(infos.nom);
@@ -374,112 +387,131 @@ export default function Profil() {
         <div className="form-bloc">
           <p className="form-bloc-titre">1. Trouve ton entreprise</p>
           <div className="form-carte">
-            <RechercheEntreprise onChoisir={remplirDepuisAnnuaire} />
-            <p className="champ-aide">On remplit ton adresse et ton SIRET depuis l'annuaire officiel des entreprises.</p>
+            <p className="champ-aide" style={{ margin: "0 0 14px" }}>
+              On remplit ton adresse et ton SIRET depuis l'annuaire officiel des entreprises.
+            </p>
+            <RechercheEntreprise
+              onChoisir={remplirDepuisAnnuaire}
+              onPasTrouve={() => {
+                if (formulaireDepart !== "main") ouvrirFormulaireDepart("main");
+              }}
+            />
           </div>
         </div>
 
-        <div className="form-bloc">
-          <p className="form-bloc-titre">2. Vérifie</p>
-          <div className="form-carte">
-            {choixStatut}
-            <div className="champ">
-              <label className="champ-label" htmlFor="d-prenom">
-                Prénom {etoileOuFacultatif}
-              </label>
-              <input
-                id="d-prenom"
-                className="field"
-                autoComplete="given-name"
-                value={prenom}
-                onChange={(e) => setPrenom(e.target.value)}
-              />
-            </div>
-            <div className="champ">
-              <label className="champ-label" htmlFor="d-nom">
-                Nom {etoileOuFacultatif}
-              </label>
-              <input
-                id="d-nom"
-                className="field"
-                autoComplete="family-name"
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-              />
-            </div>
-            {champEntreprise("d")}
-            <div className="champ">
-              <label className="champ-label" htmlFor="d-tel">
-                Téléphone <span className="obligatoire">*</span>
-              </label>
-              <input id="d-tel" className="field" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
-            </div>
-            <div className="champ">
-              <label className="champ-label" htmlFor="d-siret">
-                SIRET <span className="obligatoire">*</span>
-              </label>
-              <input id="d-siret" className="field" inputMode="numeric" value={siret} onChange={(e) => setSiret(e.target.value)} />
-            </div>
-            {champsSociete("d")}
-            <div className="champ">
-              <label className="champ-label" htmlFor="d-adresse">
-                Adresse <span className="obligatoire">*</span>
-              </label>
-              <input id="d-adresse" className="field" value={adresse} onChange={(e) => setAdresse(e.target.value)} />
-            </div>
-            <div className="champ champ-duo">
-              <div style={{ flex: "1 1 40%" }}>
-                <label className="champ-label" htmlFor="d-cp">
-                  Code postal <span className="obligatoire">*</span>
-                </label>
-                <input id="d-cp" className="field" inputMode="numeric" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+        {formulaireDepart && (
+          <>
+            <div className="form-bloc" ref={blocFormulaireDepart} style={{ scrollMarginTop: 16 }}>
+              <p className="form-bloc-titre">{formulaireDepart === "annuaire" ? "2. Vérifie" : "2. Tes infos"}</p>
+              {formulaireDepart === "main" && (
+                <p className="hint" style={{ margin: "0 0 10px" }}>
+                  Certaines entreprises n'apparaissent pas dans l'annuaire public : c'est normal, remplis les champs à la main.
+                </p>
+              )}
+              <div className="form-carte">
+                {choixStatut}
+                <div className="champ">
+                  <label className="champ-label" htmlFor="d-prenom">
+                    Prénom {etoileOuFacultatif}
+                  </label>
+                  <input
+                    id="d-prenom"
+                    className="field"
+                    autoComplete="given-name"
+                    value={prenom}
+                    onChange={(e) => setPrenom(e.target.value)}
+                  />
+                </div>
+                <div className="champ">
+                  <label className="champ-label" htmlFor="d-nom">
+                    Nom {etoileOuFacultatif}
+                  </label>
+                  <input
+                    id="d-nom"
+                    className="field"
+                    autoComplete="family-name"
+                    value={nom}
+                    onChange={(e) => setNom(e.target.value)}
+                  />
+                </div>
+                {champEntreprise("d")}
+                <div className="champ">
+                  <label className="champ-label" htmlFor="d-tel">
+                    Téléphone <span className="obligatoire">*</span>
+                  </label>
+                  <input id="d-tel" className="field" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+                </div>
+                <div className="champ">
+                  <label className="champ-label" htmlFor="d-siret">
+                    SIRET <span className="obligatoire">*</span>
+                  </label>
+                  <input id="d-siret" className="field" inputMode="numeric" value={siret} onChange={(e) => setSiret(e.target.value)} />
+                  {formulaireDepart === "main" && (
+                    <p className="champ-aide">14 chiffres, sur ton Kbis, ton avis de situation INSEE ou ton espace URSSAF.</p>
+                  )}
+                </div>
+                {champsSociete("d")}
+                <div className="champ">
+                  <label className="champ-label" htmlFor="d-adresse">
+                    Adresse <span className="obligatoire">*</span>
+                  </label>
+                  <input id="d-adresse" className="field" value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+                </div>
+                <div className="champ champ-duo">
+                  <div style={{ flex: "1 1 40%" }}>
+                    <label className="champ-label" htmlFor="d-cp">
+                      Code postal <span className="obligatoire">*</span>
+                    </label>
+                    <input id="d-cp" className="field" inputMode="numeric" value={codePostal} onChange={(e) => setCodePostal(e.target.value)} />
+                  </div>
+                  <div style={{ flex: "1 1 60%" }}>
+                    <label className="champ-label" htmlFor="d-ville">
+                      Ville <span className="obligatoire">*</span>
+                    </label>
+                    <input id="d-ville" className="field" value={ville} onChange={(e) => setVille(e.target.value)} />
+                  </div>
+                </div>
               </div>
-              <div style={{ flex: "1 1 60%" }}>
-                <label className="champ-label" htmlFor="d-ville">
-                  Ville <span className="obligatoire">*</span>
-                </label>
-                <input id="d-ville" className="field" value={ville} onChange={(e) => setVille(e.target.value)} />
-              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="form-bloc">
-          <p className="form-bloc-titre">3. Tu factures la TVA ?</p>
-          <div className="form-carte">
-            <div className="choix-tva">
-              <button type="button" className={tvaChoix === "non" ? "actif" : ""} onClick={() => choisirTva("non")}>
-                <strong>Non</strong>
-                <small>Franchise en base (micro-entreprise)</small>
-              </button>
-              <button type="button" className={tvaChoix === "oui" ? "actif" : ""} onClick={() => choisirTva("oui")}>
-                <strong>Oui</strong>
-                <small>Je facture la TVA</small>
-              </button>
-            </div>
-            {tvaChoix === "oui" && (
-              <div className="champ" style={{ marginTop: 14 }}>
-                <label className="champ-label" htmlFor="d-tva">
-                  Taux habituel
-                </label>
-                <select id="d-tva" className="field" value={tauxTva} onChange={(e) => setTauxTva(e.target.value)}>
-                  <option value="20">20 % — Taux normal</option>
-                  <option value="10">10 % — Travaux de rénovation</option>
-                  <option value="5.5">5,5 % — Rénovation énergétique</option>
-                  <option value="2.1">2,1 % — Taux particulier</option>
-                </select>
+            <div className="form-bloc">
+              <p className="form-bloc-titre">3. Tu factures la TVA ?</p>
+              <div className="form-carte">
+                <div className="choix-tva">
+                  <button type="button" className={tvaChoix === "non" ? "actif" : ""} onClick={() => choisirTva("non")}>
+                    <strong>Non</strong>
+                    <small>Franchise en base (micro-entreprise)</small>
+                  </button>
+                  <button type="button" className={tvaChoix === "oui" ? "actif" : ""} onClick={() => choisirTva("oui")}>
+                    <strong>Oui</strong>
+                    <small>Je facture la TVA</small>
+                  </button>
+                </div>
+                {tvaChoix === "oui" && (
+                  <div className="champ" style={{ marginTop: 14 }}>
+                    <label className="champ-label" htmlFor="d-tva">
+                      Taux habituel
+                    </label>
+                    <select id="d-tva" className="field" value={tauxTva} onChange={(e) => setTauxTva(e.target.value)}>
+                      <option value="20">20 % — Taux normal</option>
+                      <option value="10">10 % — Travaux de rénovation</option>
+                      <option value="5.5">5,5 % — Rénovation énergétique</option>
+                      <option value="2.1">2,1 % — Taux particulier</option>
+                    </select>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        <button className="btn btn-primary btn-bloc" onClick={demarrer}>
-          C'est parti →
-        </button>
-        {message && <p className="message" style={{ textAlign: "center" }}>{message}</p>}
-        <p className="hint" style={{ textAlign: "center", margin: "12px 0 24px" }}>
-          Logo, IBAN… tu pourras les ajouter plus tard dans « Mon compte ».
-        </p>
+            <button className="btn btn-primary btn-bloc" onClick={demarrer}>
+              C'est parti →
+            </button>
+            {message && <p className="message" style={{ textAlign: "center" }}>{message}</p>}
+            <p className="hint" style={{ textAlign: "center", margin: "12px 0 24px" }}>
+              Logo, IBAN… tu pourras les ajouter plus tard dans « Mon compte ».
+            </p>
+          </>
+        )}
       </main>
     );
   }
