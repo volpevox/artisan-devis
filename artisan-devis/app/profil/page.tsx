@@ -16,6 +16,29 @@ export default function Profil() {
   const router = useRouter();
   const { session, artisanId, loading: chargementSession } = useArtisanSession();
   const [etaitIncomplet, setEtaitIncomplet] = useState(false);
+  // Arrivee depuis « Ton devis est presque pret » (page de dictee) :
+  // ?completer=mentions,logo ouvre ces rubriques, ?retour=/?modifier=ID
+  // ramene au devis apres Enregistrer.
+  const [aCompleter, setACompleter] = useState<string[]>([]);
+  const [retour, setRetour] = useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setACompleter((params.get("completer") || "").split(",").filter(Boolean));
+    const r = params.get("retour") || "";
+    // Seulement un chemin interne a l'appli.
+    if (r.startsWith("/") && !r.startsWith("//")) setRetour(r);
+  }, []);
+  useEffect(() => {
+    if (aCompleter.length === 0) return;
+    const t = setTimeout(
+      () =>
+        document
+          .getElementById(aCompleter.includes("logo") ? "rubrique-logo" : "rubrique-mentions")
+          ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+      400
+    );
+    return () => clearTimeout(t);
+  }, [aCompleter]);
   // Ecran de depart : les champs a verifier n'apparaissent qu'une fois
   // l'entreprise choisie dans l'annuaire, ou "Je ne me trouve pas" touche.
   const [formulaireDepart, setFormulaireDepart] = useState<"" | "annuaire" | "main">("");
@@ -283,6 +306,11 @@ export default function Profil() {
     // SIRET...) reste sur place avec le message de confirmation habituel.
     if (etaitIncomplet) {
       router.push("/");
+      return;
+    }
+
+    if (retour) {
+      router.push(retour);
       return;
     }
 
@@ -574,6 +602,15 @@ export default function Profil() {
       <h1 className="page-title">Mon compte</h1>
       <p className="page-sous-titre">Ces informations apparaissent sur tes devis et factures.</p>
 
+      {retour ? (
+        <div className="rappel-mentions" style={{ marginBottom: 16 }}>
+          <span>Complète les rubriques ouvertes, puis touche « Enregistrer » en bas : tu reviendras à ton devis.</span>
+          <button type="button" onClick={() => router.push(retour)}>
+            ← Revenir au devis
+          </button>
+        </div>
+      ) : null}
+
       {/* Carte de visite : l'en-tete tel que le voient les clients */}
       <div className={`fiche fiche-visite${prochaine ? "" : " fiche--ok"}`}>
         <div className="fiche-visite-haut">
@@ -718,9 +755,11 @@ export default function Profil() {
         </div>
       </FicheRubrique>
 
+      <div id="rubrique-logo" style={{ scrollMarginTop: 80 }} />
       <FicheRubrique
         etat={okLogo ? "ok" : "neutre"}
         icone={ICONES.logo}
+        ouvert={aCompleter.includes("logo") || undefined}
         titre="Logo"
         resume={okLogo ? "Affiché en haut de tes documents" : "Pas de logo : tes initiales s'affichent"}
       >
@@ -898,10 +937,12 @@ export default function Profil() {
       </FicheRubrique>
 
       {/* Reglages facultatifs, replies par defaut pour garder la page simple. */}
-      <details className="autres-reglages">
+      <details className="autres-reglages" open={aCompleter.includes("mentions") || undefined}>
         <summary>Autres réglages (facultatif)</summary>
+        <div id="rubrique-mentions" style={{ scrollMarginTop: 80 }} />
         <FicheRubrique
           etat={okMentions ? "ok" : "neutre"}
+          ouvert={aCompleter.includes("mentions") || undefined}
           icone={ICONES.mentions}
           titre="Assurance et médiateur"
           resume={

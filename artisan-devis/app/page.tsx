@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Topbar } from "@/components/Topbar";
 import { PropositionNotifications } from "@/components/PropositionNotifications";
@@ -17,6 +18,7 @@ import { enNombre } from "@/lib/nombre";
 import { normaliserSiren } from "@/lib/siren";
 import { PopupAssuranceMediateur } from "@/components/PopupAssuranceMediateur";
 import { RappelIban } from "@/components/RappelIban";
+import { PopupProfilIncomplet } from "@/components/PopupProfilIncomplet";
 
 // pdf.js s'appuie sur des API navigateur : composant chargé cote client seul.
 const VisionneusePdf = dynamic(() => import("@/components/VisionneusePdf").then((m) => m.VisionneusePdf), {
@@ -205,6 +207,60 @@ export default function Home() {
       });
     }
   }, [profilArtisan, mentionsProfil]);
+  // « Ton devis est presque pret » : une seule fois par compte, au premier
+  // apercu ou envoi d'un devis, s'il manque assurance, mediateur ou logo.
+  // Ref (et pas seulement un etat) pour que l'action relancee juste apres
+  // « Plus tard » ne rouvre pas la fenetre.
+  const popupProfilVue = useRef(false);
+  const [popupProfil, setPopupProfil] = useState<null | "apercu" | "envoi">(null);
+  const [popupProfilEnCours, setPopupProfilEnCours] = useState(false);
+  const router = useRouter();
+  useEffect(() => {
+    if (profilArtisan?.popup_profil_vue_le) popupProfilVue.current = true;
+  }, [profilArtisan]);
+  const profilAManque = Boolean(
+    mentionsProfil &&
+      (!mentionsProfil.assurance.trim() || !mentionsProfil.mediateur.trim() || !profilArtisan?.logo_url)
+  );
+  // Renvoie true si la fenetre s'ouvre (l'action attend alors la reponse).
+  function proposerProfil(action: "apercu" | "envoi") {
+    if (typeDocument !== "devis" || popupProfilVue.current || !profilAManque) return false;
+    setPopupProfil(action);
+    return true;
+  }
+  // « Completer maintenant » : le devis est d'abord enregistre en brouillon
+  // (sinon il serait perdu en quittant la page), puis Mon compte s'ouvre sur
+  // les rubriques qui manquent et ramene ici (?modifier=ID) apres Enregistrer.
+  async function popupProfilCompleter() {
+    setPopupProfilEnCours(true);
+    const id = devisEnregistre ? ((await synchroniser(devisId)) ? devisId : null) : await enregistrer();
+    if (!id) {
+      setPopupProfilEnCours(false);
+      setPopupProfil(null);
+      return;
+    }
+    popupProfilVue.current = true;
+    if (artisanId) {
+      await supabase.from("artisans").update({ popup_profil_vue_le: new Date().toISOString() }).eq("id", artisanId);
+    }
+    const aCompleter = [
+      mentionsProfil && (!mentionsProfil.assurance.trim() || !mentionsProfil.mediateur.trim()) ? "mentions" : "",
+      !profilArtisan?.logo_url ? "logo" : "",
+    ].filter(Boolean);
+    router.push(`/profil?completer=${aCompleter.join(",")}&retour=${encodeURIComponent(`/?modifier=${id}`)}`);
+  }
+
+  async function popupProfilPlusTard() {
+    const action = popupProfil;
+    popupProfilVue.current = true;
+    setPopupProfil(null);
+    if (artisanId) {
+      await supabase.from("artisans").update({ popup_profil_vue_le: new Date().toISOString() }).eq("id", artisanId);
+    }
+    if (action === "apercu") previsualiser();
+    if (action === "envoi") envoyerDirect();
+  }
+
   const mentionsManquantes = mentionsProfil
     ? [!mentionsProfil.assurance.trim() && "ton assurance pro", !mentionsProfil.mediateur.trim() && "ton médiateur"].filter(
         Boolean
@@ -446,6 +502,7 @@ export default function Home() {
   }
 
   async function previsualiser() {
+    if (proposerProfil("apercu")) return;
     setApercuEnCours(true);
     setMessage("");
     try {
@@ -664,6 +721,7 @@ export default function Home() {
       document.getElementById(vueResume ? "resume-adresse" : "client-adresse")?.focus();
       return;
     }
+    if (proposerProfil("envoi")) return;
     setEnvoiEnCours(true);
     const dejaEnregistre = devisEnregistre;
     const id = dejaEnregistre ? devisId : await enregistrer();
@@ -1782,6 +1840,13 @@ export default function Home() {
                   {mentionsManquantes.length > 1 ? "Les ajouter" : "L'ajouter"} →
                 </button>
               </div>
+            )}
+            {popupProfil && (
+              <PopupProfilIncomplet
+                onCompleter={popupProfilCompleter}
+                onPlusTard={popupProfilPlusTard}
+                enCours={popupProfilEnCours}
+              />
             )}
             {typeDocument === "facture" && <RappelIban profil={profilArtisan} artisanId={artisanId} />}
             {popupMentions && artisanId && mentionsProfil && (
