@@ -1091,7 +1091,7 @@ export default function Home() {
                     <span>💶 Combien</span>
                   </div>
                   <p className="dictee-guide-exemple">
-                    « Pour Madame Martin, 12 rue des Lilas à Lyon : peinture du salon, 25 m² à 30 euros. »
+                    « Pour Julie Martin, 12 rue des Lilas à Lyon : peinture du salon, 25 m² à 30 euros. »
                   </p>
                 </div>
               )
@@ -1196,7 +1196,7 @@ export default function Home() {
                 <input
                   id="resume-nom"
                   className="field"
-                  placeholder="Ex : Mme Martin"
+                  placeholder="Ex : Julie Martin"
                   value={clientNom}
                   onChange={(e) => setClientNom(e.target.value)}
                 />
