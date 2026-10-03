@@ -45,9 +45,6 @@ export default function Parametres() {
   const [nomComplet, setNomComplet] = useState("");
   const [nomEntreprise, setNomEntreprise] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [stripeAccountId, setStripeAccountId] = useState("");
-  const [stripePaiementActif, setStripePaiementActif] = useState(false);
-  const [enCoursStripe, setEnCoursStripe] = useState(false);
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(true);
 
@@ -102,7 +99,7 @@ export default function Parametres() {
       const { data } = await supabase
         .from("artisans")
         .select(
-          "nom_complet, nom_entreprise, logo_url, stripe_account_id, stripe_paiement_actif, relances_actives, copie_envois"
+          "nom_complet, nom_entreprise, logo_url, relances_actives, copie_envois"
         )
         .eq("id", artisanId)
         .maybeSingle();
@@ -110,8 +107,6 @@ export default function Parametres() {
         setNomComplet(data.nom_complet || "");
         setNomEntreprise(data.nom_entreprise || "");
         setLogoUrl(data.logo_url || "");
-        setStripeAccountId(data.stripe_account_id || "");
-        setStripePaiementActif(!!data.stripe_paiement_actif);
         setRelancesActives(data.relances_actives !== false);
         setCopieEnvois(!!data.copie_envois);
       }
@@ -207,83 +202,6 @@ export default function Parametres() {
       setMessage("Erreur : " + error.message);
     }
     setCopieEnCours(false);
-  }
-
-  useEffect(() => {
-    if (!session || !stripeAccountId || stripePaiementActif) return;
-
-    async function verifierStatut() {
-      const res = await fetch("/api/statut-paiements", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-      });
-      const data = await res.json();
-      if (typeof data.actif === "boolean") setStripePaiementActif(data.actif);
-    }
-    verifierStatut();
-  }, [session, stripeAccountId, stripePaiementActif]);
-
-  async function connecterPaiements() {
-    setEnCoursStripe(true);
-    setMessage("");
-
-    try {
-      let accountToken: string | undefined;
-
-      if (!stripeAccountId) {
-        // Obligatoire pour les plateformes basees en France (conformite DSP2) :
-        // Stripe exige un jeton de compte v2 cree cote navigateur (avec la cle
-        // publique) avant toute creation de compte connecte avec configuration
-        // marchand. Ce jeton ne contient que l'acceptation des conditions,
-        // le reste des informations est collecte par Stripe lors de l'inscription.
-        const resToken = await fetch("https://api.stripe.com/v2/core/account_tokens", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}`,
-            "Content-Type": "application/json",
-            "Stripe-Version": "2026-07-29.dahlia",
-          },
-          body: JSON.stringify({
-            contact_email: session?.user?.email || undefined,
-            display_name: nomEntreprise || nomComplet || undefined,
-          }),
-        });
-        const dataToken = await resToken.json();
-
-        if (!resToken.ok) {
-          setMessage("Erreur : " + (dataToken.error?.message || "création du jeton Stripe impossible"));
-          setEnCoursStripe(false);
-          return;
-        }
-        accountToken = dataToken.id;
-      }
-
-      const res = await fetch("/api/connecter-paiements", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ accountToken }),
-      });
-      const texte = await res.text();
-      let data: any = {};
-      try {
-        data = JSON.parse(texte);
-      } catch {
-        setMessage(`Erreur serveur (${res.status}) : ${texte.slice(0, 300)}`);
-        setEnCoursStripe(false);
-        return;
-      }
-
-      if (data.erreur) {
-        setMessage("Erreur : " + data.erreur);
-        setEnCoursStripe(false);
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch (e: any) {
-      setMessage("Erreur : " + e.message);
-      setEnCoursStripe(false);
-    }
   }
 
   if (chargementSession || chargement) {
@@ -411,7 +329,7 @@ export default function Parametres() {
         </div>
       </div>
 
-      {/* --- Mes envois (relances, copie, paiement en ligne) --- */}
+      {/* --- Mes envois (relances, copie) --- */}
       <div className="reglages-groupe">
         <p className="reglages-groupe-titre">Mes envois</p>
         <div className="reglages-liste">
@@ -486,47 +404,6 @@ export default function Parametres() {
             </span>
           </button>
 
-          {stripePaiementActif ? (
-            <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="reglages-item">
-              <span className="reglages-item-icone">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <span className="reglages-item-corps">
-                <span className="reglages-item-titre">Paiement en ligne</span>
-                <span className="reglages-item-sous">Voir mon espace Stripe</span>
-              </span>
-              <span className="reglages-item-fin">
-                <span className="pastille-etat ok">Activé</span>
-                <Chevron />
-              </span>
-            </a>
-          ) : (
-            <button type="button" className="reglages-item" onClick={connecterPaiements} disabled={enCoursStripe}>
-              <span className="reglages-item-icone">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <span className="reglages-item-corps">
-                <span className="reglages-item-titre">Paiement en ligne</span>
-                <span className="reglages-item-sous">
-                  {enCoursStripe
-                    ? "Ouverture de Stripe..."
-                    : stripeAccountId
-                    ? "Reprendre l'inscription Stripe"
-                    : "Tes clients paient par carte"}
-                </span>
-              </span>
-              <span className="reglages-item-fin">
-                <span className="pastille-etat">À connecter</span>
-                <Chevron />
-              </span>
-            </button>
-          )}
         </div>
         {message && <p className="message">{message}</p>}
       </div>

@@ -9,6 +9,7 @@ import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "@/lib/mentionsDocuments";
 import { RechercheEntreprise, type InfosEntreprise } from "@/components/RechercheEntreprise";
 import { FicheRubrique, ICONES } from "@/components/FicheRubrique";
+import { PaiementEnLigne } from "@/components/PaiementEnLigne";
 import { MOYENS_PAIEMENT, moyensAcceptes, type MoyenPaiement } from "@/lib/moyensPaiement";
 import { separerNomComplet } from "@/lib/prenom";
 
@@ -21,9 +22,12 @@ export default function Profil() {
   // ramene au devis apres Enregistrer.
   const [aCompleter, setACompleter] = useState<string[]>([]);
   const [retour, setRetour] = useState("");
+  const [retourStripe, setRetourStripe] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setACompleter((params.get("completer") || "").split(",").filter(Boolean));
+    // Retour de l'inscription Stripe (paiement en ligne) : rubrique Paiement ouverte.
+    setRetourStripe(Boolean(params.get("stripe_retour")));
     const r = params.get("retour") || "";
     // Seulement un chemin interne a l'appli.
     if (r.startsWith("/") && !r.startsWith("//")) setRetour(r);
@@ -39,6 +43,14 @@ export default function Profil() {
     );
     return () => clearTimeout(t);
   }, [aCompleter]);
+  useEffect(() => {
+    if (!retourStripe) return;
+    const t = setTimeout(
+      () => document.getElementById("rubrique-paiement")?.scrollIntoView({ block: "start", behavior: "smooth" }),
+      400
+    );
+    return () => clearTimeout(t);
+  }, [retourStripe]);
   // Ecran de depart : les champs a verifier n'apparaissent qu'une fois
   // l'entreprise choisie dans l'annuaire, ou "Je ne me trouve pas" touche.
   const [formulaireDepart, setFormulaireDepart] = useState<"" | "annuaire" | "main">("");
@@ -814,10 +826,12 @@ export default function Profil() {
         </div>
       </FicheRubrique>
 
+      <div id="rubrique-paiement" style={{ scrollMarginTop: 80 }} />
       <FicheRubrique
         etat={okPaiement ? "ok" : "neutre"}
         icone={ICONES.paiement}
         titre="Paiement"
+        ouvert={retourStripe || undefined}
         resume={
           resume(
             conditionsPaiement,
@@ -864,6 +878,7 @@ export default function Profil() {
           </div>
           <p className="champ-aide">Proposés au client dans le mail de la facture et sur la facture.</p>
         </div>
+        <PaiementEnLigne nomAffiche={nomEntreprise || nomComplet} />
         {moyensPaiement.includes("virement") && (
           <>
             <div className="champ">

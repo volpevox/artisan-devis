@@ -228,7 +228,7 @@ export default function CommentCaMarche() {
             </div>
           }
         >
-          Connecte une fois ton compte Stripe (Paramètres → Paiement en ligne) : chaque facture a son bouton de
+          Connecte une fois ton compte Stripe (Mon compte → Paiement) : chaque facture a son bouton de
           paiement, par carte ou Apple Pay, et l'argent arrive sur ton compte, sans commission VolpeVox. Sinon, virement,
           chèque ou espèces : tu la marques payée en un geste.
         </Etape>
