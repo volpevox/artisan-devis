@@ -878,7 +878,6 @@ export default function Profil() {
           </div>
           <p className="champ-aide">Proposés au client dans le mail de la facture et sur la facture.</p>
         </div>
-        <PaiementEnLigne nomAffiche={nomEntreprise || nomComplet} />
         {moyensPaiement.includes("virement") && (
           <>
             <div className="champ">
@@ -923,6 +922,7 @@ export default function Profil() {
             </p>
           </>
         )}
+        <PaiementEnLigne nomAffiche={nomEntreprise || nomComplet} />
         <div className="champ">
           <label className="champ-label" htmlFor="p-validite">Durée de validité des devis</label>
           <select id="p-validite" className="field" value={validiteDevis} onChange={(e) => setValiditeDevis(e.target.value)}>
