@@ -9,7 +9,7 @@ import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
 import { MENTION_PENALITES_RETARD_DEFAUT } from "@/lib/mentionsDocuments";
 import { RechercheEntreprise, type InfosEntreprise } from "@/components/RechercheEntreprise";
 import { FicheRubrique, ICONES } from "@/components/FicheRubrique";
-import { PaiementEnLigne } from "@/components/PaiementEnLigne";
+import { usePaiementEnLigne } from "@/components/PaiementEnLigne";
 import { MOYENS_PAIEMENT, moyensAcceptes, type MoyenPaiement } from "@/lib/moyensPaiement";
 import { separerNomComplet } from "@/lib/prenom";
 
@@ -80,6 +80,7 @@ export default function Profil() {
   const [titulaireCompte, setTitulaireCompte] = useState("");
   const [moyensPaiement, setMoyensPaiement] = useState<MoyenPaiement[]>(moyensAcceptes(null));
   const [conditionsPaiement, setConditionsPaiement] = useState("");
+  const carte = usePaiementEnLigne();
   const [assurancePro, setAssurancePro] = useState("");
   const [mediateurConso, setMediateurConso] = useState("");
   const [penalitesRetard, setPenalitesRetard] = useState(MENTION_PENALITES_RETARD_DEFAUT);
@@ -208,6 +209,22 @@ export default function Profil() {
     setLogoFichier(null);
     setLogoUrl("");
     setLogoApercu("");
+  }
+
+  // Avant de partir chez Stripe (puce « Carte bancaire ») : on garde ce qui
+  // a ete saisi dans la rubrique Paiement, sinon perdu au retour.
+  async function enregistrerPaiementAvantStripe() {
+    if (!artisanId) return;
+    await supabase
+      .from("artisans")
+      .update({
+        iban,
+        bic: bic.trim().toUpperCase() || null,
+        titulaire_compte: titulaireCompte.trim() || null,
+        moyens_paiement: moyensPaiement,
+        conditions_paiement: conditionsPaiement,
+      })
+      .eq("id", artisanId);
   }
 
   async function enregistrer() {
@@ -835,7 +852,9 @@ export default function Profil() {
         resume={
           resume(
             conditionsPaiement,
-            moyensPaiement.map((v) => MOYENS_PAIEMENT.find((m) => m.valeur === v)?.libelle).join(", "),
+            [...moyensPaiement.map((v) => MOYENS_PAIEMENT.find((m) => m.valeur === v)?.libelle), carte.actif ? "Carte bancaire" : ""]
+              .filter(Boolean)
+              .join(", "),
             moyensPaiement.includes("virement") && iban ? "IBAN renseigné" : "",
             validiteDevis !== "0" ? `devis valables ${validiteDevis} j` : ""
           ) || "Conditions, IBAN, validité des devis"
@@ -875,8 +894,35 @@ export default function Profil() {
                 </button>
               );
             })}
+            {carte.charge ? (
+              <button
+                type="button"
+                aria-pressed={carte.actif}
+                className={carte.actif ? "actif" : ""}
+                disabled={carte.enCours}
+                onClick={() =>
+                  carte.actif
+                    ? window.open("https://dashboard.stripe.com", "_blank", "noopener")
+                    : carte.connecter(nomEntreprise || nomComplet, enregistrerPaiementAvantStripe)
+                }
+              >
+                {carte.actif ? "✓ " : ""}Carte bancaire
+              </button>
+            ) : null}
           </div>
           <p className="champ-aide">Proposés au client dans le mail de la facture et sur la facture.</p>
+          {carte.charge ? (
+            <p className="champ-aide">
+              {carte.enCours
+                ? "Ouverture de Stripe..."
+                : carte.actif
+                ? "Carte bancaire : paiement en ligne activé avec Stripe (touche pour voir ton espace Stripe)."
+                : carte.commence
+                ? "Carte bancaire : ton inscription Stripe n'est pas terminée, touche « Carte bancaire » pour la reprendre."
+                : "Carte bancaire : touche pour activer le paiement en ligne avec Stripe, sans commission VolpeVox."}
+            </p>
+          ) : null}
+          {carte.message && <p className="message">{carte.message}</p>}
         </div>
         {moyensPaiement.includes("virement") && (
           <>
@@ -922,7 +968,6 @@ export default function Profil() {
             </p>
           </>
         )}
-        <PaiementEnLigne nomAffiche={nomEntreprise || nomComplet} />
         <div className="champ">
           <label className="champ-label" htmlFor="p-validite">Durée de validité des devis</label>
           <select id="p-validite" className="field" value={validiteDevis} onChange={(e) => setValiditeDevis(e.target.value)}>

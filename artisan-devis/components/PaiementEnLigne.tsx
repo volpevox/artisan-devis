@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useArtisanSession } from "@/lib/useArtisan";
 
-// Paiement par carte en ligne (Stripe Connect) dans Mon compte > Paiement,
-// a cote des autres moyens de paiement. Le retour de l'inscription Stripe
-// revient sur /profil?stripe_retour=1 (voir /api/connecter-paiements).
-export function PaiementEnLigne({ nomAffiche }: { nomAffiche: string }) {
+// Paiement par carte en ligne (Stripe Connect) : 4e puce « Carte bancaire »
+// a cote de Virement / Cheque / Especes dans Mon compte > Paiement. Elle ne
+// se coche pas comme les autres : elle ouvre l'inscription Stripe, et
+// apparait cochee une fois le compte Stripe valide. Le retour de
+// l'inscription revient sur /profil?stripe_retour=1 (/api/connecter-paiements).
+export function usePaiementEnLigne() {
   const { session, artisanId } = useArtisanSession();
   const [stripeAccountId, setStripeAccountId] = useState("");
   const [actif, setActif] = useState(false);
@@ -43,11 +45,15 @@ export function PaiementEnLigne({ nomAffiche }: { nomAffiche: string }) {
       .catch(() => {});
   }, [session, stripeAccountId, actif]);
 
-  async function connecter() {
+  // avantDepart : enregistre ce qui a ete saisi sur la page avant de partir
+  // chez Stripe (sinon perdu au retour).
+  async function connecter(nomAffiche: string, avantDepart?: () => Promise<void>) {
     setEnCours(true);
     setMessage("");
 
     try {
+      if (avantDepart) await avantDepart();
+
       let accountToken: string | undefined;
 
       if (!stripeAccountId) {
@@ -106,53 +112,5 @@ export function PaiementEnLigne({ nomAffiche }: { nomAffiche: string }) {
     }
   }
 
-  if (!charge) return null;
-
-  const icone = (
-    <span className="reglages-item-icone">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.6" />
-      </svg>
-    </span>
-  );
-
-  return (
-    <div className="champ">
-      <p className="champ-label">Carte bancaire en ligne</p>
-      <div className="reglages-liste">
-        {actif ? (
-          <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="reglages-item">
-            {icone}
-            <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Paiement en ligne</span>
-              <span className="reglages-item-sous">Voir mon espace Stripe</span>
-            </span>
-            <span className="reglages-item-fin">
-              <span className="pastille-etat ok">Activé</span>
-            </span>
-          </a>
-        ) : (
-          <button type="button" className="reglages-item" onClick={connecter} disabled={enCours}>
-            {icone}
-            <span className="reglages-item-corps">
-              <span className="reglages-item-titre">Paiement en ligne</span>
-              <span className="reglages-item-sous">
-                {enCours
-                  ? "Ouverture de Stripe..."
-                  : stripeAccountId
-                  ? "Reprendre l'inscription Stripe"
-                  : "Tes clients paient la facture par carte"}
-              </span>
-            </span>
-            <span className="reglages-item-fin">
-              <span className="pastille-etat">À connecter</span>
-            </span>
-          </button>
-        )}
-      </div>
-      <p className="champ-aide">Un lien « Payer par carte » apparaît sur tes factures et dans le mail envoyé au client.</p>
-      {message && <p className="message">{message}</p>}
-    </div>
-  );
+  return { charge, actif, commence: Boolean(stripeAccountId), enCours, message, connecter };
 }
