@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   // --- Bandeau d'en-tete bleu, bord bas droit souligne d'or ---
   bandeau: {
     backgroundColor: BLEU,
-    height: 96,
+    height: 88,
     paddingHorizontal: 34,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   titreMeta: { fontSize: 8.5, fontWeight: 600, color: SUR_BLEU, marginTop: 2 },
   titreNumero: { fontFamily: "Roboto", fontWeight: 700, fontSize: 10, color: "#ffffff", marginTop: 4, lineHeight: 1.2 },
 
-  contenu: { paddingHorizontal: 34, paddingTop: 22 },
+  contenu: { paddingHorizontal: 34, paddingTop: 18 },
 
   // --- Cartes client / montant ---
   cartes: { flexDirection: "row", gap: 14 },
@@ -143,12 +143,12 @@ const styles = StyleSheet.create({
   montantNote: { fontSize: 8, fontWeight: 600, color: SUR_BLEU, marginTop: 4 },
 
   // --- Tableau des lignes ---
-  tableau: { marginTop: 16 },
+  tableau: { marginTop: 14 },
   tableEntete: {
     flexDirection: "row",
     backgroundColor: BLEU,
     borderRadius: 4,
-    paddingVertical: 8,
+    paddingVertical: 7,
     paddingHorizontal: 10,
   },
   tableEnteteTexte: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   },
   tableLigne: {
     flexDirection: "row",
-    paddingVertical: 8,
+    paddingVertical: 7,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderColor: LIGNE,
@@ -191,7 +191,18 @@ const styles = StyleSheet.create({
   chiffreFort: { fontFamily: "Roboto", fontWeight: 700, fontSize: 9.5, color: ENCRE, lineHeight: 1.2 },
 
   // --- Totaux ---
-  totaux: { alignSelf: "flex-end", width: 240, marginTop: 10 },
+  blocTotaux: { flexDirection: "row", justifyContent: "flex-end", alignItems: "flex-end", gap: 18, marginTop: 10 },
+  validite: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    backgroundColor: CREME,
+    borderLeftWidth: 3,
+    borderColor: OR,
+  },
+  validiteTexte: { fontSize: 9, fontWeight: 700, color: ENCRE, lineHeight: 1.4 },
+  totaux: { width: 240 },
   ligneTotal: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -242,8 +253,8 @@ const styles = StyleSheet.create({
   totalTTCValeur: { fontFamily: "Roboto", fontWeight: 700, fontSize: 17, color: "#ffffff", lineHeight: 1.1 },
 
   bandeauInfo: {
-    marginTop: 14,
-    paddingVertical: 8,
+    marginTop: 10,
+    paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
     backgroundColor: CREME,
@@ -267,8 +278,10 @@ const styles = StyleSheet.create({
   },
 
   // --- Mentions ---
-  mentions: { marginTop: 18, flexDirection: "row", flexWrap: "wrap", gap: 14 },
-  mention: { width: "47%" },
+  // Compactes (3 colonnes, petit texte) pour que le devis, signature
+  // comprise, tienne sur une page dans les cas courants.
+  mentions: { marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  mention: { width: "31.5%" },
   mentionTitre: {
     fontFamily: "Poppins",
     fontWeight: 600,
@@ -278,10 +291,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 3,
   },
-  mentionTexte: { fontSize: 8.5, fontWeight: 500, color: MUTED, lineHeight: 1.45 },
+  mentionTexte: { fontSize: 7.5, fontWeight: 500, color: MUTED, lineHeight: 1.4 },
   mentionLegale: {
-    marginTop: 14,
-    padding: 10,
+    marginTop: 10,
+    padding: 8,
     borderRadius: 4,
     borderWidth: 1,
     borderColor: LIGNE,
@@ -309,14 +322,14 @@ const styles = StyleSheet.create({
   },
 
   // --- Signature (devis) ---
-  signature: { flexDirection: "row", gap: 18, marginTop: 18 },
+  signature: { flexDirection: "row", gap: 18, marginTop: 12 },
   signatureCadre: {
     flex: 1,
     borderWidth: 1,
     borderColor: LIGNE,
     borderRadius: 6,
     padding: 10,
-    minHeight: 86,
+    minHeight: 68,
   },
   signatureCadreClient: { borderColor: OR, borderStyle: "dashed" },
   signatureTitre: {
@@ -327,12 +340,12 @@ const styles = StyleSheet.create({
     color: MUTED,
     textTransform: "uppercase",
   },
-  signatureInfo: { fontSize: 9, color: TEXTE, marginTop: 8 },
+  signatureInfo: { fontSize: 9, color: TEXTE, marginTop: 5 },
   signeBadge: { fontSize: 9, fontWeight: 700, color: VERT, marginTop: 8 },
   // Fond blanc explicite : le PNG de signature a un arriere-plan transparent
   // que le moteur PDF peut rendre en noir sans ce fond force.
-  signatureImageFond: { backgroundColor: "#ffffff", marginTop: 6, alignItems: "center" },
-  signatureImage: { height: 52, objectFit: "contain" },
+  signatureImageFond: { backgroundColor: "#ffffff", marginTop: 3, alignItems: "center" },
+  signatureImage: { height: 42, objectFit: "contain" },
 
   // --- Pied de page ---
   pied: {
@@ -526,6 +539,11 @@ export function DevisPDF({
   // "duree_validite_devis" du profil). N a 0 ou absent = pas de mention.
   const validiteJours = !estFacture ? Number(entreprise.validiteJours) || 0 : 0;
   const dateValidite = validiteJours > 0 ? new Date(date.getTime() + validiteJours * 86400000) : null;
+  const texteValidite = dateValidite
+    ? `${devisParticulier ? "Devis gratuit. " : ""}Ce devis est valable jusqu'au ${formaterDate(dateValidite)} (${validiteJours} jours).`
+    : devisParticulier
+    ? "Devis gratuit."
+    : "";
 
   const infosPied = [
     entreprise.nom,
@@ -682,7 +700,15 @@ export function DevisPDF({
             })}
           </View>
 
-          <View style={styles.totaux} wrap={false}>
+          <View style={styles.blocTotaux} wrap={false}>
+          {/* Devis : validite dans l'espace libre a gauche des totaux (et non
+              en bandeau pleine largeur) pour que le devis tienne sur une page. */}
+          {texteValidite ? (
+            <View style={styles.validite}>
+              <Text style={styles.validiteTexte}>{texteValidite}</Text>
+            </View>
+          ) : null}
+          <View style={styles.totaux}>
             <View style={styles.ligneTotal}>
               <Text style={styles.libelleTotal}>Total HT</Text>
               <Text style={styles.chiffre}>{euros(totalHT)}</Text>
@@ -720,6 +746,7 @@ export function DevisPDF({
               </>
             ) : null}
           </View>
+          </View>
 
           {estAcompte && acompteSur ? (
             <Text style={styles.bandeauInfo}>
@@ -729,15 +756,6 @@ export function DevisPDF({
               {euros(acompteSur.totalTTC)}
               {tauxTva > 0 ? " TTC" : ""}. Le solde sera facturé à la fin de la prestation.
             </Text>
-          ) : null}
-
-          {dateValidite ? (
-            <Text style={styles.bandeauInfo}>
-              {devisParticulier ? "Devis gratuit. " : ""}Ce devis est valable jusqu'au {formaterDate(dateValidite)} (
-              {validiteJours} jours).
-            </Text>
-          ) : devisParticulier ? (
-            <Text style={styles.bandeauInfo}>Devis gratuit.</Text>
           ) : null}
 
           {estAvoir ? (
