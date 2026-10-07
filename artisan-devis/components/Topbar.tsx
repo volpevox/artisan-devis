@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,12 +20,20 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
   const pathname = usePathname();
   const { artisanId } = useArtisanSession();
   const [ouvert, setOuvert] = useState(false);
+  // L'icone de deconnexion est collee a celle des Parametres : on demande
+  // confirmation pour qu'un clic a cote ne deconnecte pas par erreur.
+  const [confirmerDeconnexion, setConfirmerDeconnexion] = useState(false);
   const devisSignesNonVus = useDevisSignesNonVus(artisanId);
   const facturesNonVues = useFacturesNonVues(artisanId);
   const afficherRetour = pathname !== "/" || forcerRetour;
 
-  async function seDeconnecter() {
+  function demanderDeconnexion() {
     setOuvert(false);
+    setConfirmerDeconnexion(true);
+  }
+
+  async function seDeconnecter() {
+    setConfirmerDeconnexion(false);
     await supabase.auth.signOut();
     router.push("/connexion");
   }
@@ -82,7 +91,7 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
             </svg>
           </Link>
 
-          <button className="topbar-logout" onClick={seDeconnecter} aria-label="Se déconnecter">
+          <button className="topbar-logout" onClick={demanderDeconnexion} aria-label="Se déconnecter">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M15 4h-3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M10 12h10m0 0-3.5-3.5M20 12l-3.5 3.5"
@@ -114,10 +123,31 @@ export function Topbar({ onRetour, forcerRetour }: TopbarProps = {}) {
             <Link href="/parametres" onClick={() => setOuvert(false)}>
               Paramètres
             </Link>
-            <button onClick={seDeconnecter}>Déconnexion</button>
+            <button onClick={demanderDeconnexion}>Déconnexion</button>
           </div>
         )}
       </div>
+
+      {confirmerDeconnexion &&
+        createPortal(
+          <div className="notif-propose-fond" onClick={() => setConfirmerDeconnexion(false)}>
+            <div className="notif-propose-feuille" onClick={(e) => e.stopPropagation()}>
+              <p className="notif-propose-titre">Te déconnecter ?</p>
+              <p className="notif-propose-texte">
+                Il faudra te reconnecter pour retrouver tes devis et tes factures.
+              </p>
+              <div className="notif-propose-actions">
+                <button type="button" className="btn btn-primary" onClick={seDeconnecter}>
+                  Me déconnecter
+                </button>
+                <button type="button" className="btn btn-outline" onClick={() => setConfirmerDeconnexion(false)}>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }
