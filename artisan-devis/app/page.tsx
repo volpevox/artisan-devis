@@ -728,6 +728,23 @@ export default function Home() {
       document.getElementById(vueResume ? "resume-adresse" : "client-adresse")?.focus();
       return;
     }
+    // Pas d'envoi a 0 € : une ligne dictee sans prix garde sa case « Prix »
+    // vide, il faut la remplir avant que le client recoive le document.
+    const lignesSansPrix = lignes.map((l) => Boolean(l.description.trim()) && !enNombre(l.prixUnitaire));
+    if (lignesSansPrix.some(Boolean) || total <= 0) {
+      setMessage(
+        typeDocument === "facture"
+          ? "Ajoute un prix sur chaque ligne avant d'envoyer : ton client recevrait une facture à 0 €."
+          : "Ajoute un prix sur chaque ligne avant d'envoyer : ton client recevrait un devis à 0 €."
+      );
+      // Referme la ligne en cours d'edition et fait apparaitre la case
+      // « Prix » sur chaque ligne a completer (vue resume).
+      setLignes((ls) =>
+        ls.map((l, i) => (lignesSansPrix[i] || i === ligneOuverte ? { ...l, prixManquant: !enNombre(l.prixUnitaire) } : l))
+      );
+      setLigneOuverte(null);
+      return;
+    }
     if (proposerProfil("envoi")) return;
     setEnvoiEnCours(true);
     const dejaEnregistre = devisEnregistre;
