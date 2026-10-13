@@ -78,17 +78,26 @@ export async function GET(req: NextRequest) {
 
   const db = createAdminSupabase();
 
-  // Detail d'un compte : ses documents, du plus recent au plus ancien.
+  // Detail d'un compte : ses documents et le texte de ses dictees, du plus
+  // recent au plus ancien. Dictees vides si supabase/dictees.sql pas joue.
   const compte = params.get("compte");
   if (compte) {
-    const { data, error } = await db
-      .from("devis")
-      .select(COLONNES_DEVIS)
-      .eq("artisan_id", compte)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const [{ data, error }, { data: dictees }] = await Promise.all([
+      db
+        .from("devis")
+        .select(COLONNES_DEVIS)
+        .eq("artisan_id", compte)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      db
+        .from("dictees")
+        .select("id, texte, created_at")
+        .eq("artisan_id", compte)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
     if (error) return NextResponse.json({ erreur: "Lecture impossible" }, { status: 500 });
-    return NextResponse.json({ documents: data });
+    return NextResponse.json({ documents: data, dictees: dictees || [] });
   }
 
   try {

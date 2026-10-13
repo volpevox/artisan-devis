@@ -124,6 +124,12 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Texte des dictees garde 90 jours au plus (page Confidentialite).
+  await supabase
+    .from("dictees")
+    .delete()
+    .lt("created_at", new Date(maintenant - 90 * UN_JOUR_MS).toISOString());
+
   return NextResponse.json({ succes: true, relancesEnvoyees, invitationsEnvoyees });
 }
 

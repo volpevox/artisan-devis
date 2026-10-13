@@ -489,6 +489,7 @@ function Indicateur({ ok, libelle }: { ok: boolean; libelle: string }) {
 
 function DetailCompte({ compte: c, onFermer }: { compte: Compte; onFermer: () => void }) {
   const [documents, setDocuments] = useState<Document[] | null>(null);
+  const [dictees, setDictees] = useState<{ id: string; texte: string; created_at: string }[]>([]);
 
   useEffect(() => {
     if (!c.artisanId) {
@@ -504,6 +505,7 @@ function DetailCompte({ compte: c, onFermer }: { compte: Compte; onFermer: () =>
       });
       const j = rep.ok ? await rep.json() : { documents: [] };
       setDocuments(j.documents || []);
+      setDictees(j.dictees || []);
     })();
   }, [c.artisanId]);
 
@@ -595,6 +597,21 @@ function DetailCompte({ compte: c, onFermer }: { compte: Compte; onFermer: () =>
               </div>
             ))}
           </div>
+        )}
+
+        {/* Texte des dictees (90 derniers jours, supabase/dictees.sql) */}
+        {dictees.length > 0 && (
+          <>
+            <h3 className={s.section}>Ce qui a été dicté</h3>
+            <div className={s.docs}>
+              {dictees.map((d) => (
+                <div key={d.id} className={s.dictee}>
+                  <span className={s.muted}>{dateHeure(d.created_at)}</span>
+                  <p className={s.dicteeTexte}>{d.texte}</p>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>,

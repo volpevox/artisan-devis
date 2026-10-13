@@ -34,7 +34,9 @@ export default function Confidentialite() {
           </li>
           <li>
             <strong>Enregistrements vocaux</strong> réalisés par l'artisan lors de la dictée d'une prestation, transmis
-            de façon sécurisée à OpenAI pour transcription et structuration automatique du devis ;
+            de façon sécurisée à OpenAI pour transcription et structuration automatique du devis. L'enregistrement
+            audio n'est pas conservé ; seul le texte transcrit est gardé 90 jours au plus, pour vérifier la qualité
+            de la reconnaissance vocale et améliorer le service ;
           </li>
           <li>
             <strong>Données de paiement</strong> : traitées directement par Stripe ; VolpeVox n'a jamais accès aux
@@ -46,13 +48,14 @@ export default function Confidentialite() {
         <p>
           Ces données sont traitées pour permettre la création de compte, la génération des devis et factures, la
           signature électronique, l'envoi des documents et relances par email, la gestion de l'abonnement et le
-          paiement en ligne des factures.
+          paiement en ligne des factures, ainsi que l'amélioration de la qualité de la dictée.
         </p>
 
         <h2>4. Base légale</h2>
         <p>
           Les traitements sont fondés sur l'exécution du contrat liant l'artisan à VolpeVox (fourniture du service
-          souscrit).
+          souscrit). La conservation du texte des dictées repose sur l'intérêt légitime de VolpeVox à améliorer la
+          qualité de la reconnaissance vocale.
         </p>
 
         <h2>5. Destinataires et sous-traitants</h2>

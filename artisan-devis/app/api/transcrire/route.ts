@@ -44,5 +44,15 @@ export async function POST(req: NextRequest) {
     // ignore
   }
 
+  // Garde le texte (jamais l'audio) pour /admin, efface apres 90 jours
+  // (supabase/dictees.sql). Meme regle : un echec est ignore.
+  if (texte.trim()) {
+    try {
+      await createAdminSupabase().from("dictees").insert({ artisan_id: resultat.artisan.id, texte });
+    } catch {
+      // ignore
+    }
+  }
+
   return NextResponse.json({ texte });
 }
