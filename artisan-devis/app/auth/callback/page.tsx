@@ -55,7 +55,7 @@ export default function AuthCallback() {
 
       // Vraie navigation (window.location) comme apres l'inscription par email.
       if (nouveauCompte) {
-        window.location.href = accesGratuit ? "/profil?bienvenue=gratuit" : "/abonnement";
+        window.location.href = accesGratuit ? "/?bienvenue=gratuit" : "/abonnement";
       } else {
         window.location.href = "/";
       }

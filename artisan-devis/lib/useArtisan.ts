@@ -177,11 +177,17 @@ export function useArtisanSession() {
 
     if (accesBloque && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
       router.push("/abonnement");
-    } else if (!accesBloque && !profilComplet(profilArtisan) && !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)) {
-      // Juste apres l'inscription (et l'abonnement en place), l'artisan doit
-      // completer son profil avant d'utiliser l'outil -- une fois fait, il
-      // n'y repasse plus jamais et retrouve directement la page dictee aux
-      // connexions suivantes.
+    } else if (
+      !accesBloque &&
+      !profilComplet(profilArtisan) &&
+      pathname !== "/" &&
+      !PAGES_TOUJOURS_ACCESSIBLES.includes(pathname)
+    ) {
+      // Profil incomplet : la page dictee reste ouverte (un nouvel inscrit
+      // essaie la dictee tout de suite ; ses infos lui sont demandees au
+      // premier apercu/enregistrement/envoi, voir app/page.tsx). Le reste de
+      // l'outil attend le profil. Avant le 13/10/2026 tout etait bloque ici :
+      // la moitie des inscrits partait sur « Tes infos » sans avoir dicte.
       router.push("/profil");
     }
   }, [pathname, loading, accesBloque, profilArtisan, router]);

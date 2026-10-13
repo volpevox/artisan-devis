@@ -10,7 +10,9 @@ import { LecteurVideoTuto } from "./VideoTuto";
 //   ?bienvenue=1       -> abonnement Stripe demarre (retour de /api/creer-abonnement)
 //   ?bienvenue=gratuit -> email present dans la liste d'acces gratuit (/api/activer-invite)
 // On lit le parametre au montage plutot que via useSearchParams pour eviter
-// d'avoir a englober la page /profil dans un <Suspense> pour ce seul usage.
+// d'avoir a englober la page dans un <Suspense> pour ce seul usage.
+// Affichee sur la page dictee (inscription en acces gratuit) et sur /profil
+// (retour de l'abonnement Stripe, qui y renvoie encore).
 
 export function PropositionCommentCaMarche() {
   const [variante, setVariante] = useState<"abonne" | "gratuit" | null>(null);
@@ -60,15 +62,15 @@ export function PropositionCommentCaMarche() {
             <li>
               <span>1</span>
               <div>
-                <strong>Ton profil</strong>
-                <small>Tes infos pour l&apos;en-tête de tes devis. Une seule fois.</small>
+                <strong>Tu dictes ta prestation</strong>
+                <small>L&apos;IA remplit le devis : client, lignes, prix.</small>
               </div>
             </li>
             <li>
               <span>2</span>
               <div>
-                <strong>Tu dictes ta prestation</strong>
-                <small>L&apos;IA remplit le devis : client, lignes, prix.</small>
+                <strong>Tu vérifies et tu envoies</strong>
+                <small>Tes infos (SIRET, adresse) sont demandées une seule fois, au premier envoi.</small>
               </div>
             </li>
             <li>
@@ -81,7 +83,7 @@ export function PropositionCommentCaMarche() {
           </ol>
 
           <button type="button" className="btn btn-primary bienvenue-bouton" onClick={continuer}>
-            Je remplis mon profil →
+            Je dicte mon premier devis →
           </button>
           <Link href="/parametres/comment-ca-marche" className="bienvenue-lien">
             Voir comment ça marche en détail

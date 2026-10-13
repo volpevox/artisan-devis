@@ -12,7 +12,8 @@ import { prenomDepuisNomComplet } from "@/lib/prenom";
 import { BanniereRodage } from "@/components/BanniereRodage";
 import { SplashEcran } from "@/components/SplashEcran";
 import { estSurEcranAccueil } from "@/components/AideEcranAccueil";
-import { useArtisanSession } from "@/lib/useArtisan";
+import { useArtisanSession, profilComplet } from "@/lib/useArtisan";
+import { PropositionCommentCaMarche } from "@/components/PropositionCommentCaMarche";
 import { UNITES } from "@/lib/unites";
 import { enNombre } from "@/lib/nombre";
 import { normaliserSiren } from "@/lib/siren";
@@ -254,6 +255,25 @@ export default function Home() {
       !profilArtisan?.logo_url ? "logo" : "",
     ].filter(Boolean);
     router.push(`/profil?completer=${aCompleter.join(",")}&retour=${encodeURIComponent(`/?modifier=${id}`)}`);
+  }
+
+  // Nouvel inscrit : il dicte avant d'avoir rempli « Tes infos » (SIRET,
+  // adresse...). Au premier apercu, enregistrement ou envoi, le document est
+  // enregistre en brouillon puis « Tes infos » s'ouvre et ramene ici. Renvoie
+  // true si l'action doit s'arreter.
+  const infosArtisanManquantes = Boolean(artisanId) && !loading && !profilComplet(profilArtisan);
+  async function demanderInfosArtisan(versListe = false) {
+    if (!infosArtisanManquantes) return false;
+    setEnvoiEnCours(true);
+    const id = devisEnregistre ? ((await synchroniser(devisId)) ? devisId : null) : await enregistrer();
+    setEnvoiEnCours(false);
+    if (!id) return true;
+    // Une facture ne se rouvre pas via ?modifier (devis seulement) : retour a
+    // la liste, ou elle attend en brouillon.
+    const retour =
+      typeDocument === "facture" ? "/factures" : versListe ? "/devis" : `/?modifier=${id}&infos=1`;
+    router.push(`/profil?retour=${encodeURIComponent(retour)}`);
+    return true;
   }
 
   async function popupProfilPlusTard() {
@@ -509,6 +529,7 @@ export default function Home() {
   }
 
   async function previsualiser() {
+    if (await demanderInfosArtisan()) return;
     if (proposerProfil("apercu")) return;
     setApercuEnCours(true);
     setMessage("");
@@ -703,6 +724,7 @@ export default function Home() {
   // factures, a envoyer plus tard.
   async function enregistrerSansEnvoyer() {
     if (envoiEnCours) return;
+    if (await demanderInfosArtisan(true)) return;
     setEnvoiEnCours(true);
     const id = await enregistrer();
     setEnvoiEnCours(false);
@@ -721,6 +743,7 @@ export default function Home() {
     const email = clientEmail.trim();
     if (!email || !email.includes("@")) {
       setMessage("Ajoute l'email du client pour lui envoyer. Sinon, utilise « Enregistrer sans envoyer ».");
+      document.getElementById(vueResume ? "resume-email" : "client-email")?.focus();
       return;
     }
     if (!clientAdresse.trim()) {
@@ -745,6 +768,7 @@ export default function Home() {
       setLigneOuverte(null);
       return;
     }
+    if (await demanderInfosArtisan()) return;
     if (proposerProfil("envoi")) return;
     setEnvoiEnCours(true);
     const dejaEnregistre = devisEnregistre;
@@ -948,7 +972,14 @@ export default function Home() {
       setModification({ numero: d.numero_devis ?? null, statut: d.statut });
       setEnvoiConfirme(null);
       setLienSignature("");
-      setMessage("");
+      // Retour de « Tes infos » (demanderInfosArtisan) : pas de seconde
+      // fenetre « presque pret » juste derriere (le petit rappel reste).
+      const retourInfos = new URLSearchParams(window.location.search).get("infos");
+      if (retourInfos) {
+        popupProfilVue.current = true;
+        setPopupProfilDejaVue(true);
+      }
+      setMessage(retourInfos ? "C'est bon, tes infos sont enregistrées : tu peux envoyer ton devis." : "");
       setVueResume(true);
       setEtape("form");
     })();
@@ -1058,6 +1089,7 @@ export default function Home() {
     return (
       <main className="page-shell">
         <Topbar />
+        <PropositionCommentCaMarche />
         <PropositionNotifications session={session} artisanId={artisanId} />
         <BanniereRodage />
 
@@ -1255,7 +1287,7 @@ export default function Home() {
                   type="email"
                   autoCapitalize="none"
                   autoCorrect="off"
-                  placeholder="marie.dupont@email.fr"
+                  placeholder="Ex : marie.dupont@email.fr"
                   value={clientEmail}
                   onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
                 />
@@ -1545,7 +1577,7 @@ export default function Home() {
               type="email"
               autoCapitalize="none"
               autoCorrect="off"
-              placeholder="marie.dupont@email.fr"
+              placeholder="Ex : marie.dupont@email.fr"
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value.toLowerCase())}
             />
@@ -1802,7 +1834,10 @@ export default function Home() {
             Total HT
             <br />
             <span style={{ fontSize: 11.5 }}>
-              TVA ajoutée sur {typeDocument === "facture" ? "la facture" : "le devis"} final
+              {/* Franchise en base (TVA a 0 % dans le profil) : pas de TVA du tout. */}
+              {profilComplet(profilArtisan) && Number(profilArtisan?.taux_tva) === 0
+                ? "TVA non applicable (franchise en base)"
+                : `TVA ajoutée sur ${typeDocument === "facture" ? "la facture" : "le devis"} final`}
             </span>
           </span>
           <span className="total-bloc-montant">{euros(total)}</span>
@@ -1817,6 +1852,10 @@ export default function Home() {
         >
           {apercuEnCours ? "Génération de l'aperçu..." : "Prévisualiser en PDF"}
         </button>
+
+        {/* Entre les deux boutons (et pas tout en bas) : visible sur un
+            telephone au moment ou on appuie, sinon « rien ne se passe ». */}
+        {message && <p className="message">{message}</p>}
 
         {envoiConfirme ? (
           <div className="envoi-confirme">
@@ -1910,8 +1949,6 @@ export default function Home() {
             )}
           </>
         )}
-
-        {message && <p className="message">{message}</p>}
       </div>
 
       {lienSignature && !envoiConfirme && (

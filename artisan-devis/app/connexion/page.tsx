@@ -142,15 +142,11 @@ function ConnexionContenu() {
         // Direction /abonnement (et non /profil) : la carte bancaire est
         // desormais obligatoire des l'inscription, useArtisan.ts y renverrait
         // de toute facon tant qu'aucun abonnement Stripe n'existe -- sauf pour
-        // un email a acces gratuit, deja gere ci-dessus. Le "?bienvenue=..."
-        // vers /profil directement (et pas juste "/") reproduit ce que fait le
-        // retour de paiement Stripe reussi (/api/creer-abonnement) : sans lui,
-        // le popup de bienvenue (PropositionCommentCaMarche, qui ne lit ce
-        // parametre que sur /profil) ne s'affiche jamais pour l'acces gratuit,
-        // et passer par "/" d'abord le ferait perdre au prochain redirect de
-        // useArtisan.ts vers /profil. Valeur "gratuit" (et non "1") pour que
-        // le popup affiche la variante "premier mois offert".
-        window.location.href = accesGratuit ? "/profil?bienvenue=gratuit" : "/abonnement";
+        // un email a acces gratuit, deja gere ci-dessus. Acces gratuit : droit
+        // sur la page dictee (depuis le 13/10/2026, le profil est demande au
+        // premier apercu/envoi, voir app/page.tsx), avec "?bienvenue=gratuit"
+        // pour le popup de bienvenue (PropositionCommentCaMarche).
+        window.location.href = accesGratuit ? "/?bienvenue=gratuit" : "/abonnement";
       } else {
         setMessageOk(true);
         setMessage("Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.");

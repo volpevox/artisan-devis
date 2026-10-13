@@ -333,13 +333,15 @@ export default function Profil() {
     // complet : on l'envoie directement vers la page dictee plutot que de le
     // laisser sur ce formulaire. Une simple mise a jour ulterieure (logo,
     // SIRET...) reste sur place avec le message de confirmation habituel.
-    if (etaitIncomplet) {
-      router.push("/");
+    // Arrive depuis un devis dicte (?retour=/?modifier=ID, voir
+    // demanderInfosArtisan dans app/page.tsx) : retour a ce document.
+    if (retour) {
+      router.push(retour);
       return;
     }
 
-    if (retour) {
-      router.push(retour);
+    if (etaitIncomplet) {
+      router.push("/");
       return;
     }
 
@@ -447,9 +449,16 @@ export default function Profil() {
         <PropositionCommentCaMarche />
 
         <h1 className="page-title">Tes infos</h1>
-        <p className="hint" style={{ margin: "0 0 16px" }}>
-          Elles apparaissent sur tes devis et factures. Ça prend une minute.
-        </p>
+        {retour ? (
+          <p className="hint" style={{ margin: "0 0 16px" }}>
+            <strong>✓ Ton document est enregistré.</strong> Dernière étape avant de l&apos;envoyer : tes infos, qui
+            apparaissent en haut de tes devis et factures. Une seule fois, ça prend une minute.
+          </p>
+        ) : (
+          <p className="hint" style={{ margin: "0 0 16px" }}>
+            Elles apparaissent sur tes devis et factures. Ça prend une minute.
+          </p>
+        )}
 
         <div className="form-bloc">
           <p className="form-bloc-titre">1. Trouve ton entreprise</p>
